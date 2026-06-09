@@ -1,4 +1,4 @@
-// EdgeOne Pages Node Function: /api/chat
+// Cloudflare Pages Function: /api/chat
 // 代理火山引擎 CodingPlan API - 支持流式和非流式
 
 const API_KEY = "ark-0807eeda-ed14-41c5-b2ab-cfc593367186-fa539";

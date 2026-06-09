@@ -1,8 +1,8 @@
-// EdgeOne Pages Node Function: /api/cloud/backup
-// 使用 Edge KV 存储对话数据
+// Cloudflare Pages Function: /api/cloud/backup
+// 暂用本地存储模式（可后续接入 Cloudflare KV）
 
 export async function onRequest(context) {
-  const { request, env } = context;
+  const { request } = context;
   const headers = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*'
@@ -26,19 +26,11 @@ export async function onRequest(context) {
   }
 
   try {
-    const data = await request.json();
-
-    // 尝试使用 Edge KV（需要在 EdgeOne 控制台绑定）
-    if (env && env.CODINGPLAN_KV) {
-      await env.CODINGPLAN_KV.put('chat_backup', JSON.stringify(data));
-      return new Response(JSON.stringify({ ok: true, method: 'edge-kv' }), { status: 200, headers });
-    }
-
-    // 无 KV 绑定时返回提示
+    // 云端备份暂时返回提示（可后续接入 Cloudflare KV）
     return new Response(JSON.stringify({
       ok: true,
       method: 'ephemeral',
-      hint: '云端备份需要绑定 KV 存储。建议定期导出 .md 文件作为永久备份。'
+      hint: '云端备份功能开发中。建议定期导出 .md 文件作为永久备份。'
     }), { status: 200, headers });
   } catch (e) {
     return new Response(JSON.stringify({ ok: false, error: e.message }), { status: 500, headers });

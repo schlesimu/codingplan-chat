@@ -1,4 +1,4 @@
-// EdgeOne Pages Node Function: /api/models
+// Cloudflare Pages Function: /api/models
 
 const API_KEY = "ark-0807eeda-ed14-41c5-b2ab-cfc593367186-fa539";
 const API_BASE = "https://ark.cn-beijing.volces.com/api/coding/v3";
