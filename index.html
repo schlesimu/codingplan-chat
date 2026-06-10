@@ -1331,7 +1331,7 @@ body {
         <img src="logo.png" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.4.1</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.4.2</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -2088,6 +2088,13 @@ function showApiKeyDialog() {
 // ========== 更新日志 ==========
 function showChangelog() {
   const changelog = [
+    { v: 'v0.4.2', date: '2026-06-10', items: [
+      '🔧 修复右键/长按菜单不触发的问题',
+      'hover 操作按钮新增「朗读」：复制/引用/朗读/重新生成',
+      '右键/长按事件改为绑在整个 msg div 上',
+      'PC 端右键触发菜单，移动端长按 500ms 触发',
+      '流式回复完成后自动绑定操作事件',
+    ]},
     { v: 'v0.4.1', date: '2026-06-10', items: [
       '🔊 右键/长按菜单新增「朗读」按钮',
       '修复右键菜单空白按钮问题',
@@ -2591,22 +2598,30 @@ function addMessage(role, content, hasImage = false) {
     actions.innerHTML = `
       <button class="msg-action-btn" title="复制"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
       <button class="msg-action-btn" title="引用"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15v4c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
+      <button class="msg-action-btn" title="朗读"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></button>
       <button class="msg-action-btn" title="重新生成"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
     `;
     // 绑定事件
     actions.children[0].onclick = (e) => { e.stopPropagation(); copyText(content); };
     actions.children[1].onclick = (e) => { e.stopPropagation(); quoteText(content); };
-    actions.children[2].onclick = (e) => { e.stopPropagation(); regenerateAnswer(div); };
+    actions.children[2].onclick = (e) => { e.stopPropagation(); speakText(content); };
+    actions.children[3].onclick = (e) => { e.stopPropagation(); regenerateAnswer(div); };
     bodyWrap.appendChild(actions);
-    // 右键菜单
-    bubble.addEventListener('contextmenu', (e) => { e.preventDefault(); showMsgContextMenu(e, content, div); });
-    // 移动端长按
+    // 右键菜单 — 绑在 msg div 上确保整个区域都能触发
+    div.addEventListener('contextmenu', (e) => { e.preventDefault(); showMsgContextMenu(e, content, div); });
+    // 移动端长按 — 阻止文字选择
     let longPressTimer;
-    bubble.addEventListener('touchstart', (e) => {
-      longPressTimer = setTimeout(() => { showMsgContextMenu(e, content, div); }, 500);
+    div.addEventListener('touchstart', (e) => {
+      longPressTimer = setTimeout(() => {
+        showMsgContextMenu(e, content, div);
+      }, 500);
+    }, { passive: true });
+    div.addEventListener('touchend', () => clearTimeout(longPressTimer));
+    div.addEventListener('touchmove', () => clearTimeout(longPressTimer));
+    // 阻止长按时的文字选择
+    div.addEventListener('selectstart', (e) => {
+      if (longPressTimer) e.preventDefault();
     });
-    bubble.addEventListener('touchend', () => clearTimeout(longPressTimer));
-    bubble.addEventListener('touchmove', () => clearTimeout(longPressTimer));
   }
 
   div.appendChild(avatar); div.appendChild(bodyWrap);
@@ -2627,6 +2642,33 @@ function addStreamingMessage() {
   chatArea.appendChild(div);
   chatArea.scrollTop = chatArea.scrollHeight;
   return { div, bubble };
+}
+
+// 给流式消息 div 补上操作按钮和右键/长按事件
+function setupAssistantActions(div, bubble, content) {
+  // 操作按钮
+  const actions = document.createElement('div'); actions.className = 'msg-actions';
+  actions.innerHTML = `
+    <button class="msg-action-btn" title="复制"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+    <button class="msg-action-btn" title="引用"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15v4c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
+    <button class="msg-action-btn" title="朗读"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></button>
+    <button class="msg-action-btn" title="重新生成"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
+  `;
+  actions.children[0].onclick = (e) => { e.stopPropagation(); copyText(content); };
+  actions.children[1].onclick = (e) => { e.stopPropagation(); quoteText(content); };
+  actions.children[2].onclick = (e) => { e.stopPropagation(); speakText(content); };
+  actions.children[3].onclick = (e) => { e.stopPropagation(); regenerateAnswer(div); };
+  bubble.parentElement.appendChild(actions);
+  
+  // 右键菜单 — 整个 msg div 都能触发
+  div.addEventListener('contextmenu', (e) => { e.preventDefault(); showMsgContextMenu(e, content, div); });
+  // 移动端长按
+  let longPressTimer;
+  div.addEventListener('touchstart', (e) => {
+    longPressTimer = setTimeout(() => { showMsgContextMenu(e, content, div); }, 500);
+  }, { passive: true });
+  div.addEventListener('touchend', () => clearTimeout(longPressTimer));
+  div.addEventListener('touchmove', () => clearTimeout(longPressTimer));
 }
 
 // ========== 联网搜索 ==========
@@ -2928,6 +2970,8 @@ async function sendMessage() {
   if (fullContent) {
     messages.push({ role: 'assistant', content: fullContent });
     saveCurrentConversation();
+    // 给流式消息 div 加上右键/长按/操作按钮
+    setupAssistantActions(div, bubble, fullContent);
   }
 
   isStreaming = false; sendBtn.disabled = false; userInput.focus();
