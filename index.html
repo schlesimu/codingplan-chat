@@ -135,63 +135,68 @@ html { font-size: 13px; }
 }
 
 [data-theme="light"] {
-  --bg-gradient: linear-gradient(170deg, #e8ecf1 0%, #f0f2f5 30%, #f8f4fa 60%, #eef0f4 100%);
+  --bg-gradient: linear-gradient(170deg, #eaeef3 0%, #f2f4f7 30%, #f9f6fb 60%, #f0f2f6 100%);
   --text-main: #1c1c1e;
-  --text-dim: rgba(0,0,0,0.25);
+  --text-dim: rgba(0,0,0,0.22);
   --text-error: #d32f2f;
-  --header-bg: rgba(255,255,255,0.55);
-  --header-border: rgba(0,0,0,0.08);
+  /* 顶栏：更透亮 */
+  --header-bg: rgba(255,255,255,0.4);
+  --header-border: rgba(0,0,0,0.05);
   --header-title: #1c1c1e;
-  --btn-bg: rgba(0,0,0,0.05);
-  --btn-border: rgba(0,0,0,0.08);
-  --btn-color: rgba(0,0,0,0.5);
-  --btn-active-bg: rgba(0,0,0,0.1);
-  --sidebar-bg: rgba(255,255,255,0.85);
-  --sidebar-border: rgba(0,0,0,0.06);
-  --sidebar-item-hover: rgba(0,0,0,0.04);
-  --sidebar-item-active: rgba(255,100,60,0.1);
-  --sidebar-text: rgba(0,0,0,0.55);
+  --btn-bg: rgba(0,0,0,0.04);
+  --btn-border: rgba(0,0,0,0.06);
+  --btn-color: rgba(0,0,0,0.45);
+  --btn-active-bg: rgba(0,0,0,0.08);
+  /* 侧边栏：高透 + 暖白底 */
+  --sidebar-bg: rgba(255,255,255,0.58);
+  --sidebar-border: rgba(0,0,0,0.04);
+  --sidebar-item-hover: rgba(0,0,0,0.03);
+  --sidebar-item-active: rgba(255,100,60,0.08);
+  --sidebar-text: rgba(0,0,0,0.5);
   --sidebar-text-active: #1c1c1e;
-  --sidebar-section-title: rgba(0,0,0,0.35);
-  --sidebar-divider: rgba(0,0,0,0.06);
-  --overlay-bg: rgba(0,0,0,0.3);
-  --avatar-assistant-bg: rgba(255,100,60,0.15);
-  --avatar-assistant-border: rgba(255,100,60,0.2);
-  --avatar-user-bg: rgba(0,180,100,0.15);
-  --avatar-user-border: rgba(0,180,100,0.2);
+  --sidebar-section-title: rgba(0,0,0,0.3);
+  --sidebar-divider: rgba(0,0,0,0.04);
+  --overlay-bg: rgba(0,0,0,0.2);
+  --avatar-assistant-bg: rgba(255,100,60,0.12);
+  --avatar-assistant-border: rgba(255,100,60,0.18);
+  --avatar-user-bg: rgba(0,180,100,0.12);
+  --avatar-user-border: rgba(0,180,100,0.18);
   --avatar-user-color: #34c759;
-  --bubble-ai-bg: rgba(255,255,255,0.55);
-  --bubble-ai-border: rgba(0,0,0,0.06);
+  /* AI 气泡：高透玻璃 */
+  --bubble-ai-bg: rgba(255,255,255,0.42);
+  --bubble-ai-border: rgba(0,0,0,0.04);
   --bubble-ai-color: #1c1c1e;
-  --bubble-ai-shadow: 0 2px 16px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.6);
+  --bubble-ai-shadow: 0 1px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.7);
   --bubble-user-bg: linear-gradient(135deg, rgba(0,180,100,0.55), rgba(0,140,200,0.45));
   --bubble-user-border: rgba(0,180,120,0.25);
   --bubble-user-color: #fff;
-  --bubble-user-shadow: 0 4px 18px rgba(0,180,100,0.2);
-  --code-bg: rgba(0,0,0,0.06);
+  --bubble-user-shadow: 0 4px 18px rgba(0,180,100,0.18);
+  --code-bg: rgba(0,0,0,0.05);
   --code-color: #d63384;
-  --pre-bg: rgba(0,0,0,0.04);
-  --pre-border: rgba(0,0,0,0.06);
+  --pre-bg: rgba(255,255,255,0.4);
+  --pre-border: rgba(0,0,0,0.04);
   --pre-color: #383a42;
-  --quick-bg: rgba(255,255,255,0.5);
-  --quick-border: rgba(0,0,0,0.08);
-  --quick-color: rgba(0,0,0,0.65);
-  --quick-active-bg: rgba(255,100,60,0.2);
-  --quick-active-border: rgba(255,100,60,0.3);
-  --input-bg: rgba(255,255,255,0.55);
-  --input-border: rgba(0,0,0,0.08);
+  /* 快捷按钮 */
+  --quick-bg: rgba(255,255,255,0.4);
+  --quick-border: rgba(0,0,0,0.05);
+  --quick-color: rgba(0,0,0,0.6);
+  --quick-active-bg: rgba(255,100,60,0.15);
+  --quick-active-border: rgba(255,100,60,0.25);
+  /* 输入区 */
+  --input-bg: rgba(255,255,255,0.45);
+  --input-border: rgba(0,0,0,0.05);
   --input-color: #1c1c1e;
-  --input-placeholder: rgba(0,0,0,0.3);
-  --input-focus-border: rgba(255,100,60,0.4);
-  --input-focus-bg: rgba(255,255,255,0.8);
-  --input-focus-shadow: 0 0 20px rgba(255,100,60,0.1);
-  --input-area-bg: rgba(255,255,255,0.55);
-  --input-area-border: rgba(0,0,0,0.06);
-  --typing-dot: rgba(0,0,0,0.25);
-  --orb-opacity: 0.35;
-  --orb1-color: rgba(160,140,255,0.5);
-  --orb2-color: rgba(255,160,140,0.35);
-  --orb3-color: rgba(140,200,255,0.4);
+  --input-placeholder: rgba(0,0,0,0.25);
+  --input-focus-border: rgba(255,100,60,0.35);
+  --input-focus-bg: rgba(255,255,255,0.7);
+  --input-focus-shadow: 0 0 24px rgba(255,100,60,0.08);
+  --input-area-bg: rgba(255,255,255,0.42);
+  --input-area-border: rgba(0,0,0,0.04);
+  --typing-dot: rgba(0,0,0,0.2);
+  --orb-opacity: 0.3;
+  --orb1-color: rgba(160,140,255,0.45);
+  --orb2-color: rgba(255,160,140,0.3);
+  --orb3-color: rgba(140,200,255,0.35);
 }
 
 /* ========== 背景层 ========== */
@@ -391,12 +396,15 @@ body {
 
 /* 浅色模式 */
 [data-theme="light"] .onb-title { color: #1c1c1e; }
-[data-theme="light"] .onb-subtitle { color: rgba(0,0,0,0.4); }
-[data-theme="light"] .onb-privacy-text { color: rgba(0,0,0,0.3); }
+[data-theme="light"] .onb-subtitle { color: rgba(0,0,0,0.35); }
+[data-theme="light"] .onb-privacy-text { color: rgba(0,0,0,0.25); }
 [data-theme="light"] .onb-btn-secondary {
-  background: rgba(0,0,0,0.04);
-  color: rgba(0,0,0,0.55);
-  border-color: rgba(0,0,0,0.08);
+  background: rgba(255,255,255,0.5);
+  backdrop-filter: blur(24px) saturate(180%) brightness(1.15);
+  -webkit-backdrop-filter: blur(24px) saturate(180%) brightness(1.15);
+  color: rgba(0,0,0,0.5);
+  border-color: rgba(0,0,0,0.06);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255,255,255,0.6);
 }
 
 /* ================================================ */
@@ -441,8 +449,26 @@ body {
 }
 [data-theme="light"] .sidebar::before {
   background: 
-    radial-gradient(ellipse at 0% 0%, rgba(255,255,255,0.3) 0%, transparent 50%),
-    radial-gradient(ellipse at 100% 100%, rgba(0,0,0,0.03) 0%, transparent 50%);
+    /* 顶部大面积高光 - 模拟光线射入玻璃上表面 */
+    radial-gradient(ellipse 120% 60% at 50% 0%, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0.1) 50%, transparent 80%),
+    /* 左上角暖色折射 */
+    radial-gradient(ellipse 40% 30% at 10% 15%, rgba(255,180,140,0.15) 0%, transparent 70%),
+    /* 右下角冷色折射 */
+    radial-gradient(ellipse 30% 25% at 90% 85%, rgba(140,180,255,0.1) 0%, transparent 70%),
+    /* 底部暗角增强厚度感 */
+    radial-gradient(ellipse 100% 20% at 50% 100%, rgba(0,0,0,0.02) 0%, transparent 60%);
+  opacity: 0.85;
+}
+/* 侧边栏边缘色散微光（仅浅色模式） */
+[data-theme="light"] .sidebar {
+  box-shadow: 
+    inset 1px 0 0 rgba(255,255,255,0.4),
+    inset -1px 0 0 rgba(0,0,0,0.02),
+    /* 右侧边缘暖色微光 */
+    1px 0 0 rgba(255,160,120,0.06),
+    /* 底部冷色微光 */
+    0 1px 0 rgba(140,180,255,0.04),
+    4px 0 30px rgba(0,0,0,0.06);
 }
 .sidebar-header, .sidebar-section, .sidebar-chat-list, .sidebar-footer, .sidebar-new-chat { position: relative; z-index: 1; }
 
@@ -478,6 +504,19 @@ body {
   font-size: 14px; transition: all 0.25s;
 }
 .sidebar-close:active { background: var(--btn-active-bg); transform: scale(0.92); }
+/* 浅色模式侧边栏按钮增强 */
+[data-theme="light"] .sidebar-close {
+  backdrop-filter: blur(12px) saturate(150%) brightness(1.1);
+  -webkit-backdrop-filter: blur(12px) saturate(150%) brightness(1.1);
+  background: rgba(255,255,255,0.35);
+  border-color: rgba(0,0,0,0.05);
+}
+[data-theme="light"] .sidebar-new-chat {
+  backdrop-filter: blur(14px) saturate(150%) brightness(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(150%) brightness(1.1);
+  background: rgba(255,255,255,0.35);
+  border-color: rgba(0,0,0,0.05);
+}
 
 .sidebar-new-chat {
   margin: 0 12px 10px;
@@ -559,6 +598,12 @@ body {
   border-color: #3b82f6; color: #3b82f6;
   background: rgba(59,130,246,0.1);
 }
+/* 浅色模式搜索开关 */
+[data-theme="light"] .sidebar-search-toggle {
+  backdrop-filter: blur(10px) saturate(150%) brightness(1.1);
+  -webkit-backdrop-filter: blur(10px) saturate(150%) brightness(1.1);
+  background: rgba(255,255,255,0.35);
+}
 .sidebar-footer-item {
   display: flex; align-items: center; gap: 8px;
   padding: 8px 10px; border-radius: 8px;
@@ -568,6 +613,15 @@ body {
 }
 .sidebar-footer-item:hover, .sidebar-footer-item:active {
   background: var(--sidebar-item-hover); color: var(--sidebar-text-active);
+}
+/* 浅色模式 footer 按钮 */
+[data-theme="light"] .sidebar-footer-item {
+  backdrop-filter: blur(8px) saturate(140%) brightness(1.08);
+  -webkit-backdrop-filter: blur(8px) saturate(140%) brightness(1.08);
+}
+[data-theme="light"] .sidebar-collapse-toggle {
+  backdrop-filter: blur(8px) saturate(140%) brightness(1.08);
+  -webkit-backdrop-filter: blur(8px) saturate(140%) brightness(1.08);
 }
 .sidebar-footer-item .footer-icon { font-size: 14px; width: 20px; text-align: center; flex-shrink: 0; }
 
@@ -606,6 +660,25 @@ body {
   transition: background 0.5s, border-color 0.5s;
   /* 玻璃下边缘微光 */
   box-shadow: 0 1px 0 rgba(255,255,255,0.06), 0 4px 20px rgba(0,0,0,0.08);
+}
+/* 浅色模式顶栏增强 */
+[data-theme="light"] .header {
+  backdrop-filter: blur(36px) saturate(180%) brightness(1.15);
+  -webkit-backdrop-filter: blur(36px) saturate(180%) brightness(1.15);
+  box-shadow: 
+    0 1px 0 rgba(255,255,255,0.5),
+    0 4px 16px rgba(0,0,0,0.04);
+}
+/* 顶栏高光纹理 */
+.header::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background: radial-gradient(ellipse 100% 80% at 50% 0%, rgba(255,255,255,0.08) 0%, transparent 70%);
+  opacity: 0; transition: opacity 0.5s;
+}
+[data-theme="light"] .header::before {
+  background: 
+    radial-gradient(ellipse 120% 100% at 50% 0%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.05) 60%, transparent 90%);
+  opacity: 1;
 }
 .header-left { display: flex; align-items: center; gap: 10px; }
 .btn-menu {
@@ -729,20 +802,28 @@ body {
   transition: opacity 0.5s;
 }
 /* 浅色模式下的微调 */
+[data-theme="light"] .msg.assistant .bubble {
+  backdrop-filter: blur(20px) saturate(160%) brightness(1.15) contrast(0.92);
+  -webkit-backdrop-filter: blur(20px) saturate(160%) brightness(1.15) contrast(0.92);
+}
 [data-theme="light"] .msg.assistant .bubble::before {
   background: 
-    radial-gradient(ellipse 100% 80% at 50% 0%, rgba(255,255,255,0.5) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 90% 90%, rgba(0,0,0,0.03) 0%, transparent 70%);
-  opacity: 0.6;
+    /* 顶部明亮高光 - 模拟玻璃表面反光 */
+    radial-gradient(ellipse 100% 70% at 50% 0%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 40%, transparent 70%),
+    /* 底部暗角 */
+    radial-gradient(ellipse 60% 30% at 50% 100%, rgba(0,0,0,0.02) 0%, transparent 70%);
+  opacity: 0.8;
 }
 [data-theme="light"] .msg.assistant .bubble::after {
+  /* 彩虹色散边缘 - 模拟棱镜折射 */
   background: linear-gradient(
     135deg,
-    rgba(255,100,60,0.05) 0%,
-    transparent 25%,
-    rgba(80,160,255,0.04) 50%,
-    transparent 75%,
-    rgba(255,100,60,0.02) 100%
+    rgba(255,80,40,0.07) 0%,
+    rgba(255,180,40,0.04) 15%,
+    transparent 30%,
+    rgba(80,160,255,0.05) 60%,
+    transparent 78%,
+    rgba(180,80,255,0.04) 100%
   );
 }
 
@@ -795,6 +876,12 @@ body {
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
 }
 .msg.assistant .bubble pre code { background: none; padding: 0; color: var(--pre-color); transition: color 0.5s; }
+/* 浅色模式代码块玻璃增强 */
+[data-theme="light"] .msg.assistant .bubble pre {
+  backdrop-filter: blur(14px) saturate(130%) brightness(1.08);
+  -webkit-backdrop-filter: blur(14px) saturate(130%) brightness(1.08);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.03);
+}
 
 /* ========== 思考动画 ========== */
 .typing-indicator { display: inline-flex; gap: 5px; padding: 6px 0 2px; }
@@ -843,6 +930,14 @@ body {
   color: #fff;
 }
 [data-theme="light"] .quick-btn:active { color: #1c1c1e; }
+/* 浅色模式快捷按钮增强 */
+[data-theme="light"] .quick-btn {
+  backdrop-filter: blur(20px) saturate(150%) brightness(1.12);
+  -webkit-backdrop-filter: blur(20px) saturate(150%) brightness(1.12);
+}
+[data-theme="light"] .quick-btn::before {
+  background: radial-gradient(ellipse 100% 70% at 50% 0%, rgba(255,255,255,0.35) 0%, transparent 60%);
+}
 
 /* ========== 输入区 — iOS26 悬浮 Dock 栏 ========== */
 .input-area {
@@ -871,10 +966,16 @@ body {
 }
 /* 浅色模式 dock */
 [data-theme="light"] .input-area {
+  backdrop-filter: blur(36px) saturate(170%) brightness(1.15);
+  -webkit-backdrop-filter: blur(36px) saturate(170%) brightness(1.15);
   box-shadow: 
-    0 -1px 0 rgba(0,0,0,0.03),
-    0 8px 32px rgba(0,0,0,0.08),
-    0 2px 8px rgba(0,0,0,0.04);
+    0 -1px 0 rgba(255,255,255,0.5),
+    /* 彩虹边缘微光 */
+    0 1px 0 rgba(255,160,120,0.05),
+    0 -1px 0 rgba(140,180,255,0.04),
+    /* 悬浮阴影 */
+    0 4px 20px rgba(0,0,0,0.05),
+    0 1px 4px rgba(0,0,0,0.03);
 }
 /* dock 高光纹理 */
 .input-area::before {
@@ -912,6 +1013,12 @@ body {
   transform: scale(1.01);
 }
 .input-row textarea::placeholder { color: var(--input-placeholder); transition: color 0.5s; }
+/* 浅色模式输入框 */
+[data-theme="light"] .input-row textarea {
+  backdrop-filter: blur(14px) saturate(140%) brightness(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(140%) brightness(1.1);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+}
 .send-btn {
   width: 38px; height: 38px;
   background: linear-gradient(135deg, #ff6b35, #ff3d00);
@@ -1004,7 +1111,7 @@ body {
         <svg viewBox="0 0 24 24"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z" fill="currentColor" opacity="0.5"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z" fill="currentColor"/></svg>
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version">v1.0</span>
+      <span class="sidebar-version">v1.1</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
