@@ -1,8 +1,8 @@
 // Cloudflare Pages Function: /api/cloud/backup
-// 暂用本地存储模式（可后续接入 Cloudflare KV）
+// 使用 Cloudflare KV 存储对话数据
 
 export async function onRequest(context) {
-  const { request } = context;
+  const { request, env } = context;
   const headers = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*'
@@ -26,11 +26,25 @@ export async function onRequest(context) {
   }
 
   try {
-    // 云端备份暂时返回提示（可后续接入 Cloudflare KV）
+    const data = await request.json();
+    const { token, conversations, updatedAt } = data;
+
+    if (!token) {
+      return new Response(JSON.stringify({ ok: false, error: '缺少用户标识' }), { status: 400, headers });
+    }
+
+    // 使用 KV 存储，key 格式: backup_{token}
+    const key = `backup_${token}`;
+    await env.CODINGPLAN_KV.put(key, JSON.stringify({
+      conversations,
+      updatedAt: updatedAt || Date.now(),
+      count: Object.keys(conversations || {}).length
+    }));
+
     return new Response(JSON.stringify({
       ok: true,
-      method: 'ephemeral',
-      hint: '云端备份功能开发中。建议定期导出 .md 文件作为永久备份。'
+      method: 'kv',
+      count: Object.keys(conversations || {}).length
     }), { status: 200, headers });
   } catch (e) {
     return new Response(JSON.stringify({ ok: false, error: e.message }), { status: 500, headers });

@@ -1349,7 +1349,8 @@ async function cloudUpload() {
 // 从服务器恢复数据
 async function cloudDownload() {
   try {
-    const resp = await fetch('/api/cloud/restore');
+    const token = await getCloudToken();
+    const resp = await fetch('/api/cloud/restore?token=' + encodeURIComponent(token));
     const result = await resp.json();
     if (result.ok && result.data && result.data.conversations) {
       const cloud = result.data.conversations;
