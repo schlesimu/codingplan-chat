@@ -1,9 +1,9 @@
 // Cloudflare Pages Function: /api/chat
 // 代理火山引擎 CodingPlan API - 支持流式和非流式
-// 支持自定义 API Key（通过请求头 X-Codingplan-Key 传入）
+// 支持自定义 API Key 和 Base URL（通过请求头传入）
 
 const DEFAULT_API_KEY = "ark-0807eeda-ed14-41c5-b2ab-cfc593367186-fa539";
-const API_BASE = "https://ark.cn-beijing.volces.com/api/coding/v3";
+const DEFAULT_API_BASE = "https://ark.cn-beijing.volces.com/api/coding/v3";
 const MODEL = "ark-code-latest";
 
 export async function onRequest(context) {
@@ -16,7 +16,7 @@ export async function onRequest(context) {
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, X-Codingplan-Key'
+        'Access-Control-Allow-Headers': 'Content-Type, X-Codingplan-Key, X-Codingplan-Base'
       }
     });
   }
@@ -32,7 +32,9 @@ export async function onRequest(context) {
     const body = await request.json();
     const { messages, stream } = body || {};
 
-    const resp = await fetch(`${API_BASE}/chat/completions`, {
+    const apiBase = request.headers.get('X-Codingplan-Base') || DEFAULT_API_BASE;
+
+    const resp = await fetch(`${apiBase}/chat/completions`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${request.headers.get('X-Codingplan-Key') || DEFAULT_API_KEY}`,

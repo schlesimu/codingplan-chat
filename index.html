@@ -1195,7 +1195,7 @@ body {
         <svg viewBox="0 0 24 24"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z" fill="currentColor" opacity="0.5"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z" fill="currentColor"/></svg>
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v1.9</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.2.0</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -1857,6 +1857,9 @@ function setApiKeys(keys) {
 function getCodingplanKey() {
   return getApiKeys().codingplan || '';
 }
+function getCodingplanBaseURL() {
+  return getApiKeys().baseURL || '';
+}
 function getSearchKey() {
   return getApiKeys().search || '';
 }
@@ -1864,8 +1867,10 @@ function getSearchKey() {
 function showApiKeyDialog() {
   const keys = getApiKeys();
   const codingplanKey = keys.codingplan || '';
+  const baseURL = keys.baseURL || '';
   const searchKey = keys.search || '';
   const hasCustomCodingplan = !!codingplanKey;
+  const hasCustomBaseURL = !!baseURL;
   const hasCustomSearch = !!searchKey;
 
   let html = '<div style="text-align:center;margin-bottom:16px;font-size:16px;font-weight:700;color:var(--text-main)">🔑 API Key 设置</div>';
@@ -1874,6 +1879,12 @@ function showApiKeyDialog() {
   html += '<div style="font-size:12px;color:var(--sidebar-text);margin-bottom:4px">CodingPlan API Key</div>';
   html += `<input id="apikey-codingplan" type="password" placeholder="${hasCustomCodingplan ? '已设置自定义 Key' : '使用默认 Key'}" value="${codingplanKey}" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--sidebar-divider);background:var(--input-bg);color:var(--input-color);font-size:12px;font-family:inherit">`;
   html += `<div style="font-size:10px;color:var(--text-dim);margin-top:3px">留空使用默认火山引擎 Key</div>`;
+  html += '</div>';
+
+  html += '<div style="margin-bottom:12px">';
+  html += '<div style="font-size:12px;color:var(--sidebar-text);margin-bottom:4px">API Base URL</div>';
+  html += `<input id="apikey-baseurl" type="text" placeholder="${hasCustomBaseURL ? '已设置自定义地址' : 'https://ark.cn-beijing.volces.com/api/coding/v3'}" value="${baseURL}" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--sidebar-divider);background:var(--input-bg);color:var(--input-color);font-size:12px;font-family:inherit">`;
+  html += `<div style="font-size:10px;color:var(--text-dim);margin-top:3px">可接入其他兼容 OpenAI 格式的 API</div>`;
   html += '</div>';
 
   html += '<div style="margin-bottom:12px">';
@@ -1905,15 +1916,18 @@ function showApiKeyDialog() {
   saveBtn.style.cssText = 'padding:8px 18px;border-radius:10px;border:none;background:linear-gradient(135deg,#ff6b35,#ff3d00);color:#fff;cursor:pointer;font-size:13px;font-family:inherit';
   saveBtn.onclick = () => {
     const codingplanVal = document.getElementById('apikey-codingplan').value.trim();
+    const baseURLVal = document.getElementById('apikey-baseurl').value.trim();
     const searchVal = document.getElementById('apikey-search').value.trim();
     const keys = {};
     if (codingplanVal) keys.codingplan = codingplanVal;
+    if (baseURLVal) keys.baseURL = baseURLVal;
     if (searchVal) keys.search = searchVal;
     setApiKeys(keys);
     overlay.remove();
     alert('✅ API Key 已保存！\n\n' + 
-      (codingplanVal ? 'CodingPlan：自定义 Key\n' : 'CodingPlan：使用默认 Key\n') +
-      (searchVal ? '联网搜索：自定义 Key' : '联网搜索：使用默认 Key'));
+      (codingplanVal ? 'CodingPlan Key：自定义\n' : 'CodingPlan Key：使用默认\n') +
+      (baseURLVal ? 'Base URL：自定义\n' : 'Base URL：使用默认\n') +
+      (searchVal ? '搜索 Key：自定义' : '搜索 Key：使用默认'));
   };
 
   btnRow.appendChild(cancelBtn);
@@ -1925,44 +1939,66 @@ function showApiKeyDialog() {
 // ========== 更新日志 ==========
 function showChangelog() {
   const changelog = [
-    { v: 'v1.6', date: '2026-06-10', items: [
-      '修复云同步三个按钮（未同步/从云端恢复/同步码）点击无反应的问题',
+    { v: 'v0.2.0', date: '2026-06-10', items: [
+      'API Key 设置页新增 Base URL 输入框',
+      '支持接入其他兼容 OpenAI 格式的 API',
+      '版本号体系改为语义化版本（0.x）',
+      '更新日志补全 0.1.0-0.1.9 所有版本记录',
+    ]},
+    { v: 'v0.1.9', date: '2026-06-10', items: [
+      '更多工具新增「设置 API Key」入口',
+      '弹窗支持设置 CodingPlan Key 和博查搜索 Key',
+      '后端 chat.js 和 search.js 支持自定义 Key 请求头',
+      '留空使用默认 Key，填写后存储到 localStorage',
+    ]},
+    { v: 'v0.1.8', date: '2026-06-10', items: [
+      '联网搜索改为 AI 主动调用模式（ReAct）',
+      'AI 输出 <search>关键词</search> 触发搜索',
+      '新增 SYSTEM_PROMPT 引导 AI 使用搜索工具',
+      '搜索结果追加到上下文后 AI 给出最终回答',
+    ]},
+    { v: 'v0.1.7', date: '2026-06-10', items: [
+      '修复联网搜索提示消息无法正确移除的 bug',
+      'message-row 类名错误改为 msg',
+      '改用 addMessage 返回值直接移除父元素',
+    ]},
+    { v: 'v0.1.6', date: '2026-06-10', items: [
+      '修复云同步三个按钮点击无反应的问题',
       '补回 getCloudToken/setCloudToken/showSyncCodeDialog 缺失函数',
       '新增版本号点击查看更新日志功能',
-      '更新日志展示 v1.0-v1.6 完整变更记录',
+      'updateCloudStatus 改用纯文本避免重复图标',
     ]},
-    { v: 'v1.5', date: '2026-06-10', items: [
+    { v: 'v0.1.5', date: '2026-06-10', items: [
       '修复横屏模式侧边栏遮挡主内容区的问题',
       'app-main 改用 width: calc(100vw - 280px) 精确计算',
       '云同步迁移至 GitHub Gist API（免费永久存储）',
       '同步码 SHA-256 哈希 → 稳定 Gist ID 实现多设备同步',
-      '修复 CLOUD_TOKEN_KEY 未定义的 bug',
     ]},
-    { v: 'v1.4', date: '2026-06-10', items: [
+    { v: 'v0.1.4', date: '2026-06-10', items: [
       '联网搜索开关从侧边栏移到顶栏右上角',
       '横屏布局改用 margin-left + 宽度自适应',
       '顶栏搜索按钮带蓝色 on 状态样式',
     ]},
-    { v: 'v1.3', date: '2026-06-10', items: [
+    { v: 'v0.1.3', date: '2026-06-10', items: [
       '横屏侧边栏改为 macOS 26 风格悬浮卡片',
       '距边缘 10px + 圆角 20px + 悬浮阴影',
       '主内容区改用 padding-left 让出侧边栏空间',
       '横屏模式下隐藏关闭按钮和汉堡菜单',
     ]},
-    { v: 'v1.2', date: '2026-06-10', items: [
+    { v: 'v0.1.2', date: '2026-06-10', items: [
       '侧边栏所有 emoji 图标替换为 iOS/鸿蒙线性 SVG 图标',
-      '横屏/电脑模式（宽>高且>=768px）侧边栏默认常驻展开',
+      '横屏/电脑模式侧边栏默认常驻展开',
       '窗口 resize 自动切换侧边栏展开/收起状态',
     ]},
-    { v: 'v1.1', date: '2026-06-10', items: [
+    { v: 'v0.1.1', date: '2026-06-10', items: [
       '白色模式液态玻璃效果全面优化',
       '提升所有面板透明度，增强 backdrop-filter 亮度',
       '侧边栏加入彩虹色散边缘高光',
       'AI 气泡四角色散渐变 + 顶部明亮高光',
       '输入区 Dock 多层微光边缘 + 柔和悬浮阴影',
     ]},
-    { v: 'v1.0', date: '2026-06-09', items: [
-      '品牌名改为 codingplan-chat，添加版本号 v1.0',
+    { v: 'v0.1.0', date: '2026-06-09', items: [
+      '品牌名改为 codingplan-chat，添加版本号',
       '侧边栏新增「更多工具」折叠面板',
       '新增联网搜索开关（博查 API 集成）',
       '新增云端备份/恢复功能（同步码多设备共享）',
@@ -2170,9 +2206,11 @@ const SYSTEM_PROMPT = {
 async function callAI(sendMessages, bubble, allowSearch = true) {
   let fullContent = '';
   const codingplanKey = getCodingplanKey();
+  const baseURL = getCodingplanBaseURL();
   try {
     const headers = { 'Content-Type': 'application/json' };
     if (codingplanKey) headers['X-Codingplan-Key'] = codingplanKey;
+    if (baseURL) headers['X-Codingplan-Base'] = baseURL;
     const resp = await fetch('/api/chat', {
       method: 'POST',
       headers,
