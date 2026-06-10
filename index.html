@@ -1195,7 +1195,7 @@ body {
         <svg viewBox="0 0 24 24"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z" fill="currentColor" opacity="0.5"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z" fill="currentColor"/></svg>
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v1.6</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v1.7</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -2074,13 +2074,10 @@ async function sendMessage() {
   // 联网搜索
   let searchContext = '';
   if (webSearchEnabled) {
-    addMessage('assistant', '🔍 正在搜索...');
+    const searchBubble = addMessage('assistant', '🔍 正在搜索...');
     searchContext = await searchWeb(text) || '';
     // 移除搜索提示
-    const lastMsg = chatArea.lastElementChild;
-    if (lastMsg && lastMsg.classList.contains('message-row')) {
-      lastMsg.remove();
-    }
+    searchBubble.parentElement?.remove();
   }
   
   addMessage('user', text);
