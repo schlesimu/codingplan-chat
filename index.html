@@ -1657,11 +1657,10 @@ async function sendMessage() {
   // 如果有搜索结果，加入上下文
   const sendMessages = [...messages];
   if (searchContext) {
-    // 在用户消息前插入搜索结果作为系统提示
-    sendMessages.splice(sendMessages.length - 1, 0, {
-      role: 'system',
-      content: `以下是最新的网络搜索结果，请基于这些信息回答用户的问题。如果搜索结果不相关，请忽略并正常回答。\n\n${searchContext}`
-    });
+    // 把搜索结果附在用户消息后面
+    const lastIdx = sendMessages.length - 1;
+    const userMsg = sendMessages[lastIdx];
+    userMsg.content = `用户问题：${userMsg.content}\n\n以下是网络搜索结果，请基于这些信息回答：\n\n${searchContext}`;
   }
   
   const bubble = addStreamingMessage();
