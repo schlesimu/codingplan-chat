@@ -1140,7 +1140,117 @@ body {
 @media (max-width: 600px) {
   .msg .bubble { max-width: 88%; }
 }
-</style>
+
+/* ========== 消息操作菜单（液态玻璃风格） ========== */
+.msg-actions {
+  display: flex; gap: 4px; margin-top: 4px;
+  opacity: 0; transform: translateY(-4px);
+  transition: opacity 0.2s, transform 0.2s;
+}
+.msg:hover .msg-actions,
+.msg.actions-visible .msg-actions {
+  opacity: 1; transform: translateY(0);
+}
+.msg-actions.force-show {
+  opacity: 1 !important; transform: translateY(0) !important;
+}
+.msg-action-btn {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 4px 8px; border-radius: 6px;
+  font-size: 11px; cursor: pointer;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  background: var(--btn-bg); border: 1px solid var(--btn-border);
+  color: var(--btn-color); transition: all 0.2s;
+  font-family: inherit; white-space: nowrap;
+}
+.msg-action-btn:hover { background: var(--btn-active-bg); color: var(--sidebar-text-active); }
+.msg-action-btn:active { transform: scale(0.94); }
+.msg-action-btn svg { width: 12px; height: 12px; stroke: currentColor; }
+/* 浅色模式 */
+[data-theme="light"] .msg-action-btn {
+  backdrop-filter: blur(14px) saturate(150%) brightness(1.12);
+  -webkit-backdrop-filter: blur(14px) saturate(150%) brightness(1.12);
+  background: rgba(255,255,255,0.4);
+  border-color: rgba(0,0,0,0.05);
+}
+[data-theme="light"] .msg-action-btn:hover {
+  background: rgba(255,255,255,0.6);
+}
+
+/* 消息右键菜单（浮动） */
+.msg-context-menu {
+  position: fixed; z-index: 10000;
+  min-width: 120px; padding: 4px;
+  border-radius: 12px;
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  background: var(--sidebar-bg);
+  border: 1px solid var(--sidebar-border);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  display: none;
+}
+.msg-context-menu.show { display: block; }
+.msg-context-menu-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 12px; border-radius: 8px;
+  font-size: 12px; cursor: pointer; color: var(--sidebar-text);
+  transition: background 0.15s; border: none; background: none; width: 100%; font-family: inherit;
+}
+.msg-context-menu-item:hover { background: var(--sidebar-item-hover); color: var(--sidebar-text-active); }
+.msg-context-menu-item svg { width: 14px; height: 14px; stroke: currentColor; }
+[data-theme="light"] .msg-context-menu {
+  backdrop-filter: blur(24px) saturate(180%) brightness(1.1);
+  -webkit-backdrop-filter: blur(24px) saturate(180%) brightness(1.1);
+}
+
+/* ========== 图片上传 ========== */
+.img-btn {
+  width: 38px; height: 38px; border-radius: 50%;
+  border: 1px solid var(--btn-border);
+  background: var(--btn-bg); color: var(--btn-color);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.25s;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.img-btn:hover { background: var(--btn-active-bg); }
+.img-btn:active { transform: scale(0.92); }
+.img-btn svg { width: 16px; height: 16px; stroke: currentColor; }
+/* 浅色模式 */
+[data-theme="light"] .img-btn {
+  backdrop-filter: blur(14px) saturate(150%) brightness(1.12);
+  -webkit-backdrop-filter: blur(14px) saturate(150%) brightness(1.12);
+  background: rgba(255,255,255,0.4);
+}
+.img-preview-wrap {
+  display: none; padding: 0 10px 6px; position: relative; z-index: 1;
+}
+.img-preview-wrap.has-image { display: flex; gap: 8px; flex-wrap: wrap; }
+.img-preview-item {
+  position: relative; width: 56px; height: 56px; border-radius: 10px;
+  overflow: hidden; border: 1px solid var(--btn-border);
+  background: var(--btn-bg);
+}
+.img-preview-item img { width: 100%; height: 100%; object-fit: cover; }
+.img-preview-remove {
+  position: absolute; top: 2px; right: 2px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: rgba(0,0,0,0.5); color: #fff;
+  border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 10px; line-height: 1;
+}
+.msg.user .bubble.has-image { padding: 4px; background: transparent; }
+.msg.user .bubble.has-image img {
+  max-width: 200px; max-height: 200px; border-radius: 10px;
+  display: block;
+}
+
+/* 引用块样式 */
+.bubble blockquote {
+  border-left: 2px solid var(--quick-active-border);
+  padding: 4px 8px; margin: 4px 0;
+  opacity: 0.75; font-size: 12px;
+  background: var(--code-bg); border-radius: 0 6px 6px 0;
+}
 </head>
 <body>
 
@@ -1195,7 +1305,7 @@ body {
         <svg viewBox="0 0 24 24"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z" fill="currentColor" opacity="0.5"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z" fill="currentColor"/></svg>
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.2.0</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.3.0</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -1332,16 +1442,24 @@ body {
 
 <!-- 输入区 -->
 <div class="input-area">
+  <div class="img-preview-wrap" id="imgPreview"></div>
   <div class="input-row">
+    <button class="img-btn" id="imgBtn" onclick="document.getElementById('imgInput').click()" title="添加图片">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    </button>
+    <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="handleImageUpload(event)">
     <textarea id="userInput" rows="1" placeholder="输入你的问题..." autofocus></textarea>
     <button class="send-btn" id="sendBtn" onclick="sendMessage()">
       <span class="icon-send"></span>
     </button>
   </div>
-  <div class="footer-hint">回车发送 · Shift+回车换行</div>
+  <div class="footer-hint">回车发送 · Shift+回车换行 · 粘贴图片</div>
 </div>
 
 </div><!-- /app-main -->
+
+<!-- 消息右键菜单（全局复用） -->
+<div class="msg-context-menu" id="msgContextMenu"></div>
 
 <script>
 // ========== 全局状态 ==========
@@ -1355,7 +1473,9 @@ let cloudSyncing = false;    // 正在同步中
 let lastCloudSync = 0;       // 上次同步时间戳
 let cloudGistId = null;      // GitHub Gist ID
 const CLOUD_TOKEN_KEY = 'codingplan-sync-code';
-let webSearchEnabled = localStorage.getItem('webSearchEnabled') === 'true';  // 联网搜索开关
+let webSearchEnabled = localStorage.getItem('webSearchEnabled') === 'true';
+let pendingImages = [];      // 待发送的图片 base64
+let quotedText = '';         // 引用文字
 
 const onboarding = document.getElementById('onboarding');
 const appMain = document.getElementById('app-main');
@@ -1939,6 +2059,14 @@ function showApiKeyDialog() {
 // ========== 更新日志 ==========
 function showChangelog() {
   const changelog = [
+    { v: 'v0.3.0', date: '2026-06-10', items: [
+      '🆕 消息操作菜单：复制/引用/重新生成（液态玻璃风格）',
+      '🆕 引用回复：点击引用将 AI 回答以 blockquote 放入输入框',
+      '🆕 图片理解：支持粘贴/拖入/选择图片，以多模态格式发送给 AI',
+      '🆕 右键菜单：AI 消息支持右键/长按弹出操作菜单',
+      '🆕 Toast 提示：复制/引用操作有轻提示反馈',
+      '🆕 消息气泡重构：操作按钮在 hover 时液态浮现',
+    ]},
     { v: 'v0.2.0', date: '2026-06-10', items: [
       'API Key 设置页新增 Base URL 输入框',
       '支持接入其他兼容 OpenAI 格式的 API',
@@ -2087,10 +2215,183 @@ function formatContent(text) {
   f = f.replace(/`([^`]+)`/g, '<code>$1</code>');
   f = f.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   f = f.replace(/^[-•]\s+(.+)/gm, '• $1');
+  f = f.replace(/^>\s+(.+)/gm, '<blockquote>$1</blockquote>');
   return f;
 }
 
-function addMessage(role, content) {
+// ========== 消息操作：复制 / 引用 / 右键菜单 / 重新生成 ==========
+function copyText(text) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('已复制到剪贴板');
+    });
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.left = '-9999px';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    showToast('已复制到剪贴板');
+  }
+}
+
+function quoteText(text) {
+  // 选中的文字，截取前 200 字符避免太长
+  const snippet = text.length > 200 ? text.slice(0, 200) + '...' : text;
+  quotedText = snippet;
+  userInput.value = '> ' + snippet.replace(/\n/g, '\n> ') + '\n\n';
+  userInput.focus();
+  userInput.style.height = 'auto';
+  userInput.style.height = Math.min(userInput.scrollHeight, 120) + 'px';
+  showToast('已引用，继续输入你的问题');
+}
+
+function showMsgContextMenu(e, content, msgDiv) {
+  const menu = document.getElementById('msgContextMenu');
+  menu.innerHTML = `
+    <button class="msg-context-menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>复制全文</button>
+    <button class="msg-context-menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15v4c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>引用回复</button>
+    <button class="msg-context-menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>重新生成</button>
+  `;
+  menu.children[0].onclick = () => { copyText(content); menu.classList.remove('show'); };
+  menu.children[1].onclick = () => { quoteText(content); menu.classList.remove('show'); };
+  menu.children[2].onclick = () => { regenerateAnswer(msgDiv); menu.classList.remove('show'); };
+  menu.style.left = Math.min(e.clientX || (e.touches && e.touches[0].clientX) || 0, window.innerWidth - 140) + 'px';
+  menu.style.top = Math.min(e.clientY || (e.touches && e.touches[0].clientY) || 0, window.innerHeight - 150) + 'px';
+  menu.classList.add('show');
+  // 点击其他地方关闭
+  setTimeout(() => {
+    document.addEventListener('click', function closeMenu() {
+      menu.classList.remove('show');
+      document.removeEventListener('click', closeMenu);
+    }, { once: true });
+  }, 10);
+}
+
+function regenerateAnswer(msgDiv) {
+  // 找到这条消息在 messages 数组中的位置，移除后重新请求
+  const allMsgs = chatArea.querySelectorAll('.msg.assistant');
+  let idx = -1;
+  allMsgs.forEach((m, i) => { if (m === msgDiv) idx = i; });
+  if (idx < 0) return;
+
+  // 找到对应的消息并移除 AI 的回复
+  const userMsgs = [];
+  let aiCount = 0;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i].role === 'assistant') {
+      if (aiCount === allMsgs.length - 1 - idx) {
+        messages.splice(i, 1); // 移除这条 AI 消息
+        break;
+      }
+      aiCount++;
+    }
+  }
+
+  // 移除 DOM 中的消息
+  msgDiv.remove();
+  // 移除后面的所有消息（重渲染）
+  const nextSiblings = [];
+  let next = msgDiv.nextElementSibling;
+  while (next) { nextSiblings.push(next); next = next.nextElementSibling; }
+  nextSiblings.forEach(el => el.remove());
+
+  // 重新发送请求
+  const sendMessages = [SYSTEM_PROMPT, ...messages];
+  const { div, bubble } = addStreamingMessage();
+  callAI(sendMessages, bubble).then(fullContent => {
+    if (fullContent) {
+      messages.push({ role: 'assistant', content: fullContent });
+      saveCurrentConversation();
+    }
+    isStreaming = false; sendBtn.disabled = false;
+  });
+  isStreaming = true; sendBtn.disabled = true;
+}
+
+function showToast(msg) {
+  const toast = document.createElement('div');
+  toast.textContent = msg;
+  toast.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);padding:8px 16px;border-radius:20px;font-size:13px;z-index:9999;pointer-events:none;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);background:rgba(0,0,0,0.75);color:#fff;transition:opacity 0.3s';
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 1500);
+}
+
+// ========== 图片处理 ==========
+function handleImageUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  processImage(file);
+  event.target.value = ''; // 重置以便重新选择同一文件
+}
+
+function processImage(file) {
+  if (!file.type.startsWith('image/')) { alert('请选择图片文件'); return; }
+  if (file.size > 10 * 1024 * 1024) { alert('图片不能超过 10MB'); return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    compressImage(reader.result, 1200, 0.8).then(compressed => {
+      pendingImages.push(compressed);
+      renderImagePreview();
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+function compressImage(dataUrl, maxWidth, quality) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = dataUrl;
+  });
+}
+
+function renderImagePreview() {
+  const wrap = document.getElementById('imgPreview');
+  wrap.innerHTML = pendingImages.map((img, i) => `
+    <div class="img-preview-item">
+      <img src="${img}" alt="preview">
+      <button class="img-preview-remove" onclick="removeImage(${i})">✕</button>
+    </div>
+  `).join('');
+  if (pendingImages.length > 0) wrap.classList.add('has-image');
+  else wrap.classList.remove('has-image');
+}
+
+function removeImage(index) {
+  pendingImages.splice(index, 1);
+  renderImagePreview();
+}
+
+// 粘贴图片支持
+document.addEventListener('paste', (e) => {
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault();
+      processImage(item.getAsFile());
+      return;
+    }
+  }
+});
+
+// 拖入图片支持
+userInput.addEventListener('dragover', (e) => { e.preventDefault(); });
+userInput.addEventListener('drop', (e) => {
+  e.preventDefault();
+  const file = e.dataTransfer?.files?.[0];
+  if (file && file.type.startsWith('image/')) processImage(file);
+});
+
+function addMessage(role, content, hasImage = false) {
   const div = document.createElement('div'); div.className = `msg ${role}`;
   const avatar = document.createElement('div'); avatar.className = 'avatar';
   if (role === 'user') {
@@ -2098,24 +2399,54 @@ function addMessage(role, content) {
   } else {
     avatar.innerHTML = '<svg viewBox="0 0 24 24" style="width:52%;height:52%"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z" fill="currentColor" opacity="0.5"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z" fill="currentColor"/></svg>';
   }
+  const bodyWrap = document.createElement('div'); bodyWrap.style.cssText = 'display:flex;flex-direction:column;align-items:' + (role === 'user' ? 'flex-end' : 'flex-start') + ';max-width:80%';
   const bubble = document.createElement('div'); bubble.className = 'bubble';
+  if (hasImage) bubble.classList.add('has-image');
   bubble.innerHTML = formatContent(content);
-  div.appendChild(avatar); div.appendChild(bubble);
+  bodyWrap.appendChild(bubble);
+
+  // AI 消息加操作按钮
+  if (role === 'assistant') {
+    const actions = document.createElement('div'); actions.className = 'msg-actions';
+    actions.innerHTML = `
+      <button class="msg-action-btn" title="复制"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+      <button class="msg-action-btn" title="引用"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15v4c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
+      <button class="msg-action-btn" title="重新生成"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
+    `;
+    // 绑定事件
+    actions.children[0].onclick = (e) => { e.stopPropagation(); copyText(content); };
+    actions.children[1].onclick = (e) => { e.stopPropagation(); quoteText(content); };
+    actions.children[2].onclick = (e) => { e.stopPropagation(); regenerateAnswer(div); };
+    bodyWrap.appendChild(actions);
+    // 右键菜单
+    bubble.addEventListener('contextmenu', (e) => { e.preventDefault(); showMsgContextMenu(e, content, div); });
+    // 移动端长按
+    let longPressTimer;
+    bubble.addEventListener('touchstart', (e) => {
+      longPressTimer = setTimeout(() => { showMsgContextMenu(e, content, div); }, 500);
+    });
+    bubble.addEventListener('touchend', () => clearTimeout(longPressTimer));
+    bubble.addEventListener('touchmove', () => clearTimeout(longPressTimer));
+  }
+
+  div.appendChild(avatar); div.appendChild(bodyWrap);
   chatArea.appendChild(div);
   chatArea.scrollTop = chatArea.scrollHeight;
-  return bubble;
+  return { div, bubble };
 }
 
 function addStreamingMessage() {
   const div = document.createElement('div'); div.className = 'msg assistant';
   const avatar = document.createElement('div'); avatar.className = 'avatar';
   avatar.innerHTML = '<svg viewBox="0 0 24 24" style="width:52%;height:52%"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z" fill="currentColor" opacity="0.5"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z" fill="currentColor"/></svg>';
+  const bodyWrap = document.createElement('div'); bodyWrap.style.cssText = 'display:flex;flex-direction:column;align-items:flex-start;max-width:80%';
   const bubble = document.createElement('div'); bubble.className = 'bubble';
   bubble.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
-  div.appendChild(avatar); div.appendChild(bubble);
+  bodyWrap.appendChild(bubble);
+  div.appendChild(avatar); div.appendChild(bodyWrap);
   chatArea.appendChild(div);
   chatArea.scrollTop = chatArea.scrollHeight;
-  return bubble;
+  return { div, bubble };
 }
 
 // ========== 联网搜索 ==========
@@ -2293,14 +2624,43 @@ async function callAI(sendMessages, bubble, allowSearch = true) {
 
 async function sendMessage() {
   const text = userInput.value.trim();
-  if (!text || isStreaming) return;
+  if ((!text && pendingImages.length === 0) || isStreaming) return;
+  if (isStreaming) return;
   isStreaming = true; sendBtn.disabled = true;
   userInput.value = ''; userInput.style.height = 'auto';
 
-  addMessage('user', text);
-  messages.push({ role: 'user', content: text });
+  // 处理图片
+  const imageB64s = [...pendingImages];
+  pendingImages = [];
+  renderImagePreview();
+  const hasImage = imageB64s.length > 0;
 
-  const bubble = addStreamingMessage();
+  // 构建用户消息内容
+  let userContent = text;
+  if (quotedText) {
+    userContent = '> ' + quotedText.replace(/\n/g, '\n> ') + '\n\n' + text;
+    quotedText = '';
+  }
+
+  // 显示用户消息
+  if (hasImage) {
+    // 带图片的消息
+    const imgHtml = imageB64s.map(b64 => `<img src="${b64}" alt="uploaded image">`).join('');
+    addMessage('user', imgHtml + (text ? '\n' + text : ''), true);
+  } else {
+    addMessage('user', userContent);
+  }
+
+  // 存储到 messages（多模态格式）
+  if (hasImage) {
+    const parts = [{ type: 'text', text: text || '请描述这张图片' }];
+    imageB64s.forEach(b64 => parts.push({ type: 'image_url', image_url: { url: b64 } }));
+    messages.push({ role: 'user', content: parts });
+  } else {
+    messages.push({ role: 'user', content: userContent });
+  }
+
+  const { div, bubble } = addStreamingMessage();
 
   // 构建消息上下文（包含系统提示）
   const sendMessages = [SYSTEM_PROMPT, ...messages];
