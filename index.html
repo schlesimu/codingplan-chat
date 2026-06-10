@@ -1600,9 +1600,9 @@ async function searchWeb(query) {
       body: JSON.stringify({ query, count: 5 })
     });
     const data = await resp.json();
-    if (data.code === 200 && data.data?.webPages) {
-      return data.data.webPages.map((p, i) => 
-        `[${i + 1}] ${p.name}\n${p.snippet || ''}\n来源: ${p.url}`
+    if (data.webPages?.value) {
+      return data.webPages.value.map((p, i) => 
+        `[${i + 1}] ${p.name}\n${p.snippet || p.summary || ''}\n来源: ${p.url}`
       ).join('\n\n');
     }
     return null;
