@@ -740,7 +740,8 @@ body {
   box-shadow: 0 0 6px #34c759; display: inline-block;
 }
 .header-actions { display: flex; gap: 8px; align-items: center; margin-left: auto; }
-.header-search-btn {
+.header-search-btn,
+.header-voice-btn {
   width: 32px; height: 32px; border-radius: 10px;
   border: 1px solid var(--btn-border);
   background: var(--btn-bg); color: var(--btn-color);
@@ -748,14 +749,31 @@ body {
   transition: all 0.25s; flex-shrink: 0;
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
 }
-.header-search-btn:hover { background: var(--btn-active-bg); }
-.header-search-btn:active { transform: scale(0.92); }
+.header-search-btn:hover,
+.header-voice-btn:hover { background: var(--btn-active-bg); }
+.header-search-btn:active,
+.header-voice-btn:active { transform: scale(0.92); }
 .header-search-btn.on {
   border-color: #3b82f6; color: #3b82f6;
   background: rgba(59,130,246,0.1);
 }
+.header-voice-btn.on {
+  border-color: #8b5cf6; color: #8b5cf6;
+  background: rgba(139,92,246,0.1);
+}
+/* 语音朗读中动画 */
+.header-voice-btn.speaking {
+  border-color: #8b5cf6; color: #8b5cf6;
+  background: rgba(139,92,246,0.1);
+  animation: voicePulse 0.8s ease-in-out infinite;
+}
+@keyframes voicePulse {
+  0%,100% { box-shadow: 0 0 0 rgba(139,92,246,0); }
+  50% { box-shadow: 0 0 12px rgba(139,92,246,0.3); }
+}
 /* 浅色模式 */
-[data-theme="light"] .header-search-btn {
+[data-theme="light"] .header-search-btn,
+[data-theme="light"] .header-voice-btn {
   backdrop-filter: blur(12px) saturate(150%) brightness(1.1);
   -webkit-backdrop-filter: blur(12px) saturate(150%) brightness(1.1);
   background: rgba(255,255,255,0.35);
@@ -1313,7 +1331,7 @@ body {
         <img src="logo.png" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.3.7</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.4.0</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -1407,6 +1425,9 @@ body {
     </div>
   </div>
   <div class="header-actions">
+    <button class="header-voice-btn" id="headerVoiceBtn" onclick="toggleVoice()" title="语音朗读">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+    </button>
     <button class="header-search-btn" id="headerSearchBtn" onclick="toggleWebSearch()" title="联网搜索">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
     </button>
@@ -2067,6 +2088,13 @@ function showApiKeyDialog() {
 // ========== 更新日志 ==========
 function showChangelog() {
   const changelog = [
+    { v: 'v0.4.0', date: '2026-06-10', items: [
+      '🔊 新增 AI 回复自动语音朗读功能',
+      '语音开关在顶栏联网搜索旁，线性图标风格统一',
+      '基于 Web Speech API，支持中文朗读',
+      '朗读中按钮有脉冲动画，自动过滤代码块',
+      '重新生成也会触发语音朗读',
+    ]},
     { v: 'v0.3.7', date: '2026-06-10', items: [
       '🎨 顶栏改为圆角悬浮样式，与输入栏风格统一',
       '📐 侧边栏宽度从 min(300px,82vw) 改为固定 280px',
@@ -2445,6 +2473,8 @@ function regenerateAnswer(msgDiv) {
     if (fullContent) {
       messages.push({ role: 'assistant', content: fullContent });
       saveCurrentConversation();
+      speakText(fullContent);
+      updateQuickActions(fullContent);
     }
     isStreaming = false; sendBtn.disabled = false;
   });
@@ -2622,6 +2652,84 @@ function toggleWebSearch() {
   webSearchEnabled = !webSearchEnabled;
   localStorage.setItem('webSearchEnabled', webSearchEnabled);
   updateSearchToggleUI();
+}
+
+// ========== 语音朗读 ==========
+let voiceEnabled = false;
+let speechSynthesis = window.speechSynthesis;
+let currentUtterance = null;
+
+function toggleVoice() {
+  voiceEnabled = !voiceEnabled;
+  const btn = document.getElementById('headerVoiceBtn');
+  if (voiceEnabled) {
+    btn.classList.add('on');
+    btn.title = '语音朗读：开';
+  } else {
+    btn.classList.remove('on');
+    btn.title = '语音朗读：关';
+    stopSpeaking();
+  }
+}
+
+function speakText(text) {
+  if (!voiceEnabled) return;
+  stopSpeaking();
+  
+  // 去掉代码块和 Markdown 标记，提取纯文本
+  let cleanText = text
+    .replace(/```[\s\S]*?```/g, '（代码省略）')
+    .replace(/`([^`]*)`/g, '$1')
+    .replace(/[*#_~>|-]/g, '')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\n{2,}/g, '。')
+    .replace(/\n/g, '，')
+    .trim();
+  
+  if (!cleanText) return;
+  
+  const utterance = new SpeechSynthesisUtterance(cleanText);
+  utterance.lang = 'zh-CN';
+  utterance.rate = 1.0;
+  utterance.pitch = 1.0;
+  
+  // 尝试选中文语音
+  const voices = speechSynthesis.getVoices();
+  const zhVoice = voices.find(v => v.lang.startsWith('zh-CN') || v.lang.startsWith('zh-TW') || v.lang === 'zh');
+  if (zhVoice) utterance.voice = zhVoice;
+  
+  utterance.onstart = () => {
+    const btn = document.getElementById('headerVoiceBtn');
+    if (btn) btn.classList.add('speaking');
+  };
+  utterance.onend = () => {
+    const btn = document.getElementById('headerVoiceBtn');
+    if (btn) btn.classList.remove('speaking');
+    currentUtterance = null;
+  };
+  utterance.onerror = () => {
+    const btn = document.getElementById('headerVoiceBtn');
+    if (btn) btn.classList.remove('speaking');
+    currentUtterance = null;
+  };
+  
+  currentUtterance = utterance;
+  speechSynthesis.speak(utterance);
+}
+
+function stopSpeaking() {
+  if (speechSynthesis) {
+    speechSynthesis.cancel();
+  }
+  currentUtterance = null;
+  const btn = document.getElementById('headerVoiceBtn');
+  if (btn) btn.classList.remove('speaking');
+}
+
+// 预加载语音列表
+if (speechSynthesis) {
+  speechSynthesis.getVoices();
+  speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
 }
 
 function updateSearchToggleUI() {
@@ -2817,6 +2925,8 @@ async function sendMessage() {
 
   isStreaming = false; sendBtn.disabled = false; userInput.focus();
   
+  // 语音朗读（如果已开启）
+  if (fullContent) speakText(fullContent);
   // 动态更新追问快捷按钮
   if (fullContent) updateQuickActions(fullContent);
 }
