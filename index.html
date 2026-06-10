@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>小纸船 - codingplan-chat</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <style>
 /* ========== 全局缩放 80%（缩小20%） ========== */
 html { font-size: 13px; }
@@ -1263,7 +1265,7 @@ body {
 <div class="onboarding" id="onboarding">
   <div class="onb-top">
     <div class="onb-icon-wrap">
-      <img src="logo.jpg" alt="小纸船">
+      <img src="logo.png" alt="小纸船">
     </div>
     <div class="onb-title">小纸船 - codingplan-chat</div>
     <div class="onb-subtitle">基于火山引擎 CodingPlan</div>
@@ -1300,10 +1302,10 @@ body {
   <div class="sidebar-header">
     <div class="sidebar-brand">
       <div class="sidebar-logo">
-        <img src="logo.jpg" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
+        <img src="logo.png" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.3.3</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.3.4</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -1389,7 +1391,7 @@ body {
       <div class="hamburger"><span></span><span></span><span></span></div>
     </button>
     <div class="header-logo">
-      <img src="logo.jpg" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
+      <img src="logo.png" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
     </div>
     <div class="header-info">
       <h1 id="headerTitle">小纸船 - codingplan-chat</h1>
@@ -1407,7 +1409,7 @@ body {
 <div class="chat-area" id="chatArea">
   <div class="msg assistant">
     <div class="avatar">
-      <img src="logo.jpg" alt="小纸船" style="width:52%;height:52%;object-fit:contain;border-radius:50%">
+      <img src="logo.png" alt="小纸船" style="width:52%;height:52%;object-fit:contain;border-radius:50%">
     </div>
     <div class="bubble">你好！我是小纸船 - codingplan-chat，可以帮你：
 
@@ -1665,7 +1667,7 @@ function exportChat() {
 
 // ========== 消息渲染 ==========
 function renderMessages() {
-  const boatLogo = '<img src="logo.jpg" alt="小纸船" style="width:52%;height:52%;object-fit:contain;border-radius:50%">';
+  const boatLogo = '<img src="logo.png" alt="小纸船" style="width:52%;height:52%;object-fit:contain;border-radius:50%">';
   const userSVG = '<svg viewBox="0 0 24 24" style="width:52%;height:52%" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
   if (messages.length === 0) {
     chatArea.innerHTML = `<div class="msg assistant"><div class="avatar">${boatLogo}</div><div class="bubble">你好！我是小纸船 - codingplan-chat，可以帮你：\n\n· 写代码、改代码、查 Bug\n· 解答编程和技术问题\n· 解释概念、翻译代码\n\n直接输入问题就行！</div></div>`;
@@ -2057,6 +2059,12 @@ function showApiKeyDialog() {
 // ========== 更新日志 ==========
 function showChangelog() {
   const changelog = [
+    { v: 'v0.3.4', date: '2026-06-10', items: [
+      '🎨 Logo 升级为 PNG 透明背景版本',
+      '新增 favicon 和 Apple touch icon',
+      '删除旧 JPG logo，全站使用 PNG 格式',
+      'Logo 尺寸优化：640x640 原图 + 多尺寸适配',
+    ]},
     { v: 'v0.3.3', date: '2026-06-10', items: [
       '🎨 品牌重塑：全新小纸船 logo 替换火焰图标',
       '标题改为「小纸船 - codingplan-chat」',
@@ -2409,7 +2417,7 @@ function addMessage(role, content, hasImage = false) {
   if (role === 'user') {
     avatar.innerHTML = '<svg viewBox="0 0 24 24" style="width:52%;height:52%" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
   } else {
-    avatar.innerHTML = '<img src="logo.jpg" alt="小纸船" style="width:52%;height:52%;object-fit:contain;border-radius:50%">';
+    avatar.innerHTML = '<img src="logo.png" alt="小纸船" style="width:52%;height:52%;object-fit:contain;border-radius:50%">';
   }
   const bodyWrap = document.createElement('div'); bodyWrap.style.cssText = 'display:flex;flex-direction:column;align-items:' + (role === 'user' ? 'flex-end' : 'flex-start') + ';max-width:80%';
   const bubble = document.createElement('div'); bubble.className = 'bubble';
@@ -2450,7 +2458,7 @@ function addMessage(role, content, hasImage = false) {
 function addStreamingMessage() {
   const div = document.createElement('div'); div.className = 'msg assistant';
   const avatar = document.createElement('div'); avatar.className = 'avatar';
-  avatar.innerHTML = '<img src="logo.jpg" alt="小纸船" style="width:52%;height:52%;object-fit:contain;border-radius:50%">';
+  avatar.innerHTML = '<img src="logo.png" alt="小纸船" style="width:52%;height:52%;object-fit:contain;border-radius:50%">';
   const bodyWrap = document.createElement('div'); bodyWrap.style.cssText = 'display:flex;flex-direction:column;align-items:flex-start;max-width:80%';
   const bubble = document.createElement('div'); bubble.className = 'bubble';
   bubble.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
