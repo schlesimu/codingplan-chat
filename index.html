@@ -463,14 +463,17 @@ body {
   /* 隐藏汉堡菜单 */
   .btn-menu { display: none !important; }
 
-  /* 侧边栏：悬浮卡片样式 */
+  /* 侧边栏：悬浮卡片样式（v0.7.4 边距对齐顶栏/输入框：顶 8px 对齐 header，左 10px / 底 10px 对齐 input-area）
+     注：用 !important 压住后定义的 .sidebar 基础规则（top:0 left:0 bottom:0 width:280px） */
   .sidebar {
     transform: translateX(0) !important;
-    position: fixed;
-    top: 10px; left: 10px; bottom: 10px;
-    width: 260px;
-    height: auto;
-    border-radius: 20px;
+    position: fixed !important;
+    top: 8px !important;
+    left: 10px !important;
+    bottom: 10px !important;
+    width: 260px !important;
+    height: auto !important;
+    border-radius: 20px !important;
     border: 1px solid var(--sidebar-border);
     /* 悬浮阴影 */
     box-shadow:
@@ -519,15 +522,9 @@ body {
     width: calc(100% - 20px);
   }
 
-  /* v0.6.9: Liquid 主题专属 - sidebar 漂浮覆盖 chat，
-     让玻璃能朦胧透出对话内容（iOS 抽屉式视觉） */
-  [data-theme="liquid"] #app-main {
-    width: 100vw !important;
-    margin-left: 0 !important;
-  }
-  /* sidebar 已是 position:fixed z-index:101，自然浮在 chat 上层。
-     chat / header / input-area 都铺满整屏，被 sidebar 覆盖到的部分
-     由 backdrop-filter 自动朦胧虚化出来 */
+  /* v0.7.4: 撤销 v0.6.9 的 sidebar 漂浮覆盖布局
+     Liquid 主题改成跟 dark/light 一致：sidebar 占左侧 280px 栏位（含 10px 外边距），
+     #app-main 通过 calc(100vw - 280px) + margin-left:280px 让出位置，对话不被遮挡 */
 }
 
 /* ========== 手机端 Liquid 主题：悬浮玻璃卡片（v0.6.7） ========== */
@@ -1762,7 +1759,7 @@ body {
         <img src="logo.png" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.7.3</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.7.4</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -2532,6 +2529,13 @@ function showApiKeyDialog() {
 // ========== 更新日志 ==========
 function showChangelog() {
   const changelog = [
+    { v: 'v0.7.4', date: '2026-06-10', items: [
+      '🔧 修复平板/电脑端 Liquid 主题 sidebar 遮挡对话内容的问题',
+      '↩️ 撤销 v0.6.9 的"sidebar 漂浮覆盖 chat"布局，Liquid 改成跟 Dark/Light 一致：',
+      '   sidebar 占左侧 280px 栏位（含 10px 外边距），#app-main 让出 margin-left:280px',
+      '📐 sidebar 边距对齐顶栏/输入框：top 10px→8px 对齐 header.margin-top，左右 10px / 底 10px 对齐 input-area',
+      '💧 SVG 折射 + 玻璃厚度 + 凸面 mask 全部保留，仅修布局位置',
+    ]},
     { v: 'v0.7.3', date: '2026-06-10', items: [
       '🔮 边缘集中折射：SVG filter 加 radial mask，中心 55% 半径内零扭曲，边缘扭曲拉满',
       '🎯 技术：radialGradient(#808080 → #ffffff) + feComposite arithmetic 把噪声朝 128 灰 lerp',
