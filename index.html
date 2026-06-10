@@ -453,31 +453,29 @@ body {
   /* 隐藏关闭按钮（常驻不需要） */
   .sidebar-close { display: none !important; }
 
-  /* body 改为 flex 行布局，侧边栏作为固定宽度的 flex item */
-  body {
-    flex-direction: row !important;
-    align-items: stretch !important;
-  }
-
-  /* 主内容区：占据剩余空间 */
+  /* 主内容区：用 calc 精确计算宽度 */
   #app-main {
-    flex: 1;
-    margin-left: 280px;
-    width: auto;
+    width: calc(100vw - 280px) !important;
+    margin-left: 280px !important;
     min-width: 0;
   }
 
-  /* 顶栏宽度自适应 */
+  /* 顶栏：撑满主内容区宽度 */
   .header {
     position: relative;
     left: 0;
     width: 100%;
   }
 
-  /* 聊天区和输入区宽度自适应 */
-  .chat-area, .input-area {
-    margin-left: 0;
+  /* 聊天区：正常流 */
+  .chat-area {
+    flex: 1;
     width: 100%;
+  }
+
+  /* 输入区：撑满主内容区宽度 */
+  .input-area {
+    width: calc(100% - 20px);
   }
 }
 
@@ -1193,7 +1191,7 @@ body {
         <svg viewBox="0 0 24 24"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z" fill="currentColor" opacity="0.5"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z" fill="currentColor"/></svg>
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version">v1.4</span>
+      <span class="sidebar-version">v1.5</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -1342,9 +1340,11 @@ let isStreaming = false;
 let currentTheme = 'dark';
 let currentConversationId = null;
 let conversations = {};
-let cloudToken = null;       // 用户同步码（多设备共享）
+let cloudToken = null;       // 用户同步码（多设备共享，作为 Gist ID 种子）
 let cloudSyncing = false;    // 正在同步中
 let lastCloudSync = 0;       // 上次同步时间戳
+let cloudGistId = null;      // GitHub Gist ID
+const CLOUD_TOKEN_KEY = 'codingplan-sync-code';
 let webSearchEnabled = localStorage.getItem('webSearchEnabled') === 'true';  // 联网搜索开关
 
 const onboarding = document.getElementById('onboarding');
@@ -1570,113 +1570,144 @@ function updateThemeUI() {
   }
 }
 
-// ========== 云存储（后端代理） ==========
-// 策略：数据发到 Flask 后端，后端存服务器文件 + 尝试同步 jsonstore.io
-// 后端在云端运行，不受国内网络限制
+// ========== GitHub Gist 云存储 ==========
+// 免费！用 GitHub Gist API 实现跨设备同步
+// 原理：同步码哈希 → Gist ID → 所有设备共享同一个 Gist
 
-// 获取同步码（默认4位数字，多设备用同一个码即可同步）
-async function getCloudToken() {
-  if (cloudToken) return cloudToken;
-  let saved = localStorage.getItem(CLOUD_TOKEN_KEY);
-  if (!saved) {
-    // 首次使用，生成简单同步码：4位随机数字
-    saved = String(Math.floor(1000 + Math.random() * 9000));
-    localStorage.setItem(CLOUD_TOKEN_KEY, saved);
-  }
-  cloudToken = saved;
-  return cloudToken;
+function getGistFilename() {
+  return 'codingplan-chat-backup.json';
 }
 
-// 设置同步码（在其他设备上输入相同的码即可同步）
-function setCloudToken(code) {
-  code = code.trim();
-  if (!code || code.length < 2) {
-    alert('同步码至少2个字符');
-    return false;
-  }
-  cloudToken = code;
-  localStorage.setItem(CLOUD_TOKEN_KEY, code);
-  updateCloudStatus();
-  return true;
+// 用同步码生成唯一的 Gist ID（用 SHA-256 前 32 位做稳定 ID）
+async function deriveGistId(token) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode('codingplan:' + token);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.slice(0, 16).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// 显示同步码设置弹窗
-function showSyncCodeDialog() {
-  const code = localStorage.getItem(CLOUD_TOKEN_KEY) || '';
-  const msg = '📱 多设备同步\n\n'
-    + '你的同步码：' + code + '\n\n'
-    + '在其他设备输入相同同步码即可共享数据。\n'
-    + '修改同步码将无法访问之前的数据！';
-  
-  const action = prompt(msg + '\n\n输入新同步码修改，或点取消保留当前码：', code);
-  if (action === null) return; // 取消
-  if (action === code) return; // 没改
-  if (setCloudToken(action)) {
-    alert('✅ 同步码已更新为：' + action + '\n\n在其他设备输入此码即可同步。');
+// 获取/创建 Gist
+async function getOrCreateGist(token) {
+  const gistId = await deriveGistId(token);
+  cloudGistId = gistId;
+
+  // 先尝试读取现有 Gist
+  try {
+    const resp = await fetch(`https://api.github.com/gists/${gistId}`);
+    if (resp.ok) {
+      const gist = await resp.json();
+      return { gist, isNew: false };
+    }
+  } catch (e) { /* Gist 不存在，下面创建 */ }
+
+  // 创建新 Gist（匿名）
+  try {
+    const resp = await fetch('https://api.github.com/gists', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        description: 'CodingPlan Chat 对话备份',
+        public: false,
+        files: {
+          [getGistFilename()]: { content: JSON.stringify({ conversations: {}, updatedAt: Date.now() }) }
+        }
+      })
+    });
+    if (resp.ok) {
+      const gist = await resp.json();
+      // 保存真正的 Gist ID
+      cloudGistId = gist.id;
+      return { gist, isNew: true };
+    }
+    console.warn('创建 Gist 失败:', resp.status);
+  } catch (e) {
+    console.warn('创建 Gist 出错:', e.message);
   }
+  return null;
 }
 
-// 上传对话数据到服务器
+// 上传备份到 GitHub Gist
 async function cloudUpload() {
   if (cloudSyncing) return;
   cloudSyncing = true;
   try {
     const token = await getCloudToken();
-    const resp = await fetch('/api/cloud/backup', {
-      method: 'POST',
+    const result = await getOrCreateGist(token);
+    if (!result) { cloudSyncing = false; return; }
+
+    const gistId = result.gist.id || cloudGistId;
+    const resp = await fetch(`https://api.github.com/gists/${gistId}`, {
+      method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        token: token,
-        conversations: conversations,
-        updatedAt: Date.now()
+        files: {
+          [getGistFilename()]: {
+            content: JSON.stringify({ conversations: conversations, updatedAt: Date.now() })
+          }
+        }
       })
     });
-    const result = await resp.json();
-    if (result.ok) {
+
+    if (resp.ok) {
       lastCloudSync = Date.now();
-      console.log('☁️ 备份成功 (' + (result.method || 'server') + ')');
+      console.log('☁️ GitHub Gist 备份成功');
       updateCloudStatus();
+    } else {
+      console.warn('Gist 更新失败:', resp.status);
     }
   } catch (e) {
-    console.warn('⚠️ 备份失败:', e.message);
+    console.warn('备份失败:', e.message);
   }
   cloudSyncing = false;
 }
 
-// 从服务器恢复数据
+// 从 GitHub Gist 恢复数据
 async function cloudDownload() {
   try {
     const token = await getCloudToken();
-    const resp = await fetch('/api/cloud/restore?token=' + encodeURIComponent(token));
-    const result = await resp.json();
-    if (result.ok && result.data && result.data.conversations) {
-      const cloud = result.data.conversations;
-      // 修复数据结构：确保每个对话都有 messages 数组
-      Object.keys(cloud).forEach(key => {
-        if (!cloud[key].messages) cloud[key].messages = [];
-        if (!cloud[key].id) cloud[key].id = key;
-        if (!cloud[key].title) cloud[key].title = '新对话';
-        if (!cloud[key].createdAt) cloud[key].createdAt = Date.now();
-        if (!cloud[key].updatedAt) cloud[key].updatedAt = Date.now();
-      });
-      const merged = { ...cloud, ...conversations };
-      conversations = merged;
-      saveConversations();
-      lastCloudSync = Date.now();
-      const list = Object.values(conversations).sort((a, b) => b.updatedAt - a.updatedAt);
-      if (list.length > 0) switchToConversation(list[0].id);
-      renderChatHistory();
-      updateCloudStatus();
-      alert('✅ 云端数据已恢复！\n共 ' + Object.keys(cloud).length + ' 个对话');
-    } else {
-      alert('服务器暂无备份数据');
+    const gistId = await deriveGistId(token);
+
+    const resp = await fetch(`https://api.github.com/gists/${gistId}`);
+    if (!resp.ok) {
+      alert('云端暂无备份数据');
+      return;
     }
+
+    const gist = await resp.json();
+    const file = gist.files?.[getGistFilename()];
+    if (!file?.content) {
+      alert('云端备份数据为空');
+      return;
+    }
+
+    const data = JSON.parse(file.content);
+    const cloud = data.conversations || {};
+
+    // 修复数据结构
+    Object.keys(cloud).forEach(key => {
+      if (!cloud[key].messages) cloud[key].messages = [];
+      if (!cloud[key].id) cloud[key].id = key;
+      if (!cloud[key].title) cloud[key].title = '新对话';
+      if (!cloud[key].createdAt) cloud[key].createdAt = Date.now();
+      if (!cloud[key].updatedAt) cloud[key].updatedAt = Date.now();
+    });
+
+    const merged = { ...cloud, ...conversations };
+    conversations = merged;
+    saveConversations();
+    lastCloudSync = Date.now();
+    const list = Object.values(conversations).sort((a, b) => b.updatedAt - a.updatedAt);
+    if (list.length > 0) switchToConversation(list[0].id);
+    renderChatHistory();
+    updateCloudStatus();
+    alert('✅ 云端数据已恢复！\n共 ' + Object.keys(cloud).length + ' 个对话\n\n存储方式：GitHub Gist（免费）');
   } catch (e) {
     alert('❌ 恢复失败：' + e.message);
   }
 }
 
-// 手动触发备份
+// 手动备份
 async function manualBackup() {
   if (Object.keys(conversations).length === 0) {
     alert('暂无对话数据可备份');
@@ -1684,29 +1715,31 @@ async function manualBackup() {
   }
   await cloudUpload();
   if (lastCloudSync > 0) {
-    alert('✅ 备份成功！\n\n共备份 ' + Object.keys(conversations).length + ' 个对话\n备份时间：' + new Date(lastCloudSync).toLocaleString());
+    alert('✅ 备份成功！\n\n共备份 ' + Object.keys(conversations).length + ' 个对话\n备份时间：' + new Date(lastCloudSync).toLocaleString() + '\n\n存储方式：GitHub Gist（免费永久）');
   } else {
     alert('❌ 备份失败，请检查网络连接');
   }
 }
 
-// 防抖自动备份（每次保存后延迟 3 秒自动上传）
+// 防抖自动备份
 let cloudBackupTimer = null;
 function scheduleCloudBackup() {
   if (cloudBackupTimer) clearTimeout(cloudBackupTimer);
   cloudBackupTimer = setTimeout(() => cloudUpload(), 3000);
 }
 
-// 更新侧边栏云状态图标
+// 更新侧边栏状态
 function updateCloudStatus() {
   const el = document.getElementById('cloudStatus');
   if (!el) return;
   if (lastCloudSync > 0) {
     const ago = Math.floor((Date.now() - lastCloudSync) / 1000);
-    el.innerHTML = ago < 60 ? '☁️ 已同步' : `☁️ ${Math.floor(ago/60)}分钟前同步`;
+    const icon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:2px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
+    el.innerHTML = icon + (ago < 60 ? '已同步' : `${Math.floor(ago/60)}分钟前同步`);
     el.style.color = 'var(--sidebar-text)';
   } else {
-    el.innerHTML = '☁️ 未同步';
+    const icon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:2px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
+    el.innerHTML = icon + '未同步';
     el.style.color = 'var(--sidebar-section-title)';
   }
 }
