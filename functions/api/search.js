@@ -2,7 +2,7 @@
 // 代理博查 Web Search API
 
 const BOCHA_API_KEY = "***REDACTED-SK-KEY***";
-const BOCHA_API = "https://api.bochaai.com/v1/ai/search";
+const BOCHA_API = "https://api.bochaai.com/v1/web-search";
 
 export async function onRequest(context) {
   const { request } = context;
