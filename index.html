@@ -1001,6 +1001,12 @@ body {
       </span>
       <span>从云端恢复</span>
     </button>
+    <button class="sidebar-footer-item" onclick="showSyncCodeDialog()">
+      <span class="footer-icon">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </span>
+      <span>🔑 同步码</span>
+    </button>
     <button class="sidebar-footer-item" onclick="exportChat()">
       <span class="footer-icon">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -1093,7 +1099,7 @@ let isStreaming = false;
 let currentTheme = 'dark';
 let currentConversationId = null;
 let conversations = {};
-let cloudToken = null;       // jsonstore.io token
+let cloudToken = null;       // 用户同步码（多设备共享）
 let cloudSyncing = false;    // 正在同步中
 let lastCloudSync = 0;       // 上次同步时间戳
 
@@ -1308,15 +1314,46 @@ function updateThemeUI() {
 // 策略：数据发到 Flask 后端，后端存服务器文件 + 尝试同步 jsonstore.io
 // 后端在云端运行，不受国内网络限制
 
-// 获取或生成云存储 token（作为用户标识）
+// 获取同步码（默认4位数字，多设备用同一个码即可同步）
 async function getCloudToken() {
   if (cloudToken) return cloudToken;
-  const saved = localStorage.getItem(CLOUD_TOKEN_KEY);
-  if (saved) { cloudToken = saved; return cloudToken; }
-  // 生成一个本地唯一 ID 作为标识
-  cloudToken = 'user_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
-  localStorage.setItem(CLOUD_TOKEN_KEY, cloudToken);
+  let saved = localStorage.getItem(CLOUD_TOKEN_KEY);
+  if (!saved) {
+    // 首次使用，生成简单同步码：4位随机数字
+    saved = String(Math.floor(1000 + Math.random() * 9000));
+    localStorage.setItem(CLOUD_TOKEN_KEY, saved);
+  }
+  cloudToken = saved;
   return cloudToken;
+}
+
+// 设置同步码（在其他设备上输入相同的码即可同步）
+function setCloudToken(code) {
+  code = code.trim();
+  if (!code || code.length < 2) {
+    alert('同步码至少2个字符');
+    return false;
+  }
+  cloudToken = code;
+  localStorage.setItem(CLOUD_TOKEN_KEY, code);
+  updateCloudStatus();
+  return true;
+}
+
+// 显示同步码设置弹窗
+function showSyncCodeDialog() {
+  const code = localStorage.getItem(CLOUD_TOKEN_KEY) || '';
+  const msg = '📱 多设备同步\n\n'
+    + '你的同步码：' + code + '\n\n'
+    + '在其他设备输入相同同步码即可共享数据。\n'
+    + '修改同步码将无法访问之前的数据！';
+  
+  const action = prompt(msg + '\n\n输入新同步码修改，或点取消保留当前码：', code);
+  if (action === null) return; // 取消
+  if (action === code) return; // 没改
+  if (setCloudToken(action)) {
+    alert('✅ 同步码已更新为：' + action + '\n\n在其他设备输入此码即可同步。');
+  }
 }
 
 // 上传对话数据到服务器
