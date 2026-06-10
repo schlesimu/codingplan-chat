@@ -1195,7 +1195,7 @@ body {
         <svg viewBox="0 0 24 24"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z" fill="currentColor" opacity="0.5"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z" fill="currentColor"/></svg>
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v1.7</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v1.8</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -2065,34 +2065,22 @@ function toggleMoreTools() {
   toggle.classList.toggle('open');
 }
 
-async function sendMessage() {
-  const text = userInput.value.trim();
-  if (!text || isStreaming) return;
-  isStreaming = true; sendBtn.disabled = true;
-  userInput.value = ''; userInput.style.height = 'auto';
-  
-  // 联网搜索
-  let searchContext = '';
-  if (webSearchEnabled) {
-    const searchBubble = addMessage('assistant', '🔍 正在搜索...');
-    searchContext = await searchWeb(text) || '';
-    // 移除搜索提示
-    searchBubble.parentElement?.remove();
-  }
-  
-  addMessage('user', text);
-  messages.push({ role: 'user', content: text });
-  
-  // 如果有搜索结果，加入上下文
-  const sendMessages = [...messages];
-  if (searchContext) {
-    // 把搜索结果附在用户消息后面
-    const lastIdx = sendMessages.length - 1;
-    const userMsg = sendMessages[lastIdx];
-    userMsg.content = `用户问题：${userMsg.content}\n\n以下是网络搜索结果，请基于这些信息回答：\n\n${searchContext}`;
-  }
-  
-  const bubble = addStreamingMessage();
+// 系统提示词：告诉 AI 如何使用搜索工具
+const SYSTEM_PROMPT = {
+  role: 'system',
+  content: `你是一个智能编程助手。当用户的问题涉及实时信息、最新新闻、当前事件、股价、天气、时间等需要联网查询的内容时，你可以使用搜索工具获取信息。
+
+搜索工具使用方式：在回复中输出 <search>搜索关键词</search>，系统会自动搜索并把结果给你。
+
+注意：
+1. 只有需要实时信息时才使用搜索
+2. 搜索关键词要简洁准确
+3. 收到搜索结果后，基于结果给出完整回答
+4. 不要告诉用户你在搜索，直接给出答案`
+};
+
+// 调用 AI（支持搜索工具调用）
+async function callAI(sendMessages, bubble, allowSearch = true) {
   let fullContent = '';
   try {
     const resp = await fetch('/api/chat', {
@@ -2100,8 +2088,7 @@ async function sendMessage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages: sendMessages, stream: true })
     });
-    
-    // 流式解析 SSE
+
     const reader = resp.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
@@ -2127,10 +2114,9 @@ async function sendMessage() {
         } catch (e) {}
       }
     }
-    
-    // 如果流式没有收到数据，尝试非流式 fallback
+
+    // 流式 fallback
     if (!hasData || !fullContent) {
-      // 重新发送非流式请求
       const resp2 = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2143,13 +2129,61 @@ async function sendMessage() {
         chatArea.scrollTop = chatArea.scrollHeight;
       }
     }
-    
-    messages.push({ role: 'assistant', content: fullContent });
-    saveCurrentConversation();
-    if (!fullContent) bubble.innerHTML = '<span style="color:var(--text-dim)">（没有收到回复，请重试）</span>';
+
+    // 检测是否需要搜索（联网搜索开启时）
+    if (allowSearch && webSearchEnabled) {
+      const searchMatch = fullContent.match(/<search>(.+?)<\/search>/);
+      if (searchMatch) {
+        const searchQuery = searchMatch[1].trim();
+        // 清除 <search> 标记，显示搜索状态
+        bubble.innerHTML = formatContent('🔍 正在搜索：' + searchQuery);
+        chatArea.scrollTop = chatArea.scrollHeight;
+
+        // 执行搜索
+        const searchResults = await searchWeb(searchQuery) || '';
+
+        // 构建新的消息上下文：原始消息 + AI的搜索请求 + 搜索结果
+        const newMessages = [
+          SYSTEM_PROMPT,
+          ...sendMessages.filter(m => m.role !== 'system'),
+          { role: 'assistant', content: fullContent },
+          { role: 'user', content: `搜索结果：\n\n${searchResults}\n\n请基于以上搜索结果回答。` }
+        ];
+
+        // 清空当前气泡，重新调用 AI
+        bubble.innerHTML = '';
+        return await callAI(newMessages, bubble, false); // 禁止二次搜索
+      }
+    }
+
+    return fullContent;
   } catch (e) {
     bubble.innerHTML = `<span style="color:var(--text-error)">❌ 网络出错：${e.message}，请重试</span>`;
+    return '';
   }
+}
+
+async function sendMessage() {
+  const text = userInput.value.trim();
+  if (!text || isStreaming) return;
+  isStreaming = true; sendBtn.disabled = true;
+  userInput.value = ''; userInput.style.height = 'auto';
+
+  addMessage('user', text);
+  messages.push({ role: 'user', content: text });
+
+  const bubble = addStreamingMessage();
+
+  // 构建消息上下文（包含系统提示）
+  const sendMessages = [SYSTEM_PROMPT, ...messages];
+
+  const fullContent = await callAI(sendMessages, bubble);
+
+  if (fullContent) {
+    messages.push({ role: 'assistant', content: fullContent });
+    saveCurrentConversation();
+  }
+
   isStreaming = false; sendBtn.disabled = false; userInput.focus();
 }
 </script>
