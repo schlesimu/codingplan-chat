@@ -1,7 +1,8 @@
 // Cloudflare Pages Function: /api/search
 // 代理博查 Web Search API
+// 支持自定义 API Key（通过请求头 X-Search-Key 传入）
 
-const BOCHA_API_KEY = "sk-ae1058cd6ce148e4a5322432f44c35a8";
+const DEFAULT_BOCHA_KEY = "sk-ae1058cd6ce148e4a5322432f44c35a8";
 const BOCHA_API = "https://api.bochaai.com/v1/web-search";
 
 export async function onRequest(context) {
@@ -17,7 +18,7 @@ export async function onRequest(context) {
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
+        'Access-Control-Allow-Headers': 'Content-Type, X-Search-Key'
       }
     });
   }
@@ -37,7 +38,7 @@ export async function onRequest(context) {
     const resp = await fetch(BOCHA_API, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${BOCHA_API_KEY}`,
+        'Authorization': `Bearer ${request.headers.get('X-Search-Key') || DEFAULT_BOCHA_KEY}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
