@@ -730,23 +730,18 @@ body {
 
 /* ========== 通透模式：基于 Liquid-Glass-CSS + liquid-glass 的极致液态玻璃 ========== */
 
-/* 全局面板：应用 SVG 折射滤镜 */
-[data-theme="liquid"] .sidebar,
-[data-theme="liquid"] .header,
-[data-theme="liquid"] .input-area,
-[data-theme="liquid"] .msg.assistant .bubble {
-  filter: url(#liquid-glass-panel);
-  -webkit-filter: url(#liquid-glass-panel);
-}
+/* 注：SVG 滤镜通过 backdrop-filter 引用在 Chrome 支持有限，
+   改为纯 CSS 极致方案：超低透明度 + 精密 box-shadow + 强 backdrop-filter */
 
 [data-theme="liquid"] .sidebar {
-  backdrop-filter: blur(80px) saturate(300%) brightness(1.25);
-  -webkit-backdrop-filter: blur(80px) saturate(300%) brightness(1.25);
+  backdrop-filter: blur(80px) saturate(350%) brightness(1.3) contrast(0.85);
+  -webkit-backdrop-filter: blur(80px) saturate(350%) brightness(1.3) contrast(0.85);
   box-shadow:
-    inset 1px 1px 2px 0px rgba(255,255,255,0.87),
-    inset -1px -2px 3px 1px rgba(49,49,49,0.3),
-    0px 0px 6px 1px rgba(0,0,0,0.38),
-    4px 0 50px rgba(140,120,255,0.08);
+    inset 1px 1px 2px 0px rgba(255,255,255,0.9),
+    inset -1px -2px 3px 1px rgba(49,49,49,0.25),
+    0px 0px 8px 1px rgba(0,0,0,0.35),
+    4px 0 50px rgba(140,120,255,0.06);
+}
 }
 [data-theme="liquid"] .sidebar::before {
   background:
@@ -758,12 +753,12 @@ body {
 }
 
 [data-theme="liquid"] .header {
-  backdrop-filter: blur(60px) saturate(280%) brightness(1.3);
-  -webkit-backdrop-filter: blur(60px) saturate(280%) brightness(1.3);
+  backdrop-filter: blur(60px) saturate(320%) brightness(1.35) contrast(0.85);
+  -webkit-backdrop-filter: blur(60px) saturate(320%) brightness(1.35) contrast(0.85);
   box-shadow:
-    inset 1px 1px 3px 1px rgba(255,255,255,0.38),
-    inset -1px -2px 3px 1px rgba(49,49,49,0.3),
-    0px 0px 7px 1px rgba(0,0,0,0.46);
+    inset 1px 1px 3px 1px rgba(255,255,255,0.5),
+    inset -1px -2px 3px 1px rgba(49,49,49,0.2),
+    0px 0px 8px 1px rgba(0,0,0,0.35);
 }
 [data-theme="liquid"] .header::before {
   background:
@@ -772,12 +767,12 @@ body {
 }
 
 [data-theme="liquid"] .input-area {
-  backdrop-filter: blur(60px) saturate(280%) brightness(1.25);
-  -webkit-backdrop-filter: blur(60px) saturate(280%) brightness(1.25);
+  backdrop-filter: blur(60px) saturate(320%) brightness(1.3) contrast(0.85);
+  -webkit-backdrop-filter: blur(60px) saturate(320%) brightness(1.3) contrast(0.85);
   box-shadow:
-    inset 1px 1px 2px 0px rgba(255,255,255,0.87),
-    inset -1px -2px 3px 1px rgba(49,49,49,0.3),
-    0px 0px 6px 1px rgba(0,0,0,0.38);
+    inset 1px 1px 2px 0px rgba(255,255,255,0.9),
+    inset -1px -2px 3px 1px rgba(49,49,49,0.25),
+    0px 0px 8px 1px rgba(0,0,0,0.35);
 }
 [data-theme="liquid"] .input-area::before {
   background:
@@ -787,12 +782,12 @@ body {
 
 /* AI 气泡：液态玻璃核心 */
 [data-theme="liquid"] .msg.assistant .bubble {
-  backdrop-filter: blur(40px) saturate(250%) brightness(1.3) contrast(0.85);
-  -webkit-backdrop-filter: blur(40px) saturate(250%) brightness(1.3) contrast(0.85);
+  backdrop-filter: blur(40px) saturate(280%) brightness(1.35) contrast(0.8);
+  -webkit-backdrop-filter: blur(40px) saturate(280%) brightness(1.35) contrast(0.8);
   box-shadow:
-    inset 1px 1px 2px 0px rgba(255,255,255,0.7),
-    inset -1px -2px 3px 1px rgba(49,49,49,0.2),
-    0px 0px 6px 1px rgba(0,0,0,0.25);
+    inset 1px 1px 2px 0px rgba(255,255,255,0.8),
+    inset -1px -2px 3px 1px rgba(49,49,49,0.18),
+    0px 0px 6px 1px rgba(0,0,0,0.2);
 }
 [data-theme="liquid"] .msg.assistant .bubble::before {
   background:
@@ -814,12 +809,12 @@ body {
 
 /* 快捷按钮 */
 [data-theme="liquid"] .quick-btn {
-  backdrop-filter: blur(35px) saturate(240%) brightness(1.15);
-  -webkit-backdrop-filter: blur(35px) saturate(240%) brightness(1.15);
+  backdrop-filter: blur(35px) saturate(260%) brightness(1.2) contrast(0.85);
+  -webkit-backdrop-filter: blur(35px) saturate(260%) brightness(1.2) contrast(0.85);
   box-shadow:
-    inset 1px 1px 2px 0px rgba(255,255,255,0.5),
-    inset -1px -2px 3px 1px rgba(49,49,49,0.15),
-    0px 0px 4px 1px rgba(0,0,0,0.15);
+    inset 1px 1px 2px 0px rgba(255,255,255,0.6),
+    inset -1px -2px 3px 1px rgba(49,49,49,0.12),
+    0px 0px 4px 1px rgba(0,0,0,0.12);
 }
 [data-theme="liquid"] .quick-btn::before {
   background: radial-gradient(ellipse 100% 70% at 50% 0%, rgba(255,255,255,0.5) 0%, transparent 60%);
@@ -1649,7 +1644,7 @@ body {
         <img src="logo.png" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.6.0</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.6.1</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -2419,6 +2414,12 @@ function showApiKeyDialog() {
 // ========== 更新日志 ==========
 function showChangelog() {
   const changelog = [
+    { v: 'v0.6.1', date: '2026-06-10', items: [
+      '🔧 修复 SVG filter 与 backdrop-filter 冲突导致的显示异常',
+      '💎 改为纯 CSS 极致方案：超低透明度 + 精密 box-shadow',
+      '💎 saturate 提升至 320-350%，contrast 降至 0.8-0.85',
+      '💎 三层内高光/内阴影/外投影精确复刻 Liquid Glass',
+    ]},
     { v: 'v0.6.0', date: '2026-06-10', items: [
       '💎 基于 Liquid-Glass-CSS + liquid-glass 重做通透模式',
       '💎 引入 SVG feTurbulence + feDisplacementMap 折射滤镜',
