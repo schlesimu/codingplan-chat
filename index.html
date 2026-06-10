@@ -554,7 +554,11 @@ body {
 .sidebar-version {
   font-size: 10px !important; font-weight: 400 !important;
   color: var(--sidebar-section-title) !important;
-  margin-left: 2px;
+  margin-left: 2px; cursor: pointer;
+  transition: color 0.2s;
+}
+.sidebar-version:hover {
+  color: var(--sidebar-text-active) !important;
 }
 .sidebar-close {
   width: 26px; height: 26px; border-radius: 13px;
@@ -1191,7 +1195,7 @@ body {
         <svg viewBox="0 0 24 24"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z" fill="currentColor" opacity="0.5"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z" fill="currentColor"/></svg>
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version">v1.5</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v1.6</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -1587,6 +1591,47 @@ async function deriveGistId(token) {
   return hashArray.slice(0, 16).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// ========== 同步码管理 ==========
+async function getCloudToken() {
+  if (cloudToken) return cloudToken;
+  let saved = localStorage.getItem(CLOUD_TOKEN_KEY);
+  if (!saved) {
+    saved = String(Math.floor(1000 + Math.random() * 9000));
+    localStorage.setItem(CLOUD_TOKEN_KEY, saved);
+  }
+  cloudToken = saved;
+  return cloudToken;
+}
+
+function setCloudToken(code) {
+  code = code.trim();
+  if (!code || code.length < 2) {
+    alert('同步码至少2个字符');
+    return false;
+  }
+  cloudToken = code;
+  localStorage.setItem(CLOUD_TOKEN_KEY, code);
+  cloudGistId = null; // 重置 Gist ID
+  updateCloudStatus();
+  return true;
+}
+
+function showSyncCodeDialog() {
+  const code = localStorage.getItem(CLOUD_TOKEN_KEY) || '';
+  const msg = '📱 多设备同步\n\n'
+    + '你的同步码：' + code + '\n\n'
+    + '在其他设备输入相同同步码即可共享数据。\n'
+    + '修改同步码将无法访问之前的数据！\n\n'
+    + '存储方式：GitHub Gist（免费永久）';
+  
+  const action = prompt(msg + '\n\n输入新同步码修改，或点取消保留当前码：', code);
+  if (action === null) return;
+  if (action === code) return;
+  if (setCloudToken(action)) {
+    alert('✅ 同步码已更新为：' + action + '\n\n在其他设备输入此码即可同步。');
+  }
+}
+
 // 获取/创建 Gist
 async function getOrCreateGist(token) {
   const gistId = await deriveGistId(token);
@@ -1734,12 +1779,10 @@ function updateCloudStatus() {
   if (!el) return;
   if (lastCloudSync > 0) {
     const ago = Math.floor((Date.now() - lastCloudSync) / 1000);
-    const icon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:2px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
-    el.innerHTML = icon + (ago < 60 ? '已同步' : `${Math.floor(ago/60)}分钟前同步`);
+    el.textContent = ago < 60 ? '已同步' : `${Math.floor(ago/60)}分钟前同步`;
     el.style.color = 'var(--sidebar-text)';
   } else {
-    const icon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:2px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
-    el.innerHTML = icon + '未同步';
+    el.textContent = '未同步';
     el.style.color = 'var(--sidebar-section-title)';
   }
 }
@@ -1794,6 +1837,85 @@ function exportAllChats() {
     }, i * 300);
   });
   closeSidebar();
+}
+// ========== 更新日志 ==========
+function showChangelog() {
+  const changelog = [
+    { v: 'v1.6', date: '2026-06-10', items: [
+      '修复云同步三个按钮（未同步/从云端恢复/同步码）点击无反应的问题',
+      '补回 getCloudToken/setCloudToken/showSyncCodeDialog 缺失函数',
+      '新增版本号点击查看更新日志功能',
+      '更新日志展示 v1.0-v1.6 完整变更记录',
+    ]},
+    { v: 'v1.5', date: '2026-06-10', items: [
+      '修复横屏模式侧边栏遮挡主内容区的问题',
+      'app-main 改用 width: calc(100vw - 280px) 精确计算',
+      '云同步迁移至 GitHub Gist API（免费永久存储）',
+      '同步码 SHA-256 哈希 → 稳定 Gist ID 实现多设备同步',
+      '修复 CLOUD_TOKEN_KEY 未定义的 bug',
+    ]},
+    { v: 'v1.4', date: '2026-06-10', items: [
+      '联网搜索开关从侧边栏移到顶栏右上角',
+      '横屏布局改用 margin-left + 宽度自适应',
+      '顶栏搜索按钮带蓝色 on 状态样式',
+    ]},
+    { v: 'v1.3', date: '2026-06-10', items: [
+      '横屏侧边栏改为 macOS 26 风格悬浮卡片',
+      '距边缘 10px + 圆角 20px + 悬浮阴影',
+      '主内容区改用 padding-left 让出侧边栏空间',
+      '横屏模式下隐藏关闭按钮和汉堡菜单',
+    ]},
+    { v: 'v1.2', date: '2026-06-10', items: [
+      '侧边栏所有 emoji 图标替换为 iOS/鸿蒙线性 SVG 图标',
+      '横屏/电脑模式（宽>高且>=768px）侧边栏默认常驻展开',
+      '窗口 resize 自动切换侧边栏展开/收起状态',
+    ]},
+    { v: 'v1.1', date: '2026-06-10', items: [
+      '白色模式液态玻璃效果全面优化',
+      '提升所有面板透明度，增强 backdrop-filter 亮度',
+      '侧边栏加入彩虹色散边缘高光',
+      'AI 气泡四角色散渐变 + 顶部明亮高光',
+      '输入区 Dock 多层微光边缘 + 柔和悬浮阴影',
+    ]},
+    { v: 'v1.0', date: '2026-06-09', items: [
+      '品牌名改为 codingplan-chat，添加版本号 v1.0',
+      '侧边栏新增「更多工具」折叠面板',
+      '新增联网搜索开关（博查 API 集成）',
+      '新增云端备份/恢复功能（同步码多设备共享）',
+      '导出/导入 .md、清空对话等基础功能',
+    ]},
+  ];
+
+  let html = '<div style="text-align:center;margin-bottom:16px;font-size:18px;font-weight:700;color:var(--text-main)">📋 更新日志</div>';
+  html += '<div style="max-height:60vh;overflow-y:auto;padding-right:8px">';
+  changelog.forEach(entry => {
+    html += `<div style="margin-bottom:14px;padding:10px 12px;border-radius:10px;background:var(--bubble-ai-bg);border:1px solid var(--bubble-ai-border)">`;
+    html += `<div style="font-weight:700;color:var(--text-main);margin-bottom:4px">${entry.v} <span style="font-weight:400;font-size:11px;color:var(--text-dim)">${entry.date}</span></div>`;
+    entry.items.forEach(item => {
+      html += `<div style="font-size:12px;color:var(--sidebar-text);line-height:1.7;padding-left:8px">· ${item}</div>`;
+    });
+    html += `</div>`;
+  });
+  html += '</div>';
+
+  // 创建弹窗
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:20px';
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+  
+  const dialog = document.createElement('div');
+  dialog.style.cssText = 'max-width:420px;width:100%;padding:20px;border-radius:18px;background:var(--sidebar-bg);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border:1px solid var(--sidebar-border);box-shadow:0 16px 48px rgba(0,0,0,0.25);color:var(--text-main)';
+  dialog.innerHTML = html;
+  dialog.onclick = function(e) { e.stopPropagation(); };
+  
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = '关闭';
+  closeBtn.style.cssText = 'display:block;margin:16px auto 0;padding:8px 28px;border-radius:20px;border:1px solid var(--btn-border);background:var(--btn-bg);color:var(--btn-color);cursor:pointer;font-size:13px;font-family:inherit';
+  closeBtn.onclick = () => overlay.remove();
+  dialog.appendChild(closeBtn);
+  
+  overlay.appendChild(dialog);
+  document.body.appendChild(overlay);
 }
 (function init() {
   const saved = localStorage.getItem('codingplan-theme') || 'dark';
