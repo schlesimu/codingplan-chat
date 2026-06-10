@@ -151,6 +151,73 @@ html { font-size: 13px; }
   --orb3-color: rgba(140,200,255,0.35);
 }
 
+/* ========== 通透模式（Liquid Glass Ultra）========== */
+[data-theme="liquid"] {
+  /* 背景：极亮的彩色渐变，模拟光线穿透 */
+  --bg-gradient: linear-gradient(160deg, #f0f4ff 0%, #fff0f5 25%, #f5fff8 50%, #fff8f0 75%, #f8f0ff 100%);
+  --text-main: #1a1a2e;
+  --text-dim: rgba(26,26,46,0.35);
+  --text-error: #e53935;
+  /* 顶栏：几乎完全透明，只有轻微霜化 */
+  --header-bg: rgba(255,255,255,0.15);
+  --header-border: rgba(255,255,255,0.25);
+  --header-title: #1a1a2e;
+  --btn-bg: rgba(255,255,255,0.2);
+  --btn-border: rgba(255,255,255,0.3);
+  --btn-color: rgba(26,26,46,0.55);
+  --btn-active-bg: rgba(255,255,255,0.35);
+  /* 侧边栏：超通透 */
+  --sidebar-bg: rgba(255,255,255,0.22);
+  --sidebar-border: rgba(255,255,255,0.28);
+  --sidebar-item-hover: rgba(255,255,255,0.15);
+  --sidebar-item-active: rgba(255,100,60,0.12);
+  --sidebar-text: rgba(26,26,46,0.6);
+  --sidebar-text-active: #1a1a2e;
+  --sidebar-section-title: rgba(26,26,46,0.35);
+  --sidebar-divider: rgba(255,255,255,0.2);
+  --overlay-bg: rgba(180,180,200,0.15);
+  --avatar-assistant-bg: rgba(255,100,60,0.15);
+  --avatar-assistant-border: rgba(255,100,60,0.2);
+  --avatar-user-bg: rgba(0,180,100,0.15);
+  --avatar-user-border: rgba(0,180,100,0.2);
+  --avatar-user-color: #2e7d32;
+  /* AI 气泡：极致通透 */
+  --bubble-ai-bg: rgba(255,255,255,0.28);
+  --bubble-ai-border: rgba(255,255,255,0.35);
+  --bubble-ai-color: #1a1a2e;
+  --bubble-ai-shadow: 0 2px 16px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.6);
+  --bubble-user-bg: linear-gradient(135deg, rgba(0,180,100,0.45), rgba(0,140,200,0.4));
+  --bubble-user-border: rgba(0,180,120,0.2);
+  --bubble-user-color: #fff;
+  --bubble-user-shadow: 0 4px 16px rgba(0,180,100,0.15);
+  --code-bg: rgba(0,0,0,0.04);
+  --code-color: #c62828;
+  --pre-bg: rgba(255,255,255,0.3);
+  --pre-border: rgba(255,255,255,0.25);
+  --pre-color: #2d2d3a;
+  /* 快捷按钮 */
+  --quick-bg: rgba(255,255,255,0.3);
+  --quick-border: rgba(255,255,255,0.3);
+  --quick-color: rgba(26,26,46,0.65);
+  --quick-active-bg: rgba(255,100,60,0.2);
+  --quick-active-border: rgba(255,100,60,0.3);
+  /* 输入区 */
+  --input-bg: rgba(255,255,255,0.3);
+  --input-border: rgba(255,255,255,0.3);
+  --input-color: #1a1a2e;
+  --input-placeholder: rgba(26,26,46,0.3);
+  --input-focus-border: rgba(255,100,60,0.4);
+  --input-focus-bg: rgba(255,255,255,0.5);
+  --input-focus-shadow: 0 0 24px rgba(255,100,60,0.1);
+  --input-area-bg: rgba(255,255,255,0.22);
+  --input-area-border: rgba(255,255,255,0.3);
+  --typing-dot: rgba(26,26,46,0.25);
+  --orb-opacity: 0.55;
+  --orb1-color: rgba(180,160,255,0.6);
+  --orb2-color: rgba(255,180,160,0.45);
+  --orb3-color: rgba(160,220,255,0.5);
+}
+
 /* ========== 背景层 ========== */
 .bg-layer {
   position: fixed; inset: 0; z-index: 0;
@@ -353,6 +420,19 @@ body {
   color: rgba(0,0,0,0.5);
   border-color: rgba(0,0,0,0.06);
   box-shadow: 0 1px 4px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255,255,255,0.6);
+}
+
+/* 通透模式 onboarding */
+[data-theme="liquid"] .onb-title { color: #1a1a2e; }
+[data-theme="liquid"] .onb-subtitle { color: rgba(26,26,46,0.4); }
+[data-theme="liquid"] .onb-privacy-text { color: rgba(26,26,46,0.3); }
+[data-theme="liquid"] .onb-btn-secondary {
+  background: rgba(255,255,255,0.35);
+  backdrop-filter: blur(30px) saturate(200%) brightness(1.2);
+  -webkit-backdrop-filter: blur(30px) saturate(200%) brightness(1.2);
+  color: rgba(26,26,46,0.55);
+  border-color: rgba(255,255,255,0.35);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.7);
 }
 
 /* ================================================ */
@@ -635,6 +715,111 @@ body {
 [data-theme="light"] .sidebar-collapse-toggle {
   backdrop-filter: blur(8px) saturate(140%) brightness(1.08);
   -webkit-backdrop-filter: blur(8px) saturate(140%) brightness(1.08);
+}
+
+/* 通透模式：所有玻璃元素增强 */
+[data-theme="liquid"] .sidebar {
+  backdrop-filter: blur(60px) saturate(250%) brightness(1.15);
+  -webkit-backdrop-filter: blur(60px) saturate(250%) brightness(1.15);
+  box-shadow:
+    inset 1px 0 0 rgba(255,255,255,0.5),
+    inset -1px 0 0 rgba(255,255,255,0.15),
+    4px 0 40px rgba(0,0,0,0.06);
+}
+[data-theme="liquid"] .sidebar::before {
+  background:
+    radial-gradient(ellipse 120% 60% at 50% 0%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.2) 50%, transparent 80%),
+    radial-gradient(ellipse 40% 30% at 10% 15%, rgba(255,180,140,0.2) 0%, transparent 70%),
+    radial-gradient(ellipse 30% 25% at 90% 85%, rgba(140,180,255,0.15) 0%, transparent 70%),
+    radial-gradient(ellipse 100% 20% at 50% 100%, rgba(0,0,0,0.01) 0%, transparent 60%);
+  opacity: 0.9;
+}
+[data-theme="liquid"] .header {
+  backdrop-filter: blur(50px) saturate(220%) brightness(1.2);
+  -webkit-backdrop-filter: blur(50px) saturate(220%) brightness(1.2);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.6),
+    0 4px 24px rgba(0,0,0,0.04),
+    0 1px 4px rgba(0,0,0,0.02);
+}
+[data-theme="liquid"] .header::before {
+  background:
+    radial-gradient(ellipse 120% 100% at 50% 0%, rgba(255,255,255,0.8) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 60% at 50% 100%, rgba(0,0,0,0.01) 0%, transparent 60%);
+}
+[data-theme="liquid"] .input-area {
+  backdrop-filter: blur(50px) saturate(220%) brightness(1.15);
+  -webkit-backdrop-filter: blur(50px) saturate(220%) brightness(1.15);
+  box-shadow:
+    0 -1px 0 rgba(255,255,255,0.5),
+    0 1px 0 rgba(255,160,120,0.06),
+    0 -1px 0 rgba(140,180,255,0.05),
+    0 4px 24px rgba(0,0,0,0.04),
+    0 1px 4px rgba(0,0,0,0.02);
+}
+[data-theme="liquid"] .input-area::before {
+  background:
+    radial-gradient(ellipse 120% 100% at 50% 0%, rgba(255,255,255,0.7) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 60% at 50% 100%, rgba(0,0,0,0.01) 0%, transparent 60%);
+}
+[data-theme="liquid"] .msg.assistant .bubble {
+  backdrop-filter: blur(32px) saturate(200%) brightness(1.2) contrast(0.9);
+  -webkit-backdrop-filter: blur(32px) saturate(200%) brightness(1.2) contrast(0.9);
+}
+[data-theme="liquid"] .msg.assistant .bubble::before {
+  background:
+    radial-gradient(ellipse 100% 70% at 50% 0%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.3) 40%, transparent 70%),
+    radial-gradient(ellipse 60% 30% at 50% 100%, rgba(0,0,0,0.01) 0%, transparent 70%);
+  opacity: 0.85;
+}
+[data-theme="liquid"] .msg.assistant .bubble::after {
+  background: linear-gradient(
+    135deg,
+    rgba(255,80,40,0.08) 0%,
+    rgba(255,180,40,0.05) 15%,
+    transparent 30%,
+    rgba(80,160,255,0.06) 60%,
+    transparent 78%,
+    rgba(180,80,255,0.05) 100%
+  );
+}
+[data-theme="liquid"] .quick-btn {
+  backdrop-filter: blur(30px) saturate(200%) brightness(1.1);
+  -webkit-backdrop-filter: blur(30px) saturate(200%) brightness(1.1);
+}
+[data-theme="liquid"] .quick-btn::before {
+  background: radial-gradient(ellipse 100% 70% at 50% 0%, rgba(255,255,255,0.4) 0%, transparent 60%);
+}
+[data-theme="liquid"] .msg-action-btn {
+  backdrop-filter: blur(20px) saturate(180%) brightness(1.15);
+  -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.15);
+  background: rgba(255,255,255,0.35);
+  border-color: rgba(255,255,255,0.3);
+}
+[data-theme="liquid"] .img-btn {
+  backdrop-filter: blur(20px) saturate(180%) brightness(1.15);
+  -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.15);
+  background: rgba(255,255,255,0.35);
+}
+[data-theme="liquid"] .sidebar-close,
+[data-theme="liquid"] .sidebar-new-chat,
+[data-theme="liquid"] .sidebar-search-toggle,
+[data-theme="liquid"] .sidebar-footer-item,
+[data-theme="liquid"] .sidebar-collapse-toggle {
+  backdrop-filter: blur(16px) saturate(160%) brightness(1.12);
+  -webkit-backdrop-filter: blur(16px) saturate(160%) brightness(1.12);
+}
+[data-theme="liquid"] .msg-context-menu {
+  backdrop-filter: blur(40px) saturate(220%) brightness(1.15);
+  -webkit-backdrop-filter: blur(40px) saturate(220%) brightness(1.15);
+}
+[data-theme="liquid"] .input-row textarea {
+  backdrop-filter: blur(20px) saturate(160%) brightness(1.1);
+  -webkit-backdrop-filter: blur(20px) saturate(160%) brightness(1.1);
+}
+[data-theme="liquid"] .msg.assistant .bubble pre {
+  backdrop-filter: blur(20px) saturate(160%) brightness(1.1);
+  -webkit-backdrop-filter: blur(20px) saturate(160%) brightness(1.1);
 }
 .sidebar-footer-item .footer-icon { font-size: 14px; width: 20px; text-align: center; flex-shrink: 0; }
 
@@ -1225,6 +1410,135 @@ body {
   opacity: 0.75; font-size: 12px;
   background: var(--code-bg); border-radius: 0 6px 6px 0;
 }
+
+/* ========== 主题切换浮层面板 ========== */
+.theme-switcher-overlay {
+  position: fixed; inset: 0; z-index: 9998;
+  background: rgba(0,0,0,0);
+  visibility: hidden;
+  transition: background 0.3s, visibility 0.3s;
+}
+.theme-switcher-overlay.show {
+  background: rgba(0,0,0,0.15);
+  visibility: visible;
+}
+
+.theme-switcher-panel {
+  position: fixed; left: 50%; bottom: 24px;
+  transform: translateX(-50%) translateY(120%);
+  z-index: 9999;
+  padding: 6px;
+  border-radius: 28px;
+  backdrop-filter: blur(50px) saturate(220%) brightness(1.1);
+  -webkit-backdrop-filter: blur(50px) saturate(220%) brightness(1.1);
+  background: rgba(255,255,255,0.25);
+  border: 1px solid rgba(255,255,255,0.35);
+  box-shadow:
+    0 8px 40px rgba(0,0,0,0.1),
+    0 2px 12px rgba(0,0,0,0.05),
+    inset 0 1px 0 rgba(255,255,255,0.5);
+  display: flex; gap: 4px; align-items: center;
+  transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.theme-switcher-panel.show {
+  transform: translateX(-50%) translateY(0);
+}
+
+.theme-switcher-item {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 10px 18px; border-radius: 22px;
+  border: none; background: none;
+  cursor: pointer; transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  color: rgba(26,26,46,0.45);
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  min-width: 72px;
+}
+.theme-switcher-item:hover {
+  background: rgba(255,255,255,0.2);
+}
+.theme-switcher-item.active {
+  background: rgba(255,255,255,0.55);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  color: #1a1a2e;
+  box-shadow:
+    0 2px 8px rgba(0,0,0,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.6);
+}
+.theme-switcher-item:active {
+  transform: scale(0.94);
+}
+
+.theme-switcher-icon {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.25s;
+}
+.theme-switcher-item.active .theme-switcher-icon {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  box-shadow: 0 2px 8px rgba(102,126,234,0.3);
+}
+.theme-switcher-item.active[data-mode="light"] .theme-switcher-icon {
+  background: linear-gradient(135deg, #f6d365, #fda085);
+  box-shadow: 0 2px 8px rgba(246,211,101,0.3);
+}
+.theme-switcher-item.active[data-mode="liquid"] .theme-switcher-icon {
+  background: linear-gradient(135deg, #a8edea, #fed6e3);
+  box-shadow: 0 2px 8px rgba(168,237,234,0.3);
+}
+
+.theme-switcher-icon svg {
+  width: 16px; height: 16px;
+  stroke: currentColor; fill: none;
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+.theme-switcher-item.active .theme-switcher-icon svg {
+  stroke: #fff;
+}
+
+.theme-switcher-label {
+  font-size: 11px; font-weight: 500;
+  transition: color 0.2s;
+}
+
+/* 深色模式下切换面板适配 */
+[data-theme="dark"] .theme-switcher-panel {
+  background: rgba(30,30,60,0.4);
+  border-color: rgba(255,255,255,0.08);
+}
+[data-theme="dark"] .theme-switcher-item {
+  color: rgba(255,255,255,0.4);
+}
+[data-theme="dark"] .theme-switcher-item:hover {
+  background: rgba(255,255,255,0.08);
+}
+[data-theme="dark"] .theme-switcher-item.active {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+}
+[data-theme="dark"] .theme-switcher-overlay.show {
+  background: rgba(0,0,0,0.4);
+}
+
+/* 浅色模式下切换面板适配 */
+[data-theme="light"] .theme-switcher-panel {
+  background: rgba(255,255,255,0.5);
+  border-color: rgba(0,0,0,0.06);
+}
+[data-theme="light"] .theme-switcher-item {
+  color: rgba(0,0,0,0.4);
+}
+[data-theme="light"] .theme-switcher-item:hover {
+  background: rgba(0,0,0,0.04);
+}
+[data-theme="light"] .theme-switcher-item.active {
+  background: rgba(255,255,255,0.8);
+  color: #1c1c1e;
+}
+[data-theme="light"] .theme-switcher-overlay.show {
+  background: rgba(0,0,0,0.1);
+}
 </style>
 </head>
 <body>
@@ -1331,7 +1645,7 @@ body {
         <img src="logo.png" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.4.2</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.5.0</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -1348,11 +1662,11 @@ body {
   </div>
 
   <div class="sidebar-footer">
-    <button class="sidebar-footer-item" onclick="toggleTheme()">
+    <button class="sidebar-footer-item" onclick="openThemeSwitcher()">
       <span class="footer-icon" id="themeIcon">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
       </span>
-      <span id="themeLabel">深色模式</span>
+      <span id="themeLabel">外观模式</span>
     </button>
     <button class="sidebar-footer-item" onclick="manualBackup()">
       <span class="footer-icon">
@@ -1489,6 +1803,29 @@ body {
 
 <!-- 消息右键菜单（全局复用） -->
 <div class="msg-context-menu" id="msgContextMenu"></div>
+
+<!-- 主题切换浮层面板 -->
+<div class="theme-switcher-overlay" id="themeSwitcherOverlay" onclick="closeThemeSwitcher()"></div>
+<div class="theme-switcher-panel" id="themeSwitcherPanel">
+  <button class="theme-switcher-item" data-mode="dark" onclick="switchTheme('dark')">
+    <div class="theme-switcher-icon">
+      <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </div>
+    <span class="theme-switcher-label">深色</span>
+  </button>
+  <button class="theme-switcher-item" data-mode="light" onclick="switchTheme('light')">
+    <div class="theme-switcher-icon">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    </div>
+    <span class="theme-switcher-label">浅色</span>
+  </button>
+  <button class="theme-switcher-item" data-mode="liquid" onclick="switchTheme('liquid')">
+    <div class="theme-switcher-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z"/></svg>
+    </div>
+    <span class="theme-switcher-label">通透</span>
+  </button>
+</div>
 
 <script>
 // ========== 全局状态 ==========
@@ -1711,22 +2048,61 @@ function renderMessages() {
 }
 
 // ========== 主题 ==========
-function toggleTheme() {
-  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', currentTheme);
-  localStorage.setItem('codingplan-theme', currentTheme);
+const THEMES = ['dark', 'light', 'liquid'];
+const THEME_LABELS = { dark: '深色模式', light: '浅色模式', liquid: '通透模式' };
+const THEME_ICONS = {
+  dark: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+  light: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>',
+  liquid: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z"/></svg>'
+};
+
+function switchTheme(theme) {
+  if (!THEMES.includes(theme)) return;
+  currentTheme = theme;
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('codingplan-theme', theme);
   updateThemeUI();
+  updateThemeSwitcherUI();
+  closeThemeSwitcher();
 }
+
+function toggleTheme() {
+  const idx = THEMES.indexOf(currentTheme);
+  const next = THEMES[(idx + 1) % THEMES.length];
+  switchTheme(next);
+}
+
 function updateThemeUI() {
   const icon = document.getElementById('themeIcon');
   const label = document.getElementById('themeLabel');
-  const moonSVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
-  const sunSVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
-  if (currentTheme === 'dark') {
-    icon.innerHTML = moonSVG; label.textContent = '深色模式';
-  } else {
-    icon.innerHTML = sunSVG; label.textContent = '浅色模式';
-  }
+  icon.innerHTML = THEME_ICONS[currentTheme];
+  label.textContent = THEME_LABELS[currentTheme];
+}
+
+// 主题切换浮层面板
+function openThemeSwitcher() {
+  const overlay = document.getElementById('themeSwitcherOverlay');
+  const panel = document.getElementById('themeSwitcherPanel');
+  updateThemeSwitcherUI();
+  overlay.classList.add('show');
+  panel.classList.add('show');
+}
+
+function closeThemeSwitcher() {
+  const overlay = document.getElementById('themeSwitcherOverlay');
+  const panel = document.getElementById('themeSwitcherPanel');
+  overlay.classList.remove('show');
+  panel.classList.remove('show');
+}
+
+function updateThemeSwitcherUI() {
+  document.querySelectorAll('.theme-switcher-item').forEach(item => {
+    if (item.dataset.mode === currentTheme) {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
+    }
+  });
 }
 
 // ========== GitHub Gist 云存储 ==========
@@ -2088,6 +2464,14 @@ function showApiKeyDialog() {
 // ========== 更新日志 ==========
 function showChangelog() {
   const changelog = [
+    { v: 'v0.5.0', date: '2026-06-10', items: [
+      '🆕 新增「通透模式」：超通透液态玻璃效果',
+      '🎨 底部浮出三档切换面板：深色 / 浅色 / 通透',
+      '💎 通透模式：超高透明度 + 强 backdrop-filter',
+      '💎 背景光球增强，彩虹色散边缘微光',
+      '💎 所有面板统一超通透风格，文字保持高对比',
+      '🔧 主题切换改为浮层面板，视觉更精致',
+    ]},
     { v: 'v0.4.2', date: '2026-06-10', items: [
       '🔧 修复右键/长按菜单不触发的问题',
       'hover 操作按钮新增「朗读」：复制/引用/朗读/重新生成',
@@ -2250,7 +2634,8 @@ function showChangelog() {
   document.body.appendChild(overlay);
 }
 (function init() {
-  const saved = localStorage.getItem('codingplan-theme') || 'dark';
+  let saved = localStorage.getItem('codingplan-theme') || 'dark';
+  if (!THEMES.includes(saved)) saved = 'dark';
   currentTheme = saved;
   document.documentElement.setAttribute('data-theme', saved);
   updateThemeUI();
