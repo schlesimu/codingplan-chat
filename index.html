@@ -1600,8 +1600,10 @@ async function searchWeb(query) {
       body: JSON.stringify({ query, count: 5 })
     });
     const data = await resp.json();
-    if (data.webPages?.value) {
-      return data.webPages.value.map((p, i) => 
+    // 博查API返回格式: {code, data: {webPages: {value: [...]}}}
+    const result = data.data || data;
+    if (result.webPages?.value) {
+      return result.webPages.value.map((p, i) => 
         `[${i + 1}] ${p.name}\n${p.snippet || p.summary || ''}\n来源: ${p.url}`
       ).join('\n\n');
     }
