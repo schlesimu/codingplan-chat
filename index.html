@@ -751,12 +751,17 @@ body {
 .sidebar-footer-item:hover, .sidebar-footer-item:active {
   background: var(--sidebar-item-hover); color: var(--sidebar-text-active);
 }
-/* 浅色模式 footer 按钮 */
-[data-theme="light"] .sidebar-footer-item {
+/* 浅色模式 footer 按钮（v0.7.6: backdrop-filter 改成只在 hover/focus/active 时生效，
+   默认无底框 / 无模糊，hover 时浮出毛玻璃块） */
+[data-theme="light"] .sidebar-footer-item:hover,
+[data-theme="light"] .sidebar-footer-item:focus-visible,
+[data-theme="light"] .sidebar-footer-item:active {
   backdrop-filter: blur(8px) saturate(140%) brightness(1.08);
   -webkit-backdrop-filter: blur(8px) saturate(140%) brightness(1.08);
 }
-[data-theme="light"] .sidebar-collapse-toggle {
+[data-theme="light"] .sidebar-collapse-toggle:hover,
+[data-theme="light"] .sidebar-collapse-toggle:focus-visible,
+[data-theme="light"] .sidebar-collapse-toggle:active {
   backdrop-filter: blur(8px) saturate(140%) brightness(1.08);
   -webkit-backdrop-filter: blur(8px) saturate(140%) brightness(1.08);
 }
@@ -769,6 +774,65 @@ body {
 /* 背景渐变：强制覆盖，确保切换到 liquid 时立即生效 */
 [data-theme="liquid"] .bg-layer {
   background: linear-gradient(165deg, #f0e8ff 0%, #f5eeff 15%, #fff0f5 35%, #f0f5ff 55%, #eef4ff 75%, #f5f2ff 100%) !important;
+  /* v0.7.5: 让 ::before 能定位铺满 */
+  position: fixed !important;
+  overflow: hidden !important;
+}
+
+/* ============================================================
+   v0.7.5: 流淌的呼吸光斑 - 紫/青/粉三色光斑错相漂浮
+   - 中速 25-35s 周期，眼睛察觉不到具体在动但下意识感到"活着"
+   - 中等强度 50% 不透明度
+   - 用 transform translate/scale 触发 GPU 合成层（性能开销几乎为 0）
+   - 三个光斑用一层 ::before 加多重 radial-gradient 实现，避免再加 DOM
+   ============================================================ */
+[data-theme="liquid"] .bg-layer::before {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  /* 三个光斑：紫(主) + 青(点缀) + 粉(点缀) */
+  background:
+    radial-gradient(ellipse 45% 50% at 25% 30%, rgba(180,150,255,0.50) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 45% at 75% 70%, rgba(150,220,255,0.45) 0%, transparent 55%),
+    radial-gradient(ellipse 38% 42% at 50% 85%, rgba(255,180,220,0.42) 0%, transparent 55%);
+  background-repeat: no-repeat;
+  /* 三个光斑各自独立漂移：错相 + 不同周期 */
+  animation:
+    liquidDriftA 28s ease-in-out infinite,
+    liquidDriftB 33s ease-in-out infinite -8s,
+    liquidDriftC 30s ease-in-out infinite -15s;
+  filter: blur(40px);
+  /* 用 soft-light 把光斑融进底色 linear-gradient，不生硬覆盖 */
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+  will-change: transform;
+  z-index: 0;
+}
+
+/* 28s 主漂移 - 紫色光斑 */
+@keyframes liquidDriftA {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33%      { transform: translate3d(8%, 5%, 0) scale(1.08); }
+  66%      { transform: translate3d(-6%, 8%, 0) scale(0.95); }
+}
+/* 33s 漂移 - 青色光斑（错相） */
+@keyframes liquidDriftB {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  40%      { transform: translate3d(-7%, -6%, 0) scale(1.1); }
+  70%      { transform: translate3d(5%, -4%, 0) scale(0.92); }
+}
+/* 30s 漂移 - 粉色光斑（再错相） */
+@keyframes liquidDriftC {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(4%, -8%, 0) scale(1.06); }
+  80%      { transform: translate3d(-5%, 3%, 0) scale(0.96); }
+}
+
+/* 无障碍：系统设置了"减少动效"自动退化为静态光斑（颜色还在但不动） */
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="liquid"] .bg-layer::before {
+    animation: none !important;
+  }
 }
 
 /* v0.6.8: 真·液态玻璃 - 几乎无底色 + 极淡边缘高光 + 强背景虚化 */
@@ -953,14 +1017,100 @@ body {
   background: rgba(255,255,255,0.35);
 }
 
-/* 侧边栏内按钮 */
+/* 侧边栏内的"主要操作"按钮（关闭/新建/搜索）：默认就有玻璃底框，是按钮 */
 [data-theme="liquid"] .sidebar-close,
 [data-theme="liquid"] .sidebar-new-chat,
-[data-theme="liquid"] .sidebar-search-toggle,
-[data-theme="liquid"] .sidebar-footer-item,
-[data-theme="liquid"] .sidebar-collapse-toggle {
+[data-theme="liquid"] .sidebar-search-toggle {
   backdrop-filter: blur(20px) saturate(180%) brightness(1.15);
   -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.15);
+}
+
+/* ============================================================
+   v0.7.6 设计统一：sidebar 内所有矩形按钮的圆角和质感都对齐顶栏/输入框
+   - 基准：.header / .input-area = radius:22px + SVG liquidGlassBig + 高光 shadow + 白边
+   - sidebar 是嵌套容器（10px 边距），内部元素小一号 → radius:18px / 14px
+   ============================================================ */
+
+/* 大按钮（新建对话、主题切换长条容器）→ radius:18px */
+[data-theme="liquid"] .sidebar-new-chat,
+[data-theme="liquid"] .sidebar-theme-switcher {
+  border-radius: 18px !important;
+  backdrop-filter: url(#liquidGlassBig) blur(20px) saturate(180%) brightness(1.15) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.15) !important;
+  border: 1px solid rgba(255,255,255,0.18) !important;
+  background: rgba(255,255,255,0.02) !important;
+  box-shadow:
+    inset 0 2px 1px 0 rgba(255,255,255,0.55),
+    inset 0 -1px 1px 0 rgba(255,255,255,0.15),
+    0 4px 12px 0 rgba(0,0,0,0.06) !important;
+}
+
+/* 小按钮（关闭✕）→ 圆形/小圆角，但用同款玻璃配方 */
+[data-theme="liquid"] .sidebar-close {
+  border-radius: 14px !important;
+  backdrop-filter: url(#liquidGlassBig) blur(20px) saturate(180%) brightness(1.15) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.15) !important;
+  border: 1px solid rgba(255,255,255,0.18) !important;
+  background: rgba(255,255,255,0.02) !important;
+  box-shadow:
+    inset 0 2px 1px 0 rgba(255,255,255,0.55),
+    inset 0 -1px 1px 0 rgba(255,255,255,0.15) !important;
+}
+
+/* 历史项 + footer-item + collapse-toggle + 主题切换胶囊里的小按钮 → radius:14px（嵌套小一号） */
+[data-theme="liquid"] .chat-list-item,
+[data-theme="liquid"] .sidebar-footer-item,
+[data-theme="liquid"] .sidebar-collapse-toggle,
+[data-theme="liquid"] .sidebar-theme-btn {
+  border-radius: 14px !important;
+}
+
+/* 历史项 active/hover：浮玻璃 */
+[data-theme="liquid"] .chat-list-item:hover,
+[data-theme="liquid"] .chat-list-item:focus-visible,
+[data-theme="liquid"] .chat-list-item:active,
+[data-theme="liquid"] .chat-list-item.active {
+  backdrop-filter: blur(20px) saturate(180%) brightness(1.15) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.15) !important;
+  background: rgba(255,255,255,0.12) !important;
+  box-shadow:
+    inset 0 1px 1px 0 rgba(255,255,255,0.4),
+    inset 0 -1px 1px 0 rgba(255,255,255,0.1) !important;
+}
+
+/* 主题切换长条容器内的 active 按钮 → 同款玻璃高亮 */
+[data-theme="liquid"] .sidebar-theme-btn.active {
+  backdrop-filter: blur(20px) saturate(180%) brightness(1.15) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.15) !important;
+  background: rgba(255,255,255,0.35) !important;
+  box-shadow:
+    inset 0 1px 1px 0 rgba(255,255,255,0.6),
+    inset 0 -1px 1px 0 rgba(255,255,255,0.15),
+    0 0 6px 0 rgba(140,120,255,0.18) !important;
+}
+
+/* v0.7.6: footer/collapse 按钮（未同步/从云端恢复/同步码/更多工具）
+   默认无玻璃底框，hover/focus 才浮出 — 减少视觉噪音 */
+[data-theme="liquid"] .sidebar-footer-item:hover,
+[data-theme="liquid"] .sidebar-footer-item:focus-visible,
+[data-theme="liquid"] .sidebar-footer-item:active,
+[data-theme="liquid"] .sidebar-collapse-toggle:hover,
+[data-theme="liquid"] .sidebar-collapse-toggle:focus-visible,
+[data-theme="liquid"] .sidebar-collapse-toggle:active {
+  backdrop-filter: blur(20px) saturate(180%) brightness(1.15);
+  -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.15);
+  box-shadow:
+    inset 0 1px 1px 0 rgba(255,255,255,0.4),
+    inset 0 -1px 1px 0 rgba(255,255,255,0.1);
+}
+
+/* v0.7.6 手机端：没有 hover，按下时短暂浮出玻璃块作为点击反馈 */
+@media (hover: none) and (max-width: 768px) {
+  [data-theme="liquid"] .sidebar-footer-item:active,
+  [data-theme="liquid"] .sidebar-collapse-toggle:active {
+    backdrop-filter: blur(20px) saturate(180%) brightness(1.15) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.15) !important;
+  }
 }
 
 /* 右键菜单 */
@@ -1759,7 +1909,7 @@ body {
         <img src="logo.png" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.7.4</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.7.7</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -2529,6 +2679,29 @@ function showApiKeyDialog() {
 // ========== 更新日志 ==========
 function showChangelog() {
   const changelog = [
+    { v: 'v0.7.7', date: '2026-06-11', items: [
+      '🎨 Liquid 主题：sidebar 内所有矩形按钮的圆角和玻璃质感统一对齐顶栏/输入框栏',
+      '📐 圆角层级遵循 iOS 嵌套设计：外层 22px → 内层 18px / 14px',
+      '🪟 大按钮（新建对话 / 主题切换长条）→ radius:18px + SVG liquidGlassBig 玻璃 + 高光 shadow',
+      '🔘 小按钮（关闭✕ / 历史项 / 主题切换胶囊里的小按钮 / footer 项 / 折叠按钮）→ radius:14px',
+      '🪞 历史项 hover/active + 主题切换 active 都浮出毛玻璃高亮，质感与顶栏 inset 高光一致',
+      '✅ 保留 v0.7.6 的 footer-item 默认透明 / hover 才浮出行为',
+    ]},
+    { v: 'v0.7.6', date: '2026-06-11', items: [
+      '🧹 sidebar 底部"未同步 / 从云端恢复 / 同步码 / 更多工具"按钮默认不显示长方形玻璃底框',
+      '👆 鼠标移上去（hover）或键盘聚焦（focus）才浮出毛玻璃块，减少视觉噪音',
+      '📱 手机端没有 hover：用 `@media (hover:none)` + `:active` 触发，按下时短暂浮出反馈',
+      '🔄 三大主题（Dark/Light/Liquid）全部对齐这个行为',
+      '✅ 主要操作按钮（关闭/新建/搜索）保留默认玻璃底框不变，因为它们就该看着像按钮',
+    ]},
+    { v: 'v0.7.5', date: '2026-06-10', items: [
+      '🌊 Liquid 主题加"流淌的呼吸光斑"：紫/青/粉三色光斑在背景里慢悠悠飘动',
+      '⏱️ 速度：紫 28s / 青 33s / 粉 30s 错相循环（眼睛察觉不到动但下意识感到"活着"）',
+      '🎨 强度：50% 中等不透明度 + 40px blur + soft-light 混合模式，融进底色不生硬',
+      '🛋️ 缓解长时间盯屏的视觉疲劳：色相轮换 → 视锥细胞轮休，动态打破单色平面',
+      '♿ 尊重 prefers-reduced-motion：系统设了"减少动效"自动停下变静态',
+      '⚡ 性能：transform translate3d/scale → GPU 合成层，开销几乎为 0',
+    ]},
     { v: 'v0.7.4', date: '2026-06-10', items: [
       '🔧 修复平板/电脑端 Liquid 主题 sidebar 遮挡对话内容的问题',
       '↩️ 撤销 v0.6.9 的"sidebar 漂浮覆盖 chat"布局，Liquid 改成跟 Dark/Light 一致：',
