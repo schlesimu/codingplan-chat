@@ -408,11 +408,13 @@ body {
     min-width: 0;
   }
 
-  /* 顶栏：撑满主内容区宽度 */
+  /* 顶栏：撑满主内容区宽度，保留圆角悬浮样式 */
   .header {
     position: relative;
     left: 0;
-    width: 100%;
+    width: calc(100% - 20px);
+    margin: 8px 10px 0;
+    border-radius: 22px;
   }
 
   /* 聊天区：正常流 */
@@ -429,7 +431,7 @@ body {
 
 .sidebar {
   position: fixed; top: 0; left: 0; bottom: 0; z-index: 101;
-  width: min(300px, 82vw);
+  width: 280px;
   /* 多层液态玻璃叠加 */
   backdrop-filter: blur(40px) saturate(200%) brightness(1.05);
   -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(1.05);
@@ -659,37 +661,45 @@ body {
 /* ========== 顶栏 ========== */
 .header {
   position: relative; z-index: 10;
+  margin: 8px 10px 0;
   padding: 8px 12px;
   padding-top: max(8px, env(safe-area-inset-top));
   display: flex; align-items: center;
   flex-shrink: 0;
-  /* 液态顶栏 */
+  /* 悬浮圆角矩形 — 与输入栏统一风格 */
+  border-radius: 22px;
   backdrop-filter: blur(40px) saturate(200%) brightness(1.05);
   -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(1.05);
-  background: var(--header-bg);
-  border-bottom: 1px solid var(--header-border);
-  transition: background 0.5s, border-color 0.5s;
-  /* 玻璃下边缘微光 */
-  box-shadow: 0 1px 0 rgba(255,255,255,0.06), 0 4px 20px rgba(0,0,0,0.08);
+  background: var(--input-area-bg);
+  border: 1px solid var(--input-area-border);
+  transition: background 0.5s, border-color 0.5s, box-shadow 0.5s;
+  /* 悬浮阴影 — 与输入栏对称 */
+  box-shadow: 
+    0 1px 0 rgba(255,255,255,0.08),
+    0 8px 32px rgba(0,0,0,0.18),
+    0 2px 8px rgba(0,0,0,0.1);
 }
 /* 浅色模式顶栏增强 */
 [data-theme="light"] .header {
-  backdrop-filter: blur(36px) saturate(180%) brightness(1.15);
-  -webkit-backdrop-filter: blur(36px) saturate(180%) brightness(1.15);
+  backdrop-filter: blur(36px) saturate(170%) brightness(1.15);
+  -webkit-backdrop-filter: blur(36px) saturate(170%) brightness(1.15);
   box-shadow: 
     0 1px 0 rgba(255,255,255,0.5),
-    0 4px 16px rgba(0,0,0,0.04);
+    0 4px 20px rgba(0,0,0,0.05),
+    0 1px 4px rgba(0,0,0,0.03);
 }
 /* 顶栏高光纹理 */
 .header::before {
-  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
-  background: radial-gradient(ellipse 100% 80% at 50% 0%, rgba(255,255,255,0.08) 0%, transparent 70%);
-  opacity: 0; transition: opacity 0.5s;
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 0;
+  background: 
+    radial-gradient(ellipse 120% 100% at 50% 0%, rgba(255,255,255,0.1) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 60% at 50% 100%, rgba(255,255,255,0.03) 0%, transparent 60%);
+  transition: background 0.5s;
 }
 [data-theme="light"] .header::before {
   background: 
-    radial-gradient(ellipse 120% 100% at 50% 0%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.05) 60%, transparent 90%);
-  opacity: 1;
+    radial-gradient(ellipse 120% 100% at 50% 0%, rgba(255,255,255,0.6) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 60% at 50% 100%, rgba(0,0,0,0.02) 0%, transparent 60%);
 }
 .header-left { display: flex; align-items: center; gap: 10px; }
 .btn-menu {
@@ -714,7 +724,7 @@ body {
   display: flex; align-items: center; justify-content: center;
   color: #fff;
 }
-.header-logo svg { width: 52%; height: 52%; }
+.header-logo img { width: 100%; height: 100%; object-fit: contain; border-radius: inherit; }
 .header-info h1 {
   font-size: 15px; font-weight: 600;
   color: var(--header-title); letter-spacing: -0.3px; transition: color 0.5s;
@@ -1303,7 +1313,7 @@ body {
         <img src="logo.png" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.3.6</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.3.7</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -1421,8 +1431,8 @@ body {
 
 <!-- 快捷提问 -->
 <div class="quick-actions" id="quickActions">
-  <button class="quick-btn" onclick="quickAsk('什么是小纸船')">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z"/></svg>什么是小纸船
+  <button class="quick-btn" onclick="quickAsk('介绍一下你自己')">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z"/></svg>介绍一下你自己
   </button>
   <button class="quick-btn" onclick="quickAsk('今天有哪些 AI 新闻')">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>今天有哪些 AI 新闻
@@ -2057,6 +2067,11 @@ function showApiKeyDialog() {
 // ========== 更新日志 ==========
 function showChangelog() {
   const changelog = [
+    { v: 'v0.3.7', date: '2026-06-10', items: [
+      '🎨 顶栏改为圆角悬浮样式，与输入栏风格统一',
+      '📐 侧边栏宽度从 min(300px,82vw) 改为固定 280px',
+      '🔧 「什么是小纸船」改为「介绍一下你自己」',
+    ]},
     { v: 'v0.3.6', date: '2026-06-10', items: [
       '🎨 侧边栏 logo 背景从红色改为透明',
       '🆕 初始快捷按钮改为通用问题：小纸船/AI新闻/文案/好书/冷知识',
