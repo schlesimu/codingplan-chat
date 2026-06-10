@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>【小纸船】codingplan-chat</title>
+<title>小纸船 - codingplan-chat</title>
 <style>
 /* ========== 全局缩放 80%（缩小20%） ========== */
 html { font-size: 13px; }
@@ -235,30 +235,26 @@ body {
   margin-bottom: auto;
   animation: onbFadeIn 0.6s ease;
 }
-/* 火焰 Logo 容器 */
-.logo-flame {
+/* Logo 容器 */
+.logo-img {
   width: 100%; height: 100%;
-  display: flex; align-items: center; justify-content: center;
-  color: #fff;
+  object-fit: contain;
+  border-radius: inherit;
 }
-.logo-flame svg { width: 60%; height: 60%; }
-/* 发光火焰容器（onboarding大图标） */
+/* Logo 容器（onboarding大图标） */
 .onb-icon-wrap {
   width: 90px; height: 90px;
-  background: linear-gradient(135deg, #ff6b35, #ff3d00);
+  background: transparent;
   border-radius: 24px;
   display: flex; align-items: center; justify-content: center;
   margin-bottom: 20px;
-  box-shadow: 0 8px 32px rgba(255,80,40,0.35);
-  animation: onbPulse 3s ease-in-out infinite;
+  overflow: hidden;
   color: #fff;
 }
-.onb-icon-wrap svg { width: 48%; height: 48%; }
-.onb-icon-wrap .flame-core { fill: #fff; }
-.onb-icon-wrap .flame-outer { fill: rgba(255,255,255,0.5); }
+.onb-icon-wrap img { width: 100%; height: 100%; object-fit: contain; }
 @keyframes onbPulse {
-  0%,100% { box-shadow: 0 8px 32px rgba(255,80,40,0.35); }
-  50% { box-shadow: 0 8px 48px rgba(255,80,40,0.55); }
+  0%,100% { box-shadow: 0 8px 32px rgba(100,150,255,0.3); }
+  50% { box-shadow: 0 8px 48px rgba(100,150,255,0.5); }
 }
 .onb-title {
   font-size: 26px; font-weight: 700;
@@ -1267,9 +1263,9 @@ body {
 <div class="onboarding" id="onboarding">
   <div class="onb-top">
     <div class="onb-icon-wrap">
-      <svg viewBox="0 0 24 24"><path class="flame-outer" d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z"/><path class="flame-core" d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z"/></svg>
+      <img src="logo.jpg" alt="小纸船">
     </div>
-    <div class="onb-title">【小纸船】codingplan-chat</div>
+    <div class="onb-title">小纸船 - codingplan-chat</div>
     <div class="onb-subtitle">基于火山引擎 CodingPlan</div>
   </div>
 
@@ -1304,10 +1300,10 @@ body {
   <div class="sidebar-header">
     <div class="sidebar-brand">
       <div class="sidebar-logo">
-        <svg viewBox="0 0 24 24"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z" fill="currentColor" opacity="0.5"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z" fill="currentColor"/></svg>
+        <img src="logo.jpg" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.3.1</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.3.3</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -1393,10 +1389,10 @@ body {
       <div class="hamburger"><span></span><span></span><span></span></div>
     </button>
     <div class="header-logo">
-      <svg viewBox="0 0 24 24"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z" fill="currentColor" opacity="0.5"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z" fill="currentColor"/></svg>
+      <img src="logo.jpg" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
     </div>
     <div class="header-info">
-      <h1 id="headerTitle">【小纸船】codingplan-chat</h1>
+      <h1 id="headerTitle">小纸船 - codingplan-chat</h1>
       <div class="status">在线 · 智能模式</div>
     </div>
   </div>
@@ -1411,9 +1407,9 @@ body {
 <div class="chat-area" id="chatArea">
   <div class="msg assistant">
     <div class="avatar">
-      <svg viewBox="0 0 24 24"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z" fill="currentColor" opacity="0.5"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z" fill="currentColor"/></svg>
+      <img src="logo.jpg" alt="小纸船" style="width:52%;height:52%;object-fit:contain;border-radius:50%">
     </div>
-    <div class="bubble">你好！我是【小纸船】codingplan-chat，可以帮你：
+    <div class="bubble">你好！我是小纸船 - codingplan-chat，可以帮你：
 
 · 写代码、改代码、查 Bug
 · 解答编程和技术问题
@@ -1624,7 +1620,7 @@ function switchToConversation(id) {
   currentConversationId = id;
   const convo = conversations[id];
   messages = convo.messages ? [...convo.messages] : [];
-  headerTitle.textContent = convo.title || '【小纸船】codingplan-chat';
+  headerTitle.textContent = convo.title || '小纸船 - codingplan-chat';
   renderMessages();
   renderChatHistory();
 }
@@ -1647,14 +1643,14 @@ function clearCurrentChat() {
     conversations[currentConversationId].updatedAt = Date.now();
     saveConversations();
   }
-  headerTitle.textContent = '【小纸船】codingplan-chat';
+  headerTitle.textContent = '小纸船 - codingplan-chat';
   renderMessages();
   renderChatHistory();
   closeSidebar();
 }
 function exportChat() {
   if (messages.length === 0) { alert('当前对话没有内容'); return; }
-  let text = '# 【小纸船】codingplan-chat - 对话记录\n\n';
+  let text = '# 小纸船 - codingplan-chat - 对话记录\n\n';
   text += `导出时间: ${new Date().toLocaleString()}\n`;
   text += `共 ${messages.length} 条消息\n\n---\n\n`;
   messages.forEach(m => { text += `### ${m.role === 'user' ? '我' : '助手'}\n${m.content}\n\n`; });
@@ -1669,15 +1665,15 @@ function exportChat() {
 
 // ========== 消息渲染 ==========
 function renderMessages() {
-  const flameSVG = '<svg viewBox="0 0 24 24" style="width:52%;height:52%"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z" fill="currentColor" opacity="0.5"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z" fill="currentColor"/></svg>';
+  const boatLogo = '<img src="logo.jpg" alt="小纸船" style="width:52%;height:52%;object-fit:contain;border-radius:50%">';
   const userSVG = '<svg viewBox="0 0 24 24" style="width:52%;height:52%" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
   if (messages.length === 0) {
-    chatArea.innerHTML = `<div class="msg assistant"><div class="avatar">${flameSVG}</div><div class="bubble">你好！我是【小纸船】codingplan-chat，可以帮你：\n\n· 写代码、改代码、查 Bug\n· 解答编程和技术问题\n· 解释概念、翻译代码\n\n直接输入问题就行！</div></div>`;
+    chatArea.innerHTML = `<div class="msg assistant"><div class="avatar">${boatLogo}</div><div class="bubble">你好！我是小纸船 - codingplan-chat，可以帮你：\n\n· 写代码、改代码、查 Bug\n· 解答编程和技术问题\n· 解释概念、翻译代码\n\n直接输入问题就行！</div></div>`;
     return;
   }
   chatArea.innerHTML = messages.map(m => {
     const role = m.role === 'user' ? 'user' : 'assistant';
-    const avatar = m.role === 'user' ? userSVG : flameSVG;
+    const avatar = m.role === 'user' ? userSVG : boatLogo;
     return `<div class="msg ${role}"><div class="avatar">${avatar}</div><div class="bubble">${formatContent(m.content)}</div></div>`;
   }).join('');
   chatArea.scrollTop = chatArea.scrollHeight;
@@ -1926,7 +1922,7 @@ saveConversations = function() {
 const _originalExportChat = exportChat;
 exportChat = function() {
   if (messages.length === 0) { alert('当前对话没有内容'); return; }
-  let text = '# 【小纸船】codingplan-chat - 对话记录\n\n';
+  let text = '# 小纸船 - codingplan-chat - 对话记录\n\n';
   text += `> 导出时间: ${new Date().toLocaleString()}\n`;
   text += `> 共 ${messages.length} 条消息\n\n---\n\n`;
   messages.forEach(m => {
@@ -1936,7 +1932,7 @@ exportChat = function() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `【小纸船】codingplan-chat-${new Date().toISOString().slice(0,10)}.md`;
+  a.download = `小纸船 - codingplan-chat-${new Date().toISOString().slice(0,10)}.md`;
   document.body.appendChild(a); a.click();
   document.body.removeChild(a); URL.revokeObjectURL(url);
   closeSidebar();
@@ -2061,6 +2057,16 @@ function showApiKeyDialog() {
 // ========== 更新日志 ==========
 function showChangelog() {
   const changelog = [
+    { v: 'v0.3.3', date: '2026-06-10', items: [
+      '🎨 品牌重塑：全新小纸船 logo 替换火焰图标',
+      '标题改为「小纸船 - codingplan-chat」',
+      '所有 AI 头像位置替换为 logo 图片',
+      '欢迎页、侧边栏、顶部栏全部更新 logo',
+    ]},
+    { v: 'v0.3.2', date: '2026-06-10', items: [
+      '🆕 品牌更名为「【小纸船】codingplan-chat」',
+      '新增小纸船 logo 图片文件',
+    ]},
     { v: 'v0.3.1', date: '2026-06-10', items: [
       '🔧 紧急修复：页面空白 bug（SVG 滤镜库在 head 中导致 DOM 解析异常）',
       '将 SVG 滤镜库移至 body 内 display:none 容器，避免干扰 HTML 解析',
@@ -2403,7 +2409,7 @@ function addMessage(role, content, hasImage = false) {
   if (role === 'user') {
     avatar.innerHTML = '<svg viewBox="0 0 24 24" style="width:52%;height:52%" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
   } else {
-    avatar.innerHTML = '<svg viewBox="0 0 24 24" style="width:52%;height:52%"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z" fill="currentColor" opacity="0.5"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z" fill="currentColor"/></svg>';
+    avatar.innerHTML = '<img src="logo.jpg" alt="小纸船" style="width:52%;height:52%;object-fit:contain;border-radius:50%">';
   }
   const bodyWrap = document.createElement('div'); bodyWrap.style.cssText = 'display:flex;flex-direction:column;align-items:' + (role === 'user' ? 'flex-end' : 'flex-start') + ';max-width:80%';
   const bubble = document.createElement('div'); bubble.className = 'bubble';
@@ -2444,7 +2450,7 @@ function addMessage(role, content, hasImage = false) {
 function addStreamingMessage() {
   const div = document.createElement('div'); div.className = 'msg assistant';
   const avatar = document.createElement('div'); avatar.className = 'avatar';
-  avatar.innerHTML = '<svg viewBox="0 0 24 24" style="width:52%;height:52%"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z" fill="currentColor" opacity="0.5"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z" fill="currentColor"/></svg>';
+  avatar.innerHTML = '<img src="logo.jpg" alt="小纸船" style="width:52%;height:52%;object-fit:contain;border-radius:50%">';
   const bodyWrap = document.createElement('div'); bodyWrap.style.cssText = 'display:flex;flex-direction:column;align-items:flex-start;max-width:80%';
   const bubble = document.createElement('div'); bubble.className = 'bubble';
   bubble.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
