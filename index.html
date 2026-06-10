@@ -547,9 +547,27 @@ body {
     border-radius: 18px !important;
   }
 
-  /* 侧边栏：保持抽屉模式（从左滑出），仅右侧圆角 */
-  [data-theme="liquid"] .sidebar {
-    border-radius: 0 20px 20px 0 !important;
+  /* v0.7.8 手机端 sidebar 浮卡几何（三主题统一）：
+     - 上 8 / 下 10 (safe-area) / 左 10
+     - 四角圆角 18px 对齐顶栏/输入框
+     - 宽度留 80px 右侧空间方便点空白处关抽屉
+     - 抽屉滑出方向不变：translateX(-100%) 收起 / translateX(0) 展开 */
+  .sidebar {
+    top: max(8px, env(safe-area-inset-top)) !important;
+    left: 10px !important;
+    bottom: calc(10px + env(safe-area-inset-bottom)) !important;
+    width: calc(100% - 90px) !important;
+    max-width: 340px !important;
+    height: auto !important;
+    border-radius: 18px !important;
+  }
+  /* 收起态：往左滑出屏幕，多滑 20px 让圆角彻底消失不留缝 */
+  .sidebar:not(.open) {
+    transform: translateX(calc(-100% - 20px)) !important;
+  }
+  /* 展开态保持 */
+  .sidebar.open {
+    transform: translateX(0) !important;
   }
 }
 
@@ -1909,7 +1927,7 @@ body {
         <img src="logo.png" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.7.7</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.7.8</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -2679,6 +2697,13 @@ function showApiKeyDialog() {
 // ========== 更新日志 ==========
 function showChangelog() {
   const changelog = [
+    { v: 'v0.7.8', date: '2026-06-11', items: [
+      '📱 手机端 sidebar 改成四面浮卡（三主题：Dark/Light/Liquid 全部统一）',
+      '📐 几何对齐顶栏 / 输入框：上 8px、左 10px、下 10px (含 safe-area)、四角圆角 18px',
+      '📏 宽度 calc(100% - 90px)，最大 340px — 右侧留 80px 灰色空间方便点空白关抽屉',
+      '🪟 收起态多滑 20px 让圆角彻底没入屏幕外，不留缝隙',
+      '🎨 现在三主题手机端的 sidebar 圆角和顶栏/输入框完全一致的曲率',
+    ]},
     { v: 'v0.7.7', date: '2026-06-11', items: [
       '🎨 Liquid 主题：sidebar 内所有矩形按钮的圆角和玻璃质感统一对齐顶栏/输入框栏',
       '📐 圆角层级遵循 iOS 嵌套设计：外层 22px → 内层 18px / 14px',
