@@ -419,22 +419,51 @@ body {
 }
 .sidebar-overlay.open { opacity: 1; visibility: visible; }
 
-/* ========== 横屏/电脑模式：侧边栏常驻 ========== */
+/* ========== 横屏/电脑模式：macOS 26 悬浮卡片侧边栏 ========== */
 @media (min-aspect-ratio: 1/1) and (min-width: 768px) {
-  .sidebar {
-    transform: translateX(0) !important;
-    position: relative;
-    flex-shrink: 0;
-    height: 100vh;
-  }
-  .sidebar-overlay { display: none !important; }
   /* 隐藏汉堡菜单 */
   .btn-menu { display: none !important; }
-  /* 顶栏左移适配 */
-  .header { left: 0; }
-  /* 主内容区左移 */
-  .chat-area { margin-left: min(300px, 82vw); }
-  .input-area { margin-left: min(300px, 82vw); }
+
+  /* 侧边栏：悬浮卡片样式 */
+  .sidebar {
+    transform: translateX(0) !important;
+    position: fixed;
+    top: 10px; left: 10px; bottom: 10px;
+    width: 260px;
+    height: auto;
+    border-radius: 20px;
+    border: 1px solid var(--sidebar-border);
+    /* 悬浮阴影 */
+    box-shadow:
+      0 8px 32px rgba(0,0,0,0.12),
+      0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  /* 浅色模式悬浮卡片增强 */
+  [data-theme="light"] .sidebar {
+    box-shadow:
+      0 8px 32px rgba(0,0,0,0.08),
+      0 2px 8px rgba(0,0,0,0.04),
+      inset 0 1px 0 rgba(255,255,255,0.5);
+  }
+
+  /* 隐藏遮罩层 */
+  .sidebar-overlay { display: none !important; }
+
+  /* 隐藏关闭按钮（常驻不需要） */
+  .sidebar-close { display: none !important; }
+
+  /* 主内容区用 padding-left 让出空间 */
+  .app-main {
+    padding-left: 280px;
+  }
+
+  /* 顶栏宽度自适应 */
+  .header {
+    left: 280px;
+    right: 0;
+    width: auto;
+  }
 }
 
 .sidebar {
@@ -1129,7 +1158,7 @@ body {
         <svg viewBox="0 0 24 24"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z" fill="currentColor" opacity="0.5"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z" fill="currentColor"/></svg>
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version">v1.2</span>
+      <span class="sidebar-version">v1.3</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -1376,6 +1405,7 @@ window.addEventListener('resize', () => {
     sidebarOverlay.classList.remove('open');
   } else {
     sidebar.classList.remove('open');
+    sidebarOverlay.classList.remove('open');
   }
 });
 
@@ -1715,6 +1745,9 @@ function exportAllChats() {
     sidebar.classList.add('open');
     sidebarOverlay.classList.remove('open');
   }
+
+  // 触发一次 resize 确保布局正确
+  window.dispatchEvent(new Event('resize'));
 
   checkOnboarding();
 
