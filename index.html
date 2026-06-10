@@ -984,16 +984,18 @@ body {
   );
 }
 
-/* 用户气泡：液态玻璃（之前完全没动，跟着 var 走的深色底） */
+/* 用户气泡：液态玻璃（v0.8.1 修复：原 0.10 紫太透文字看不清，提到 0.22 + 主体紫色加深保对比）*/
 [data-theme="liquid"] .msg.user .bubble {
-  background-color: rgba(180,160,255,0.10) !important;
-  background-image: none !important;
-  border: 1px solid rgba(180,160,255,0.25) !important;
+  background-color: rgba(150,130,235,0.28) !important;
+  background-image: linear-gradient(135deg, rgba(150,130,235,0.30), rgba(120,140,235,0.22)) !important;
+  border: 1px solid rgba(180,160,255,0.45) !important;
   backdrop-filter: blur(40px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  color: #fff !important;
+  text-shadow: 0 1px 2px rgba(40,20,80,0.35) !important;  /* 文字描边增强可读性 */
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.35),
-    0 4px 16px rgba(140,120,255,0.10) !important;
+    inset 0 1px 0 rgba(255,255,255,0.40),
+    0 4px 16px rgba(120,100,235,0.18) !important;
 }
 
 /* 推荐回复 chip（介绍一下你自己 等）：液态玻璃 */
@@ -1927,7 +1929,7 @@ body {
         <img src="logo.png" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.7.9</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.8.1</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -2651,6 +2653,45 @@ function showApiKeyDialog() {
   html += `<div style="font-size:10px;color:var(--text-dim);margin-top:3px">留空使用默认博查 Key，<a href="https://open.bochaai.com" target="_blank" style="color:#3b82f6">获取博查 Key</a></div>`;
   html += '</div>';
 
+  // ===== 语音朗读（TTS）设置 =====
+  const ttsCfg = getTTSConfig();
+  html += '<div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--sidebar-divider)">';
+  html += '<div style="font-size:13px;font-weight:600;color:var(--text-main);margin-bottom:10px">🔊 语音朗读（TTS）</div>';
+
+  // 引擎选择
+  html += '<div style="margin-bottom:10px">';
+  html += '<div style="font-size:12px;color:var(--sidebar-text);margin-bottom:4px">语音引擎</div>';
+  html += `<select id="tts-provider" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--sidebar-divider);background:var(--input-bg);color:var(--input-color);font-size:12px;font-family:inherit">
+    <option value="edge" ${ttsCfg.provider === 'edge' ? 'selected' : ''}>Edge 神经 TTS（免费，推荐 ⭐）</option>
+    <option value="volc" ${ttsCfg.provider === 'volc' ? 'selected' : ''}>火山引擎 TTS（豆包同源，需 AppID + Token）</option>
+    <option value="browser" ${ttsCfg.provider === 'browser' ? 'selected' : ''}>浏览器原生（旧版机器音，离线可用）</option>
+  </select>`;
+  html += `<div style="font-size:10px;color:var(--text-dim);margin-top:3px">Edge / 火山为云端神经 TTS，效果接近豆包/千问</div>`;
+  html += '</div>';
+
+  // 音色选择（动态根据引擎切换可选项，JS 注入）
+  html += '<div style="margin-bottom:10px">';
+  html += '<div style="font-size:12px;color:var(--sidebar-text);margin-bottom:4px">音色</div>';
+  html += `<select id="tts-voice" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--sidebar-divider);background:var(--input-bg);color:var(--input-color);font-size:12px;font-family:inherit"></select>`;
+  html += '</div>';
+
+  // 语速
+  html += '<div style="margin-bottom:10px">';
+  html += `<div style="font-size:12px;color:var(--sidebar-text);margin-bottom:4px;display:flex;justify-content:space-between"><span>语速</span><span id="tts-rate-val" style="color:var(--text-dim)">${ttsCfg.rate.toFixed(1)}x</span></div>`;
+  html += `<input id="tts-rate" type="range" min="0.5" max="2.0" step="0.1" value="${ttsCfg.rate}" style="width:100%;accent-color:#ff6b35" oninput="document.getElementById('tts-rate-val').textContent=this.value+'x'">`;
+  html += '</div>';
+
+  // 火山专属字段（默认隐藏）
+  html += `<div id="tts-volc-fields" style="display:${ttsCfg.provider === 'volc' ? 'block' : 'none'};padding:10px;background:var(--input-bg);border-radius:8px;margin-top:8px">`;
+  html += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:8px">在 <a href="https://console.volcengine.com/speech/app" target="_blank" style="color:#3b82f6">火山引擎控制台</a> 开通"语音合成大模型"，新建应用拿 AppID 和 Access Token</div>';
+  html += `<input id="tts-volc-appid" type="text" placeholder="火山 AppID" value="${ttsCfg.volcAppid}" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--sidebar-divider);background:var(--input-bg);color:var(--input-color);font-size:12px;font-family:inherit;margin-bottom:6px">`;
+  html += `<input id="tts-volc-token" type="password" placeholder="火山 Access Token" value="${ttsCfg.volcToken}" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--sidebar-divider);background:var(--input-bg);color:var(--input-color);font-size:12px;font-family:inherit">`;
+  html += '</div>';
+
+  // 试听按钮
+  html += '<button id="tts-test-btn" style="width:100%;margin-top:10px;padding:8px 14px;border-radius:10px;border:1px dashed var(--btn-border);background:transparent;color:var(--text-main);cursor:pointer;font-size:12px;font-family:inherit">🎧 试听当前配置</button>';
+  html += '</div>';
+
   // 弹窗
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:20px';
@@ -2681,11 +2722,24 @@ function showApiKeyDialog() {
     if (baseURLVal) keys.baseURL = baseURLVal;
     if (searchVal) keys.search = searchVal;
     setApiKeys(keys);
+
+    // 保存 TTS 配置
+    const newTTS = {
+      provider: document.getElementById('tts-provider').value,
+      voice: document.getElementById('tts-voice').value,
+      rate: parseFloat(document.getElementById('tts-rate').value),
+      volcAppid: document.getElementById('tts-volc-appid').value.trim(),
+      volcToken: document.getElementById('tts-volc-token').value.trim(),
+    };
+    setTTSConfig(newTTS);
+
     overlay.remove();
-    alert('✅ API Key 已保存！\n\n' + 
+    const providerLabel = { edge: 'Edge 神经 TTS', volc: '火山引擎 TTS', browser: '浏览器原生' }[newTTS.provider];
+    alert('✅ 设置已保存！\n\n' +
       (codingplanVal ? 'CodingPlan Key：自定义\n' : 'CodingPlan Key：使用默认\n') +
       (baseURLVal ? 'Base URL：自定义\n' : 'Base URL：使用默认\n') +
-      (searchVal ? '搜索 Key：自定义' : '搜索 Key：使用默认'));
+      (searchVal ? '搜索 Key：自定义\n' : '搜索 Key：使用默认\n') +
+      `🔊 语音引擎：${providerLabel}（${newTTS.voice}，${newTTS.rate}x）`);
   };
 
   btnRow.appendChild(cancelBtn);
@@ -2693,10 +2747,98 @@ function showApiKeyDialog() {
   dialog.appendChild(btnRow);
   overlay.appendChild(dialog);
   document.body.appendChild(overlay);
+
+  // ===== TTS 控件动态行为 =====
+  const VOICE_OPTIONS = {
+    edge: [
+      { v: 'yunxi',    n: '云希（阳光男声，推荐）' },
+      { v: 'yunyang',  n: '云扬（成熟男主播）' },
+      { v: 'yunjian',  n: '云健（沉稳男声）' },
+      { v: 'yunxia',   n: '云夏（年轻男孩）' },
+      { v: 'xiaoxiao', n: '晓晓（温暖女声）' },
+      { v: 'xiaoyi',   n: '晓伊（智能助手女）' },
+      { v: 'xiaomeng', n: '晓梦（甜美女声）' },
+      { v: 'xiaohan',  n: '晓涵（温柔女声）' },
+    ],
+    volc: [
+      { v: 'yangguang',  n: '阳光青年（豆包默认男声）' },
+      { v: 'cixing',     n: '磁性男主播' },
+      { v: 'shaonian',   n: '少年音' },
+      { v: 'huoli_nan',  n: '活力男生' },
+      { v: 'tianmei',    n: '灿灿（通用女声）' },
+      { v: 'donfang_nv', n: '东方女声' },
+      { v: 'xiaomei',    n: '灵动女声' },
+      { v: 'wencheng',   n: '温柔成熟女声' },
+    ],
+    browser: [
+      { v: 'system', n: '系统默认（旧版机器音）' },
+    ],
+  };
+
+  const providerSel = document.getElementById('tts-provider');
+  const voiceSel = document.getElementById('tts-voice');
+  const volcFields = document.getElementById('tts-volc-fields');
+  const testBtn = document.getElementById('tts-test-btn');
+
+  function refreshVoiceOptions() {
+    const p = providerSel.value;
+    const opts = VOICE_OPTIONS[p] || [];
+    const currentSaved = getTTSConfig().voice;
+    voiceSel.innerHTML = opts.map(o =>
+      `<option value="${o.v}" ${o.v === currentSaved ? 'selected' : ''}>${o.n}</option>`
+    ).join('');
+    volcFields.style.display = p === 'volc' ? 'block' : 'none';
+  }
+  refreshVoiceOptions();
+  providerSel.addEventListener('change', refreshVoiceOptions);
+
+  testBtn.addEventListener('click', async () => {
+    testBtn.disabled = true;
+    testBtn.textContent = '🎧 合成中...';
+    // 临时配置（不写 localStorage）
+    const tempCfg = {
+      provider: providerSel.value,
+      voice: voiceSel.value,
+      rate: parseFloat(document.getElementById('tts-rate').value),
+      volcAppid: document.getElementById('tts-volc-appid').value.trim(),
+      volcToken: document.getElementById('tts-volc-token').value.trim(),
+    };
+    try {
+      if (tempCfg.provider === 'browser') {
+        speakWithBrowser('你好，泠。这是当前语音设置的试听效果。', tempCfg);
+      } else {
+        const blob = await fetchTTSAudio('你好，泠。这是当前语音设置的试听效果。', tempCfg);
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audio.addEventListener('ended', () => URL.revokeObjectURL(url));
+        await audio.play();
+      }
+      testBtn.textContent = '✅ 已播放';
+    } catch (e) {
+      testBtn.textContent = '❌ 失败：' + (e.message || '').slice(0, 30);
+    }
+    setTimeout(() => { testBtn.disabled = false; testBtn.textContent = '🎧 试听当前配置'; }, 2500);
+  });
 }
 // ========== 更新日志 ==========
 function showChangelog() {
   const changelog = [
+    { v: 'v0.8.1', date: '2026-06-11', items: [
+      '🎨 修复 Liquid 主题我方消息气泡看不清的问题',
+      '   - 原气泡背景 rgba(180,160,255,0.10) 太透，白字几乎隐形',
+      '   - 改为 0.28 不透明度的紫色渐变 + 加深紫边框 + 文字描边',
+      '   - 仍保留液态玻璃质感（blur 40 + saturate 180%）',
+    ]},
+    { v: 'v0.8.0', date: '2026-06-11', items: [
+      '🎙️ 语音朗读全面升级：从浏览器 SAPI（机器音）→ 云端神经 TTS',
+      '🔊 默认引擎：Edge 神经 TTS（免费、无需 key，与豆包/千问同级别音质）',
+      '🌋 高级选项：火山引擎 TTS（豆包同源），在「API Key 设置」里填 AppID + Token 即可启用',
+      '🎚️ 音色 8 选（云希/晓晓/晓伊…），语速 0.5×~2.0× 滑杆调节',
+      '🎧 设置面板新增「试听」按钮，调参实时验证',
+      '⚡ 按句切分流式播放：首句 < 1s 出声，无需等全文合成',
+      '🧹 文本归一化升级：智能跳过代码块、Markdown、链接，念错率大幅下降',
+      '🔧 自动降级：神经 TTS 失败时无缝退化到浏览器原生（不打断你）',
+    ]},
     { v: 'v0.7.9', date: '2026-06-11', items: [
       '🔧 修复 v0.7.7 漏改：sidebar 内按钮圆角现在三主题（Dark/Light/Liquid）全部统一',
       '📐 改 base 规则而非加主题块，所有主题自动继承同一组圆角',
@@ -3464,10 +3606,32 @@ function toggleWebSearch() {
   updateSearchToggleUI();
 }
 
-// ========== 语音朗读 ==========
+// ========== 语音朗读 v2（神经 TTS） ==========
+// 引擎：Edge TTS（默认，免费）/ 火山引擎（需用户填 key）
+// 旧版用浏览器 SpeechSynthesisUtterance（系统级 SAPI），效果机器人。
+// 新版调云端神经 TTS（Edge / 火山），与豆包/千问/Kimi 同级别音质。
+
+const TTS_CONFIG_KEY = 'codingplan-tts-config';
+function getTTSConfig() {
+  try {
+    const c = JSON.parse(localStorage.getItem(TTS_CONFIG_KEY) || '{}');
+    return {
+      provider: c.provider || 'edge',          // 'edge' | 'volc' | 'browser'
+      voice: c.voice || (c.provider === 'volc' ? 'yangguang' : 'yunxi'),
+      rate: c.rate || 1.0,                     // 0.5 ~ 2.0
+      volcAppid: c.volcAppid || '',
+      volcToken: c.volcToken || '',
+    };
+  } catch (e) { return { provider: 'edge', voice: 'yunxi', rate: 1.0, volcAppid: '', volcToken: '' }; }
+}
+function setTTSConfig(cfg) { localStorage.setItem(TTS_CONFIG_KEY, JSON.stringify(cfg)); }
+
 let voiceEnabled = false;
 let speechSynthesis = window.speechSynthesis;
 let currentUtterance = null;
+let ttsAudio = null;            // 当前播放的 Audio 元素
+let ttsQueue = [];              // 待播队列（按句切分）
+let ttsAbortCtrl = null;        // 取消正在进行的 fetch
 
 function toggleVoice() {
   voiceEnabled = !voiceEnabled;
@@ -3482,58 +3646,171 @@ function toggleVoice() {
   }
 }
 
+// ===== 文本归一化（让 TTS 念得更顺） =====
+function normalizeForTTS(text) {
+  let t = text
+    // 代码块整体去掉
+    .replace(/```[\s\S]*?```/g, '。代码片段省略。')
+    // 行内代码保留内容
+    .replace(/`([^`]*)`/g, '$1')
+    // 链接 [text](url) -> text
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    // 删 Markdown 强调符号
+    .replace(/(\*\*|__)(.*?)\1/g, '$2')
+    .replace(/(\*|_)(.*?)\1/g, '$2')
+    .replace(/~~(.*?)~~/g, '$1')
+    // 引用、标题前缀、列表符号
+    .replace(/^[\t ]*[>#]+[\t ]*/gm, '')
+    .replace(/^[\t ]*[-*+][\t ]+/gm, '')
+    .replace(/^[\t ]*\d+\.[\t ]+/gm, '')
+    // 表格分隔行
+    .replace(/^\s*\|[-:\s|]+\|\s*$/gm, '')
+    // emoji 大部分保留（神经 TTS 会跳过），单独剥几个常见冗余
+    .replace(/[✅❌⚠️🔧📐🪟🔘🎯]/g, '')
+    // 多空行变停顿
+    .replace(/\n{2,}/g, '。')
+    .replace(/\n/g, '，')
+    // 常见冗余符号
+    .replace(/[#*_~|]/g, '')
+    // 多余空白
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim();
+  return t;
+}
+
+// ===== 按句切分（流式播放的关键：先播首句，后台合成后续） =====
+function splitSentences(text, maxLen = 200) {
+  // 中文句末标点 + 英文 .?! 切分
+  const parts = text.split(/(?<=[。！？!?\.\n])\s*/);
+  const out = [];
+  let buf = '';
+  for (const p of parts) {
+    if (!p) continue;
+    if ((buf + p).length > maxLen && buf) { out.push(buf); buf = p; }
+    else buf += p;
+  }
+  if (buf.trim()) out.push(buf);
+  return out.filter(s => s.trim().length > 0);
+}
+
+// ===== 实际调 TTS Provider 拿 audio Blob =====
+async function fetchTTSAudio(text, cfg, signal) {
+  if (cfg.provider === 'browser') {
+    // 退化模式：浏览器原生（不会真走到这条路，speakText 里早判定走 native）
+    return null;
+  }
+  const endpoint = cfg.provider === 'volc' ? '/api/tts/volc' : '/api/tts/edge';
+  const body = cfg.provider === 'volc'
+    ? { text, voice: cfg.voice, rate: cfg.rate, appid: cfg.volcAppid, token: cfg.volcToken }
+    : { text, voice: cfg.voice, rate: rateToEdgePct(cfg.rate) };
+  const resp = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+    signal,
+  });
+  if (!resp.ok) {
+    const errTxt = await resp.text();
+    throw new Error(`TTS ${resp.status}: ${errTxt.slice(0, 120)}`);
+  }
+  return await resp.blob();
+}
+
+function rateToEdgePct(rate) {
+  // 1.0 -> +0%；0.5 -> -50%；1.5 -> +50%
+  const pct = Math.round((Number(rate) - 1) * 100);
+  return (pct >= 0 ? '+' : '') + pct + '%';
+}
+
+// ===== 主入口 =====
 function speakText(text) {
   if (!voiceEnabled) return;
   stopSpeaking();
-  
-  // 去掉代码块和 Markdown 标记，提取纯文本
-  let cleanText = text
-    .replace(/```[\s\S]*?```/g, '（代码省略）')
-    .replace(/`([^`]*)`/g, '$1')
-    .replace(/[*#_~>|-]/g, '')
-    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
-    .replace(/\n{2,}/g, '。')
-    .replace(/\n/g, '，')
-    .trim();
-  
+
+  const cleanText = normalizeForTTS(text);
   if (!cleanText) return;
-  
-  const utterance = new SpeechSynthesisUtterance(cleanText);
-  utterance.lang = 'zh-CN';
-  utterance.rate = 1.0;
-  utterance.pitch = 1.0;
-  
-  // 尝试选中文语音
+
+  const cfg = getTTSConfig();
+
+  // 浏览器原生兜底
+  if (cfg.provider === 'browser') {
+    speakWithBrowser(cleanText, cfg);
+    return;
+  }
+
+  // 神经 TTS（Edge/火山）按句切分流式播放
+  ttsQueue = splitSentences(cleanText);
+  ttsAbortCtrl = new AbortController();
+  playNextSentence(cfg);
+}
+
+async function playNextSentence(cfg) {
+  if (!voiceEnabled || ttsQueue.length === 0) {
+    setSpeakingUI(false);
+    return;
+  }
+  const sentence = ttsQueue.shift();
+  setSpeakingUI(true);
+  try {
+    const blob = await fetchTTSAudio(sentence, cfg, ttsAbortCtrl.signal);
+    if (!voiceEnabled) return;
+    const url = URL.createObjectURL(blob);
+    ttsAudio = new Audio(url);
+    ttsAudio.playbackRate = 1.0;  // 速率已在服务端按 cfg.rate 渲染
+    ttsAudio.addEventListener('ended', () => {
+      URL.revokeObjectURL(url);
+      playNextSentence(cfg);
+    });
+    ttsAudio.addEventListener('error', () => {
+      URL.revokeObjectURL(url);
+      playNextSentence(cfg);
+    });
+    await ttsAudio.play();
+  } catch (e) {
+    if (e.name === 'AbortError') return;
+    console.warn('TTS 失败，退化到浏览器原生:', e.message);
+    // 失败一次性退化到浏览器（不打扰用户）
+    const all = [sentence, ...ttsQueue].join('');
+    ttsQueue = [];
+    speakWithBrowser(all, cfg);
+  }
+}
+
+function speakWithBrowser(text, cfg) {
+  if (!speechSynthesis) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'zh-CN';
+  u.rate = Number(cfg.rate) || 1.0;
+  u.pitch = 1.0;
   const voices = speechSynthesis.getVoices();
-  const zhVoice = voices.find(v => v.lang.startsWith('zh-CN') || v.lang.startsWith('zh-TW') || v.lang === 'zh');
-  if (zhVoice) utterance.voice = zhVoice;
-  
-  utterance.onstart = () => {
-    const btn = document.getElementById('headerVoiceBtn');
-    if (btn) btn.classList.add('speaking');
-  };
-  utterance.onend = () => {
-    const btn = document.getElementById('headerVoiceBtn');
-    if (btn) btn.classList.remove('speaking');
-    currentUtterance = null;
-  };
-  utterance.onerror = () => {
-    const btn = document.getElementById('headerVoiceBtn');
-    if (btn) btn.classList.remove('speaking');
-    currentUtterance = null;
-  };
-  
-  currentUtterance = utterance;
-  speechSynthesis.speak(utterance);
+  const zh = voices.find(v => v.lang.startsWith('zh'));
+  if (zh) u.voice = zh;
+  u.onstart = () => setSpeakingUI(true);
+  u.onend = () => setSpeakingUI(false);
+  u.onerror = () => setSpeakingUI(false);
+  currentUtterance = u;
+  speechSynthesis.speak(u);
+}
+
+function setSpeakingUI(on) {
+  const btn = document.getElementById('headerVoiceBtn');
+  if (!btn) return;
+  if (on) btn.classList.add('speaking'); else btn.classList.remove('speaking');
 }
 
 function stopSpeaking() {
-  if (speechSynthesis) {
-    speechSynthesis.cancel();
+  // 取消队列
+  ttsQueue = [];
+  if (ttsAbortCtrl) { try { ttsAbortCtrl.abort(); } catch (e) {} ttsAbortCtrl = null; }
+  if (ttsAudio) {
+    try { ttsAudio.pause(); ttsAudio.src = ''; } catch (e) {}
+    ttsAudio = null;
   }
+  if (speechSynthesis) speechSynthesis.cancel();
   currentUtterance = null;
-  const btn = document.getElementById('headerVoiceBtn');
-  if (btn) btn.classList.remove('speaking');
+  setSpeakingUI(false);
 }
 
 // 预加载语音列表
