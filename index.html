@@ -738,16 +738,17 @@ body {
   background: linear-gradient(165deg, #f0e8ff 0%, #f5eeff 15%, #fff0f5 35%, #f0f5ff 55%, #eef4ff 75%, #f5f2ff 100%) !important;
 }
 
+/* v0.6.6: 拆分独立声明，避免 box-shadow 多值 + !important 引起的解析 bug */
+/* sidebar：超透明 + 白/紫高光 */
 [data-theme="liquid"] .sidebar {
-  background: rgba(255,255,255,0.05) !important;
+  background-color: rgba(255,255,255,0.05) !important;
+  background-image: none !important;
   border-color: rgba(255,255,255,0.4) !important;
-  backdrop-filter: blur(80px) saturate(350%) brightness(1.4);
-  -webkit-backdrop-filter: blur(80px) saturate(350%) brightness(1.4);
-  box-shadow:
-    inset 1px 1px 2px 0px rgba(255,255,255,0.9),
-    inset -1px -2px 3px 1px rgba(49,49,49,0.2),
-    0px 0px 8px 1px rgba(0,0,0,0.3),
-    4px 0 50px rgba(140,120,255,0.06) !important;
+  backdrop-filter: blur(80px) saturate(350%) brightness(1.4) !important;
+  -webkit-backdrop-filter: blur(80px) saturate(350%) brightness(1.4) !important;
+}
+[data-theme="liquid"] .sidebar {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -1px 0 rgba(255,255,255,0.15), 0 8px 32px rgba(140,120,255,0.18), 0 1px 2px rgba(255,255,255,0.4) !important;
 }
 [data-theme="liquid"] .sidebar::before {
   background:
@@ -758,15 +759,16 @@ body {
   opacity: 1;
 }
 
+/* header：超透明 + 白/紫高光 */
 [data-theme="liquid"] .header {
-  background: rgba(255,255,255,0.05) !important;
+  background-color: rgba(255,255,255,0.05) !important;
+  background-image: none !important;
   border-color: rgba(255,255,255,0.45) !important;
-  backdrop-filter: blur(60px) saturate(350%) brightness(1.45);
-  -webkit-backdrop-filter: blur(60px) saturate(350%) brightness(1.45);
-  box-shadow:
-    inset 1px 1px 3px 1px rgba(255,255,255,0.6),
-    inset -1px -2px 3px 1px rgba(49,49,49,0.15),
-    0px 0px 8px 1px rgba(0,0,0,0.3) !important;
+  backdrop-filter: blur(60px) saturate(350%) brightness(1.45) !important;
+  -webkit-backdrop-filter: blur(60px) saturate(350%) brightness(1.45) !important;
+}
+[data-theme="liquid"] .header {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 4px 24px rgba(140,120,255,0.12), 0 1px 2px rgba(255,255,255,0.3) !important;
 }
 [data-theme="liquid"] .header::before {
   background:
@@ -774,15 +776,16 @@ body {
     radial-gradient(ellipse 80% 60% at 50% 100%, rgba(140,120,255,0.03) 0%, transparent 60%);
 }
 
+/* input-area：超透明 + 白/紫高光 */
 [data-theme="liquid"] .input-area {
-  background: rgba(255,255,255,0.05) !important;
+  background-color: rgba(255,255,255,0.05) !important;
+  background-image: none !important;
   border-color: rgba(255,255,255,0.45) !important;
-  backdrop-filter: blur(60px) saturate(350%) brightness(1.4);
-  -webkit-backdrop-filter: blur(60px) saturate(350%) brightness(1.4);
-  box-shadow:
-    inset 1px 1px 2px 0px rgba(255,255,255,0.9),
-    inset -1px -2px 3px 1px rgba(49,49,49,0.2),
-    0px 0px 8px 1px rgba(0,0,0,0.3) !important;
+  backdrop-filter: blur(60px) saturate(350%) brightness(1.4) !important;
+  -webkit-backdrop-filter: blur(60px) saturate(350%) brightness(1.4) !important;
+}
+[data-theme="liquid"] .input-area {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 -4px 24px rgba(140,120,255,0.12), 0 -1px 2px rgba(255,255,255,0.3) !important;
 }
 [data-theme="liquid"] .input-area::before {
   background:
@@ -1654,7 +1657,7 @@ body {
         <img src="logo.png" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.6.5</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.6.6</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -2424,6 +2427,30 @@ function showApiKeyDialog() {
 // ========== 更新日志 ==========
 function showChangelog() {
   const changelog = [
+    { v: 'v0.6.6', date: '2026-06-10', items: [
+      '🎯 终极修复通透模式灰色浮雕问题（前 5 版均未生效的根因）',
+      '🔧 把 background / box-shadow / backdrop-filter 拆成独立声明块，绕过 CSS 引擎对 box-shadow 多值 + !important 的解析 bug',
+      '🎨 黑色阴影 rgba(0,0,0,0.3) 全部替换为紫色柔光 rgba(140,120,255,0.18)',
+      '✨ 黑色内阴影 rgba(49,49,49,0.2) 全部替换为白色高光',
+      '💎 新增 background-image:none 防止变量残留干扰',
+      '📋 补全 v0.6.2 - v0.6.5 缺失的更新日志',
+    ]},
+    { v: 'v0.6.5', date: '2026-06-10', items: [
+      '🔧 尝试用 !important 强制覆盖 liquid 主题 background / border / box-shadow',
+      '⚠️ 实测未生效：CSS 引擎对 box-shadow 多值 + !important 处理异常导致整条规则丢弃',
+    ]},
+    { v: 'v0.6.4', date: '2026-06-10', items: [
+      '🔧 修复 [data-theme="liquid"] .sidebar 后面的孤儿花括号',
+      '⚠️ 部分生效：语法错误修了，但 background 仍被层叠覆盖',
+    ]},
+    { v: 'v0.6.3', date: '2026-06-10', items: [
+      '🔧 尝试给通透模式补 background-color 覆盖',
+      '⚠️ 引入新 bug：意外删掉/添加花括号',
+    ]},
+    { v: 'v0.6.2', date: '2026-06-10', items: [
+      '🔧 首次尝试修复通透模式灰色浮雕问题',
+      '⚠️ 未触及根因',
+    ]},
     { v: 'v0.6.1', date: '2026-06-10', items: [
       '🔧 修复 SVG filter 与 backdrop-filter 冲突导致的显示异常',
       '💎 改为纯 CSS 极致方案：超低透明度 + 精密 box-shadow',
