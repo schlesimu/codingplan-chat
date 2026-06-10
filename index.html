@@ -542,6 +542,18 @@ body {
   border-top: 1px solid var(--sidebar-divider);
   flex-shrink: 0; transition: border-color 0.5s;
 }
+.sidebar-search-toggle {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; margin-bottom: 6px;
+  border-radius: 8px; font-size: 13px;
+  cursor: pointer; transition: all 0.2s;
+  border: 1px solid var(--sidebar-divider);
+}
+.sidebar-search-toggle:hover { background: var(--sidebar-item-hover); }
+.sidebar-search-toggle.on {
+  border-color: #3b82f6; color: #3b82f6;
+  background: rgba(59,130,246,0.1);
+}
 .sidebar-footer-item {
   display: flex; align-items: center; gap: 8px;
   padding: 8px 10px; border-radius: 8px;
@@ -983,6 +995,10 @@ body {
   </div>
 
   <div class="sidebar-footer">
+    <div class="sidebar-search-toggle" id="searchToggle" onclick="toggleWebSearch()">
+      <span class="footer-icon">🌐</span>
+      <span id="searchStatus">联网搜索：关</span>
+    </div>
     <button class="sidebar-footer-item" onclick="toggleTheme()">
       <span class="footer-icon" id="themeIcon">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
@@ -1102,6 +1118,7 @@ let conversations = {};
 let cloudToken = null;       // 用户同步码（多设备共享）
 let cloudSyncing = false;    // 正在同步中
 let lastCloudSync = 0;       // 上次同步时间戳
+let webSearchEnabled = localStorage.getItem('webSearchEnabled') === 'true';  // 联网搜索开关
 
 const onboarding = document.getElementById('onboarding');
 const appMain = document.getElementById('app-main');
@@ -1574,20 +1591,86 @@ function addStreamingMessage() {
   return bubble;
 }
 
+// ========== 联网搜索 ==========
+async function searchWeb(query) {
+  try {
+    const resp = await fetch('/api/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, count: 5 })
+    });
+    const data = await resp.json();
+    if (data.code === 200 && data.data?.webPages) {
+      return data.data.webPages.map((p, i) => 
+        `[${i + 1}] ${p.name}\n${p.snippet || ''}\n来源: ${p.url}`
+      ).join('\n\n');
+    }
+    return null;
+  } catch (e) {
+    console.warn('搜索失败:', e.message);
+    return null;
+  }
+}
+
+function toggleWebSearch() {
+  webSearchEnabled = !webSearchEnabled;
+  localStorage.setItem('webSearchEnabled', webSearchEnabled);
+  updateSearchToggleUI();
+}
+
+function updateSearchToggleUI() {
+  const toggle = document.getElementById('searchToggle');
+  const status = document.getElementById('searchStatus');
+  if (webSearchEnabled) {
+    toggle.classList.add('on');
+    status.textContent = '🌐 联网搜索：开';
+  } else {
+    toggle.classList.remove('on');
+    status.textContent = '🌐 联网搜索：关';
+  }
+}
+
+// 页面加载时初始化开关状态
+updateSearchToggleUI();
+
 async function sendMessage() {
   const text = userInput.value.trim();
   if (!text || isStreaming) return;
   isStreaming = true; sendBtn.disabled = true;
   userInput.value = ''; userInput.style.height = 'auto';
+  
+  // 联网搜索
+  let searchContext = '';
+  if (webSearchEnabled) {
+    addMessage('assistant', '🔍 正在搜索...');
+    searchContext = await searchWeb(text) || '';
+    // 移除搜索提示
+    const lastMsg = chatArea.lastElementChild;
+    if (lastMsg && lastMsg.classList.contains('message-row')) {
+      lastMsg.remove();
+    }
+  }
+  
   addMessage('user', text);
   messages.push({ role: 'user', content: text });
+  
+  // 如果有搜索结果，加入上下文
+  const sendMessages = [...messages];
+  if (searchContext) {
+    // 在用户消息前插入搜索结果作为系统提示
+    sendMessages.splice(sendMessages.length - 1, 0, {
+      role: 'system',
+      content: `以下是最新的网络搜索结果，请基于这些信息回答用户的问题。如果搜索结果不相关，请忽略并正常回答。\n\n${searchContext}`
+    });
+  }
+  
   const bubble = addStreamingMessage();
   let fullContent = '';
   try {
     const resp = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages, stream: true })
+      body: JSON.stringify({ messages: sendMessages, stream: true })
     });
     
     // 流式解析 SSE
@@ -1623,7 +1706,7 @@ async function sendMessage() {
       const resp2 = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages, stream: false })
+        body: JSON.stringify({ messages: sendMessages, stream: false })
       });
       const data = await resp2.json();
       if (data.choices && data.choices[0]?.message?.content) {
