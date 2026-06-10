@@ -465,6 +465,11 @@ body {
   font-size: 14px; font-weight: 600;
   color: var(--header-title); transition: color 0.5s;
 }
+.sidebar-version {
+  font-size: 10px !important; font-weight: 400 !important;
+  color: var(--sidebar-section-title) !important;
+  margin-left: 2px;
+}
 .sidebar-close {
   width: 26px; height: 26px; border-radius: 13px;
   border: 1px solid var(--btn-border);
@@ -565,6 +570,26 @@ body {
   background: var(--sidebar-item-hover); color: var(--sidebar-text-active);
 }
 .sidebar-footer-item .footer-icon { font-size: 14px; width: 20px; text-align: center; flex-shrink: 0; }
+
+/* 折叠栏 */
+.sidebar-collapse-toggle {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; border-radius: 8px;
+  font-size: 13px; color: var(--sidebar-text);
+  cursor: pointer; transition: all 0.2s;
+  border: none; background: none; width: 100%;
+}
+.sidebar-collapse-toggle:hover { background: var(--sidebar-item-hover); }
+.sidebar-collapse-toggle .arrow {
+  font-size: 10px; transition: transform 0.2s;
+  margin-left: auto;
+}
+.sidebar-collapse-toggle.open .arrow { transform: rotate(90deg); }
+.sidebar-collapse-content {
+  overflow: hidden; max-height: 0;
+  transition: max-height 0.3s ease;
+}
+.sidebar-collapse-content.open { max-height: 200px; }
 
 /* ========== 顶栏 ========== */
 .header {
@@ -978,7 +1003,8 @@ body {
       <div class="sidebar-logo">
         <svg viewBox="0 0 24 24"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z" fill="currentColor" opacity="0.5"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z" fill="currentColor"/></svg>
       </div>
-      <span>火山编程助手</span>
+      <span>codingplan-chat</span>
+      <span class="sidebar-version">v1.0</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -1023,24 +1049,27 @@ body {
       </span>
       <span>🔑 同步码</span>
     </button>
-    <button class="sidebar-footer-item" onclick="exportChat()">
-      <span class="footer-icon">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      </span>
-      <span>导出当前对话 .md</span>
+
+    <!-- 更多工具折叠栏 -->
+    <button class="sidebar-collapse-toggle" id="moreToolsToggle" onclick="toggleMoreTools()">
+      <span class="footer-icon">📦</span>
+      <span>更多工具</span>
+      <span class="arrow">▶</span>
     </button>
-    <button class="sidebar-footer-item" onclick="exportAllChats()">
-      <span class="footer-icon">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-      </span>
-      <span>导出全部对话 .md</span>
-    </button>
-    <button class="sidebar-footer-item" onclick="clearCurrentChat()">
-      <span class="footer-icon">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-      </span>
-      <span>清空当前对话</span>
-    </button>
+    <div class="sidebar-collapse-content" id="moreToolsContent">
+      <button class="sidebar-footer-item" onclick="exportChat()">
+        <span class="footer-icon">📄</span>
+        <span>导出当前对话 .md</span>
+      </button>
+      <button class="sidebar-footer-item" onclick="exportAllChats()">
+        <span class="footer-icon">📁</span>
+        <span>导出全部对话 .md</span>
+      </button>
+      <button class="sidebar-footer-item" onclick="clearCurrentChat()">
+        <span class="footer-icon">🗑️</span>
+        <span>清空当前对话</span>
+      </button>
+    </div>
   </div>
 </nav>
 
@@ -1634,6 +1663,14 @@ function updateSearchToggleUI() {
 
 // 页面加载时初始化开关状态
 updateSearchToggleUI();
+
+// 更多工具折叠
+function toggleMoreTools() {
+  const content = document.getElementById('moreToolsContent');
+  const toggle = document.getElementById('moreToolsToggle');
+  content.classList.toggle('open');
+  toggle.classList.toggle('open');
+}
 
 async function sendMessage() {
   const text = userInput.value.trim();
