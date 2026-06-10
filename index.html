@@ -1929,7 +1929,7 @@ body {
         <img src="logo.png" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.8.3</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.8.4</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -2662,11 +2662,11 @@ function showApiKeyDialog() {
   html += '<div style="margin-bottom:10px">';
   html += '<div style="font-size:12px;color:var(--sidebar-text);margin-bottom:4px">语音引擎</div>';
   html += `<select id="tts-provider" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--sidebar-divider);background:var(--input-bg);color:var(--input-color);font-size:12px;font-family:inherit">
-    <option value="edge" ${ttsCfg.provider === 'edge' ? 'selected' : ''}>Edge 神经 TTS（免费，推荐 ⭐）</option>
+    <option value="browser" ${ttsCfg.provider === 'browser' ? 'selected' : ''}>浏览器原生（默认，离线可用 ⭐）</option>
     <option value="volc" ${ttsCfg.provider === 'volc' ? 'selected' : ''}>火山引擎 TTS（豆包同源，需 AppID + Token）</option>
-    <option value="browser" ${ttsCfg.provider === 'browser' ? 'selected' : ''}>浏览器原生（旧版机器音，离线可用）</option>
+    <option value="edge" ${ttsCfg.provider === 'edge' ? 'selected' : ''}>Edge 神经 TTS（⚠️ 需 Chrome 扩展环境，普通浏览器不可用）</option>
   </select>`;
-  html += `<div style="font-size:10px;color:var(--text-dim);margin-top:3px">Edge / 火山为云端神经 TTS，效果接近豆包/千问</div>`;
+  html += `<div style="font-size:10px;color:var(--text-dim);margin-top:3px">默认浏览器原生即可使用；火山为云端神经 TTS，需自备 AppID+Token</div>`;
   html += '</div>';
 
   // 音色选择（动态根据引擎切换可选项，JS 注入）
@@ -2823,6 +2823,13 @@ function showApiKeyDialog() {
 // ========== 更新日志 ==========
 function showChangelog() {
   const changelog = [
+    { v: 'v0.8.4', date: '2026-06-11', items: [
+      '🔧 修复 Edge TTS web 端不可用问题',
+      '   - Edge TTS 服务端要求 Origin: chrome-extension://...，浏览器无法自定义此头',
+      '   - 默认引擎从 Edge 改为「浏览器原生」（虽机器音但永远可用）',
+      '   - Edge 选项加 ⚠️ 标识，告知仅 Chrome 扩展环境可用',
+      '   - 自动迁移：之前默认选了 Edge 的用户回退到浏览器原生',
+    ]},
     { v: 'v0.8.3', date: '2026-06-11', items: [
       '🎙️ Edge TTS 改为浏览器直连 WSS（Cloudflare Workers IP 段被 Microsoft 封了）',
       '   - 现在 Edge 神经 TTS 真正可用，云希音色，与豆包/千问同级',
@@ -3625,14 +3632,18 @@ const TTS_CONFIG_KEY = 'codingplan-tts-config';
 function getTTSConfig() {
   try {
     const c = JSON.parse(localStorage.getItem(TTS_CONFIG_KEY) || '{}');
+    // 迁移：v0.8.3 之前默认 edge，但 web 端走不通 → 强制回退 browser（用户可在设置里手动改回 edge 测试）
+    if (c.provider === 'edge' && !c._userChoseEdge) {
+      c.provider = 'browser';
+    }
     return {
-      provider: c.provider || 'edge',          // 'edge' | 'volc' | 'browser'
+      provider: c.provider || 'browser',       // 'browser' | 'edge' | 'volc'，默认浏览器原生最稳
       voice: c.voice || (c.provider === 'volc' ? 'yangguang' : 'yunxi'),
       rate: c.rate || 1.0,                     // 0.5 ~ 2.0
       volcAppid: c.volcAppid || '',
       volcToken: c.volcToken || '',
     };
-  } catch (e) { return { provider: 'edge', voice: 'yunxi', rate: 1.0, volcAppid: '', volcToken: '' }; }
+  } catch (e) { return { provider: 'browser', voice: 'yunxi', rate: 1.0, volcAppid: '', volcToken: '' }; }
 }
 function setTTSConfig(cfg) { localStorage.setItem(TTS_CONFIG_KEY, JSON.stringify(cfg)); }
 
