@@ -1929,7 +1929,7 @@ body {
         <img src="logo.png" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.8.1</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.8.2</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -2823,6 +2823,11 @@ function showApiKeyDialog() {
 // ========== 更新日志 ==========
 function showChangelog() {
   const changelog = [
+    { v: 'v0.8.2', date: '2026-06-11', items: [
+      '🔧 修复 Edge TTS 在 Cloudflare Workers 返回 403 的问题',
+      '   - 补全 WebSocket 握手头：Sec-WebSocket-Key/Version/Protocol/Connection',
+      '   - 加 ConnectionId query 参数 + Accept-Encoding 等浏览器特征头',
+    ]},
     { v: 'v0.8.1', date: '2026-06-11', items: [
       '🎨 修复 Liquid 主题我方消息气泡看不清的问题',
       '   - 原气泡背景 rgba(180,160,255,0.10) 太透，白字几乎隐形',
