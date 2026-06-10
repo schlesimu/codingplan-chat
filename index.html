@@ -247,18 +247,18 @@ html { font-size: 13px; }
   bottom: -60px; left: 25%;
   animation: orbFloat3 16s ease-in-out infinite;
 }
-/* 通透模式额外光球 */
+/* 通透模式额外光球：更大更亮 */
 [data-theme="liquid"] .bg-orb-1 {
   width: 520px; height: 520px;
-  filter: blur(160px);
+  filter: blur(160px) !important;
 }
 [data-theme="liquid"] .bg-orb-2 {
   width: 480px; height: 480px;
-  filter: blur(160px);
+  filter: blur(160px) !important;
 }
 [data-theme="liquid"] .bg-orb-3 {
   width: 440px; height: 440px;
-  filter: blur(160px);
+  filter: blur(160px) !important;
 }
 @keyframes orbFloat1 {
   0%,100% { transform: translate(0,0) scale(1); }
@@ -733,14 +733,21 @@ body {
 /* 注：SVG 滤镜通过 backdrop-filter 引用在 Chrome 支持有限，
    改为纯 CSS 极致方案：超低透明度 + 精密 box-shadow + 强 backdrop-filter */
 
+/* 背景渐变：强制覆盖，确保切换到 liquid 时立即生效 */
+[data-theme="liquid"] .bg-layer {
+  background: linear-gradient(165deg, #f0e8ff 0%, #f5eeff 15%, #fff0f5 35%, #f0f5ff 55%, #eef4ff 75%, #f5f2ff 100%) !important;
+}
+
 [data-theme="liquid"] .sidebar {
+  background: rgba(255,255,255,0.05) !important;
+  border-color: rgba(255,255,255,0.4) !important;
   backdrop-filter: blur(80px) saturate(350%) brightness(1.4);
   -webkit-backdrop-filter: blur(80px) saturate(350%) brightness(1.4);
   box-shadow:
     inset 1px 1px 2px 0px rgba(255,255,255,0.9),
     inset -1px -2px 3px 1px rgba(49,49,49,0.2),
     0px 0px 8px 1px rgba(0,0,0,0.3),
-    4px 0 50px rgba(140,120,255,0.06);
+    4px 0 50px rgba(140,120,255,0.06) !important;
 }
 [data-theme="liquid"] .sidebar::before {
   background:
@@ -752,12 +759,14 @@ body {
 }
 
 [data-theme="liquid"] .header {
+  background: rgba(255,255,255,0.05) !important;
+  border-color: rgba(255,255,255,0.45) !important;
   backdrop-filter: blur(60px) saturate(350%) brightness(1.45);
   -webkit-backdrop-filter: blur(60px) saturate(350%) brightness(1.45);
   box-shadow:
     inset 1px 1px 3px 1px rgba(255,255,255,0.6),
     inset -1px -2px 3px 1px rgba(49,49,49,0.15),
-    0px 0px 8px 1px rgba(0,0,0,0.3);
+    0px 0px 8px 1px rgba(0,0,0,0.3) !important;
 }
 [data-theme="liquid"] .header::before {
   background:
@@ -766,12 +775,14 @@ body {
 }
 
 [data-theme="liquid"] .input-area {
+  background: rgba(255,255,255,0.05) !important;
+  border-color: rgba(255,255,255,0.45) !important;
   backdrop-filter: blur(60px) saturate(350%) brightness(1.4);
   -webkit-backdrop-filter: blur(60px) saturate(350%) brightness(1.4);
   box-shadow:
     inset 1px 1px 2px 0px rgba(255,255,255,0.9),
     inset -1px -2px 3px 1px rgba(49,49,49,0.2),
-    0px 0px 8px 1px rgba(0,0,0,0.3);
+    0px 0px 8px 1px rgba(0,0,0,0.3) !important;
 }
 [data-theme="liquid"] .input-area::before {
   background:
@@ -1643,7 +1654,7 @@ body {
         <img src="logo.png" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.6.4</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.6.5</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
