@@ -41,18 +41,34 @@ function buildSSML(text, voice, rate, pitch, volume) {
 async function synthesize(text, voiceKey, rate, pitch, volume) {
   const voice = VOICE_MAP[voiceKey] || VOICE_MAP['yunxi'];
   const reqId = uuid().replace(/-/g, '');
-  const url = `https://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1?TrustedClientToken=${TRUSTED_CLIENT_TOKEN}`;
+  // Edge TTS 端点；CF Workers 出口客户端 WebSocket 用 https:// + Upgrade 头
+  const url = `https://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1?TrustedClientToken=${TRUSTED_CLIENT_TOKEN}&ConnectionId=${reqId}`;
 
-  // CF Workers 客户端 WebSocket：fetch + Upgrade
+  // 生成 Sec-WebSocket-Key（16 字节随机 base64）
+  const keyBytes = new Uint8Array(16);
+  crypto.getRandomValues(keyBytes);
+  const wsKey = btoa(String.fromCharCode(...keyBytes));
+
+  // CF Workers 客户端 WebSocket：fetch + 完整 WebSocket 握手头
   const resp = await fetch(url, {
     headers: {
       'Upgrade': 'websocket',
+      'Connection': 'Upgrade',
+      'Sec-WebSocket-Version': '13',
+      'Sec-WebSocket-Key': wsKey,
+      'Sec-WebSocket-Protocol': 'synthesize',
       'Origin': 'chrome-extension://jdiccldimpdaibmpdkjnbmckianbfold',
+      'Accept-Encoding': 'gzip, deflate, br',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Pragma': 'no-cache',
+      'Cache-Control': 'no-cache',
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0',
     },
   });
   if (resp.status !== 101) {
-    throw new Error(`Edge TTS upgrade failed: ${resp.status}`);
+    let body = '';
+    try { body = (await resp.text()).slice(0, 200); } catch(e){}
+    throw new Error(`Edge TTS upgrade failed: ${resp.status} ${body}`);
   }
   const ws = resp.webSocket;
   if (!ws) throw new Error('No webSocket on response');
