@@ -453,16 +453,31 @@ body {
   /* 隐藏关闭按钮（常驻不需要） */
   .sidebar-close { display: none !important; }
 
-  /* 主内容区用 padding-left 让出空间 */
-  .app-main {
-    padding-left: 280px;
+  /* body 改为 flex 行布局，侧边栏作为固定宽度的 flex item */
+  body {
+    flex-direction: row !important;
+    align-items: stretch !important;
+  }
+
+  /* 主内容区：占据剩余空间 */
+  #app-main {
+    flex: 1;
+    margin-left: 280px;
+    width: auto;
+    min-width: 0;
   }
 
   /* 顶栏宽度自适应 */
   .header {
-    left: 280px;
-    right: 0;
-    width: auto;
+    position: relative;
+    left: 0;
+    width: 100%;
+  }
+
+  /* 聊天区和输入区宽度自适应 */
+  .chat-area, .input-area {
+    margin-left: 0;
+    width: 100%;
   }
 }
 
@@ -767,6 +782,26 @@ body {
   box-shadow: 0 0 6px #34c759; display: inline-block;
 }
 .header-actions { display: flex; gap: 8px; align-items: center; margin-left: auto; }
+.header-search-btn {
+  width: 32px; height: 32px; border-radius: 10px;
+  border: 1px solid var(--btn-border);
+  background: var(--btn-bg); color: var(--btn-color);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.25s; flex-shrink: 0;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.header-search-btn:hover { background: var(--btn-active-bg); }
+.header-search-btn:active { transform: scale(0.92); }
+.header-search-btn.on {
+  border-color: #3b82f6; color: #3b82f6;
+  background: rgba(59,130,246,0.1);
+}
+/* 浅色模式 */
+[data-theme="light"] .header-search-btn {
+  backdrop-filter: blur(12px) saturate(150%) brightness(1.1);
+  -webkit-backdrop-filter: blur(12px) saturate(150%) brightness(1.1);
+  background: rgba(255,255,255,0.35);
+}
 
 /* ========== 聊天区 ========== */
 .chat-area {
@@ -1158,7 +1193,7 @@ body {
         <svg viewBox="0 0 24 24"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z" fill="currentColor" opacity="0.5"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z" fill="currentColor"/></svg>
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version">v1.3</span>
+      <span class="sidebar-version">v1.4</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -1175,12 +1210,6 @@ body {
   </div>
 
   <div class="sidebar-footer">
-    <div class="sidebar-search-toggle" id="searchToggle" onclick="toggleWebSearch()">
-      <span class="footer-icon">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-      </span>
-      <span id="searchStatus">联网搜索：关</span>
-    </div>
     <button class="sidebar-footer-item" onclick="toggleTheme()">
       <span class="footer-icon" id="themeIcon">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
@@ -1250,6 +1279,11 @@ body {
       <h1 id="headerTitle">火山编程助手</h1>
       <div class="status">在线 · 智能模式</div>
     </div>
+  </div>
+  <div class="header-actions">
+    <button class="header-search-btn" id="headerSearchBtn" onclick="toggleWebSearch()" title="联网搜索">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+    </button>
   </div>
 </div>
 
@@ -1839,14 +1873,29 @@ function toggleWebSearch() {
 }
 
 function updateSearchToggleUI() {
+  // 更新侧边栏搜索开关（如果存在）
   const toggle = document.getElementById('searchToggle');
   const status = document.getElementById('searchStatus');
-  if (webSearchEnabled) {
-    toggle.classList.add('on');
-    status.textContent = '🌐 联网搜索：开';
-  } else {
-    toggle.classList.remove('on');
-    status.textContent = '🌐 联网搜索：关';
+  if (toggle) {
+    if (webSearchEnabled) {
+      toggle.classList.add('on');
+    } else {
+      toggle.classList.remove('on');
+    }
+  }
+  if (status) {
+    status.textContent = webSearchEnabled ? '联网搜索：开' : '联网搜索：关';
+  }
+  // 更新顶栏搜索按钮
+  const headerBtn = document.getElementById('headerSearchBtn');
+  if (headerBtn) {
+    if (webSearchEnabled) {
+      headerBtn.classList.add('on');
+      headerBtn.title = '联网搜索：开';
+    } else {
+      headerBtn.classList.remove('on');
+      headerBtn.title = '联网搜索：关';
+    }
   }
 }
 
