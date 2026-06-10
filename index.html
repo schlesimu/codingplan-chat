@@ -652,7 +652,7 @@ body {
   color: var(--sidebar-text-active) !important;
 }
 .sidebar-close {
-  width: 26px; height: 26px; border-radius: 13px;
+  width: 26px; height: 26px; border-radius: 14px;
   border: 1px solid var(--btn-border);
   background: var(--btn-bg); color: var(--btn-color);
   cursor: pointer; display: flex; align-items: center; justify-content: center;
@@ -675,7 +675,7 @@ body {
 
 .sidebar-new-chat {
   margin: 0 12px 10px;
-  padding: 9px 13px; border-radius: 10px;
+  padding: 9px 13px; border-radius: 18px;
   border: 1px dashed var(--btn-border);
   background: var(--btn-bg); color: var(--btn-color);
   font-size: 13px; font-weight: 500; cursor: pointer;
@@ -707,7 +707,7 @@ body {
 }
 .sidebar-chat-list::-webkit-scrollbar { display: none; }
 .chat-list-item {
-  padding: 8px 10px; border-radius: 8px;
+  padding: 8px 10px; border-radius: 14px;
   cursor: pointer; display: flex; align-items: center; gap: 8px;
   font-size: 13px; color: var(--sidebar-text);
   transition: all 0.2s; margin-bottom: 1px; position: relative;
@@ -744,7 +744,7 @@ body {
 .sidebar-search-toggle {
   display: flex; align-items: center; gap: 8px;
   padding: 8px 10px; margin-bottom: 6px;
-  border-radius: 8px; font-size: 13px;
+  border-radius: 14px; font-size: 13px;
   cursor: pointer; transition: all 0.2s;
   border: 1px solid var(--sidebar-divider);
 }
@@ -761,7 +761,7 @@ body {
 }
 .sidebar-footer-item {
   display: flex; align-items: center; gap: 8px;
-  padding: 8px 10px; border-radius: 8px;
+  padding: 8px 10px; border-radius: 14px;
   font-size: 13px; color: var(--sidebar-text);
   cursor: pointer; transition: all 0.2s;
   border: none; background: none; width: 100%; font-family: inherit;
@@ -1179,7 +1179,7 @@ body {
 /* 折叠栏 */
 .sidebar-collapse-toggle {
   display: flex; align-items: center; gap: 8px;
-  padding: 8px 10px; border-radius: 8px;
+  padding: 8px 10px; border-radius: 14px;
   font-size: 13px; color: var(--sidebar-text);
   cursor: pointer; transition: all 0.2s;
   border: none; background: none; width: 100%;
@@ -1768,13 +1768,13 @@ body {
 .sidebar-theme-switcher {
   display: flex; gap: 0; align-items: center;
   padding: 2px;
-  border-radius: 10px;
+  border-radius: 18px;
   background: var(--btn-bg);
   border: 1px solid var(--btn-border);
 }
 .sidebar-theme-btn {
   flex: 1; display: flex; align-items: center; justify-content: center;
-  width: 32px; height: 28px; border-radius: 8px;
+  width: 32px; height: 28px; border-radius: 14px;
   border: none; background: none;
   cursor: pointer; transition: all 0.25s;
   color: var(--btn-color);
@@ -1927,7 +1927,7 @@ body {
         <img src="logo.png" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.7.8</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.7.9</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -2697,6 +2697,13 @@ function showApiKeyDialog() {
 // ========== 更新日志 ==========
 function showChangelog() {
   const changelog = [
+    { v: 'v0.7.9', date: '2026-06-11', items: [
+      '🔧 修复 v0.7.7 漏改：sidebar 内按钮圆角现在三主题（Dark/Light/Liquid）全部统一',
+      '📐 改 base 规则而非加主题块，所有主题自动继承同一组圆角',
+      '🪟 新建对话 / 主题切换长条 → radius:18px（对齐顶栏 22px 嵌套层级）',
+      '🔘 关闭✕ / 历史项 / 主题切换内的小按钮 / 未同步 / 从云端恢复 / 同步码 / 更多工具 / 搜索 → radius:14px',
+      '✅ 现在切换 Dark/Light/Liquid 三主题 sidebar 按钮曲率完全一致',
+    ]},
     { v: 'v0.7.8', date: '2026-06-11', items: [
       '📱 手机端 sidebar 改成四面浮卡（三主题：Dark/Light/Liquid 全部统一）',
       '📐 几何对齐顶栏 / 输入框：上 8px、左 10px、下 10px (含 safe-area)、四角圆角 18px',
