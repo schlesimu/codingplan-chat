@@ -4,56 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>火山编程助手</title>
-
-<!-- SVG 滤镜库：折射 + 色散 + 液态变形 -->
-<svg style="position:absolute;width:0;height:0;pointer-events:none" aria-hidden="true">
-  <defs>
-    <!-- 折射滤镜：模拟光线穿过玻璃的弯曲 -->
-    <filter id="liquid-refract" x="-20%" y="-20%" width="140%" height="140%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="3" seed="5" result="noise"/>
-      <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G" result="displaced"/>
-      <feGaussianBlur in="displaced" stdDeviation="0.3" result="blurred"/>
-      <feMerge>
-        <feMergeNode in="blurred"/>
-        <feMergeNode in="SourceGraphic" opacity="0.3"/>
-      </feMerge>
-    </filter>
-    
-    <!-- 色散滤镜：RGB 通道分离模拟色差 -->
-    <filter id="liquid-chromatic" x="-10%" y="-10%" width="120%" height="120%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="3" result="noise"/>
-      <!-- 红色通道偏移 -->
-      <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G" result="r-channel"/>
-      <!-- 蓝色通道反向偏移 -->
-      <feDisplacementMap in="SourceGraphic" in2="noise" scale="-2" xChannelSelector="B" yChannelSelector="R" result="b-channel"/>
-      <feOffset in="r-channel" dx="-1" dy="0" result="r-offset"/>
-      <feOffset in="b-channel" dx="1" dy="0" result="b-offset"/>
-      <feBlend in="r-offset" in2="b-offset" mode="screen" result="chromatic"/>
-      <feBlend in="chromatic" in2="SourceGraphic" mode="normal"/>
-    </filter>
-
-    <!-- 边缘光滤镜：模拟玻璃边缘的光线弯曲 -->
-    <filter id="liquid-edge-glow" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur"/>
-      <feColorMatrix in="blur" type="matrix" 
-        values="0 0 0 0 1
-                0 0 0 0 0.4
-                0 0 0 0 0.2
-                0 0 0 0.6 0" result="colored"/>
-      <feMerge>
-        <feMergeNode in="SourceGraphic"/>
-        <feMergeNode in="colored"/>
-      </feMerge>
-    </filter>
-
-    <!-- 微折射（给气泡用，效果更轻） -->
-    <filter id="liquid-micro" x="-10%" y="-10%" width="120%" height="120%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="7" result="noise"/>
-      <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G"/>
-    </filter>
-  </defs>
-</svg>
-
 <style>
 /* ========== 全局缩放 80%（缩小20%） ========== */
 html { font-size: 13px; }
@@ -1254,6 +1204,57 @@ body {
 </head>
 <body>
 
+<!-- SVG 滤镜库：折射 + 色散 + 液态变形（必须放在 body 最前面，display:none 防止渲染） -->
+<div style="display:none" aria-hidden="true">
+<svg xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 折射滤镜：模拟光线穿过玻璃的弯曲 -->
+    <filter id="liquid-refract" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="3" seed="5" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G" result="displaced"/>
+      <feGaussianBlur in="displaced" stdDeviation="0.3" result="blurred"/>
+      <feMerge>
+        <feMergeNode in="blurred"/>
+        <feMergeNode in="SourceGraphic" opacity="0.3"/>
+      </feMerge>
+    </filter>
+    
+    <!-- 色散滤镜：RGB 通道分离模拟色差 -->
+    <filter id="liquid-chromatic" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="3" result="noise"/>
+      <!-- 红色通道偏移 -->
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G" result="r-channel"/>
+      <!-- 蓝色通道反向偏移 -->
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="-2" xChannelSelector="B" yChannelSelector="R" result="b-channel"/>
+      <feOffset in="r-channel" dx="-1" dy="0" result="r-offset"/>
+      <feOffset in="b-channel" dx="1" dy="0" result="b-offset"/>
+      <feBlend in="r-offset" in2="b-offset" mode="screen" result="chromatic"/>
+      <feBlend in="chromatic" in2="SourceGraphic" mode="normal"/>
+    </filter>
+
+    <!-- 边缘光滤镜：模拟玻璃边缘的光线弯曲 -->
+    <filter id="liquid-edge-glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" 
+        values="0 0 0 0 1
+                0 0 0 0 0.4
+                0 0 0 0 0.2
+                0 0 0 0.6 0" result="colored"/>
+      <feMerge>
+        <feMergeNode in="SourceGraphic"/>
+        <feMergeNode in="colored"/>
+      </feMerge>
+    </filter>
+
+    <!-- 微折射（给气泡用，效果更轻） -->
+    <filter id="liquid-micro" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+</div>
+
 <!-- 动态背景 -->
 <div class="bg-layer">
   <div class="bg-orb bg-orb-1"></div>
@@ -1305,7 +1306,7 @@ body {
         <svg viewBox="0 0 24 24"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z" fill="currentColor" opacity="0.5"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z" fill="currentColor"/></svg>
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.3.0</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.3.1</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -2059,6 +2060,10 @@ function showApiKeyDialog() {
 // ========== 更新日志 ==========
 function showChangelog() {
   const changelog = [
+    { v: 'v0.3.1', date: '2026-06-10', items: [
+      '🔧 紧急修复：页面空白 bug（SVG 滤镜库在 head 中导致 DOM 解析异常）',
+      '将 SVG 滤镜库移至 body 内 display:none 容器，避免干扰 HTML 解析',
+    ]},
     { v: 'v0.3.0', date: '2026-06-10', items: [
       '🆕 消息操作菜单：复制/引用/重新生成（液态玻璃风格）',
       '🆕 引用回复：点击引用将 AI 回答以 blockquote 放入输入框',
