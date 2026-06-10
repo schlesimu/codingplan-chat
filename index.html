@@ -1411,133 +1411,29 @@ body {
   background: var(--code-bg); border-radius: 0 6px 6px 0;
 }
 
-/* ========== 主题切换浮层面板 ========== */
-.theme-switcher-overlay {
-  position: fixed; inset: 0; z-index: 9998;
-  background: rgba(0,0,0,0);
-  visibility: hidden;
-  transition: background 0.3s, visibility 0.3s;
+/* ========== 侧边栏内嵌主题切换胶囊 ========== */
+.sidebar-theme-switcher {
+  display: flex; gap: 0; align-items: center;
+  padding: 2px;
+  border-radius: 10px;
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-border);
 }
-.theme-switcher-overlay.show {
-  background: rgba(0,0,0,0.15);
-  visibility: visible;
-}
-
-.theme-switcher-panel {
-  position: fixed; left: 50%; bottom: 24px;
-  transform: translateX(-50%) translateY(120%);
-  z-index: 9999;
-  padding: 6px;
-  border-radius: 28px;
-  backdrop-filter: blur(50px) saturate(220%) brightness(1.1);
-  -webkit-backdrop-filter: blur(50px) saturate(220%) brightness(1.1);
-  background: rgba(255,255,255,0.25);
-  border: 1px solid rgba(255,255,255,0.35);
-  box-shadow:
-    0 8px 40px rgba(0,0,0,0.1),
-    0 2px 12px rgba(0,0,0,0.05),
-    inset 0 1px 0 rgba(255,255,255,0.5);
-  display: flex; gap: 4px; align-items: center;
-  transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
-}
-.theme-switcher-panel.show {
-  transform: translateX(-50%) translateY(0);
-}
-
-.theme-switcher-item {
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 10px 18px; border-radius: 22px;
+.sidebar-theme-btn {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 28px; border-radius: 8px;
   border: none; background: none;
-  cursor: pointer; transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-  color: rgba(26,26,46,0.45);
-  font-family: inherit;
+  cursor: pointer; transition: all 0.25s;
+  color: var(--btn-color);
   -webkit-tap-highlight-color: transparent;
-  min-width: 72px;
 }
-.theme-switcher-item:hover {
-  background: rgba(255,255,255,0.2);
+.sidebar-theme-btn:hover {
+  color: var(--sidebar-text-active);
 }
-.theme-switcher-item.active {
-  background: rgba(255,255,255,0.55);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  color: #1a1a2e;
-  box-shadow:
-    0 2px 8px rgba(0,0,0,0.06),
-    inset 0 1px 0 rgba(255,255,255,0.6);
-}
-.theme-switcher-item:active {
-  transform: scale(0.94);
-}
-
-.theme-switcher-icon {
-  width: 32px; height: 32px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.25s;
-}
-.theme-switcher-item.active .theme-switcher-icon {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  box-shadow: 0 2px 8px rgba(102,126,234,0.3);
-}
-.theme-switcher-item.active[data-mode="light"] .theme-switcher-icon {
-  background: linear-gradient(135deg, #f6d365, #fda085);
-  box-shadow: 0 2px 8px rgba(246,211,101,0.3);
-}
-.theme-switcher-item.active[data-mode="liquid"] .theme-switcher-icon {
-  background: linear-gradient(135deg, #a8edea, #fed6e3);
-  box-shadow: 0 2px 8px rgba(168,237,234,0.3);
-}
-
-.theme-switcher-icon svg {
-  width: 16px; height: 16px;
-  stroke: currentColor; fill: none;
-  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
-}
-.theme-switcher-item.active .theme-switcher-icon svg {
-  stroke: #fff;
-}
-
-.theme-switcher-label {
-  font-size: 11px; font-weight: 500;
-  transition: color 0.2s;
-}
-
-/* 深色模式下切换面板适配 */
-[data-theme="dark"] .theme-switcher-panel {
-  background: rgba(30,30,60,0.4);
-  border-color: rgba(255,255,255,0.08);
-}
-[data-theme="dark"] .theme-switcher-item {
-  color: rgba(255,255,255,0.4);
-}
-[data-theme="dark"] .theme-switcher-item:hover {
-  background: rgba(255,255,255,0.08);
-}
-[data-theme="dark"] .theme-switcher-item.active {
-  background: rgba(255,255,255,0.15);
-  color: #fff;
-}
-[data-theme="dark"] .theme-switcher-overlay.show {
-  background: rgba(0,0,0,0.4);
-}
-
-/* 浅色模式下切换面板适配 */
-[data-theme="light"] .theme-switcher-panel {
-  background: rgba(255,255,255,0.5);
-  border-color: rgba(0,0,0,0.06);
-}
-[data-theme="light"] .theme-switcher-item {
-  color: rgba(0,0,0,0.4);
-}
-[data-theme="light"] .theme-switcher-item:hover {
-  background: rgba(0,0,0,0.04);
-}
-[data-theme="light"] .theme-switcher-item.active {
-  background: rgba(255,255,255,0.8);
-  color: #1c1c1e;
-}
-[data-theme="light"] .theme-switcher-overlay.show {
-  background: rgba(0,0,0,0.1);
+.sidebar-theme-btn.active {
+  background: var(--btn-active-bg);
+  color: var(--sidebar-text-active);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 </style>
 </head>
@@ -1662,12 +1558,17 @@ body {
   </div>
 
   <div class="sidebar-footer">
-    <button class="sidebar-footer-item" onclick="openThemeSwitcher()">
-      <span class="footer-icon" id="themeIcon">
+    <div class="sidebar-theme-switcher" id="sidebarThemeSwitcher">
+      <button class="sidebar-theme-btn" data-mode="dark" onclick="switchTheme('dark')" title="深色模式">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button class="sidebar-theme-btn" data-mode="light" onclick="switchTheme('light')" title="浅色模式">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-      </span>
-      <span id="themeLabel">外观模式</span>
-    </button>
+      </button>
+      <button class="sidebar-theme-btn" data-mode="liquid" onclick="switchTheme('liquid')" title="通透模式">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z"/></svg>
+      </button>
+    </div>
     <button class="sidebar-footer-item" onclick="manualBackup()">
       <span class="footer-icon">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -1803,29 +1704,6 @@ body {
 
 <!-- 消息右键菜单（全局复用） -->
 <div class="msg-context-menu" id="msgContextMenu"></div>
-
-<!-- 主题切换浮层面板 -->
-<div class="theme-switcher-overlay" id="themeSwitcherOverlay" onclick="closeThemeSwitcher()"></div>
-<div class="theme-switcher-panel" id="themeSwitcherPanel">
-  <button class="theme-switcher-item" data-mode="dark" onclick="switchTheme('dark')">
-    <div class="theme-switcher-icon">
-      <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-    </div>
-    <span class="theme-switcher-label">深色</span>
-  </button>
-  <button class="theme-switcher-item" data-mode="light" onclick="switchTheme('light')">
-    <div class="theme-switcher-icon">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-    </div>
-    <span class="theme-switcher-label">浅色</span>
-  </button>
-  <button class="theme-switcher-item" data-mode="liquid" onclick="switchTheme('liquid')">
-    <div class="theme-switcher-icon">
-      <svg viewBox="0 0 24 24"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z"/></svg>
-    </div>
-    <span class="theme-switcher-label">通透</span>
-  </button>
-</div>
 
 <script>
 // ========== 全局状态 ==========
@@ -2049,21 +1927,13 @@ function renderMessages() {
 
 // ========== 主题 ==========
 const THEMES = ['dark', 'light', 'liquid'];
-const THEME_LABELS = { dark: '深色模式', light: '浅色模式', liquid: '通透模式' };
-const THEME_ICONS = {
-  dark: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
-  light: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>',
-  liquid: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z"/></svg>'
-};
 
 function switchTheme(theme) {
   if (!THEMES.includes(theme)) return;
   currentTheme = theme;
   document.documentElement.setAttribute('data-theme', theme);
   localStorage.setItem('codingplan-theme', theme);
-  updateThemeUI();
   updateThemeSwitcherUI();
-  closeThemeSwitcher();
 }
 
 function toggleTheme() {
@@ -2072,35 +1942,12 @@ function toggleTheme() {
   switchTheme(next);
 }
 
-function updateThemeUI() {
-  const icon = document.getElementById('themeIcon');
-  const label = document.getElementById('themeLabel');
-  icon.innerHTML = THEME_ICONS[currentTheme];
-  label.textContent = THEME_LABELS[currentTheme];
-}
-
-// 主题切换浮层面板
-function openThemeSwitcher() {
-  const overlay = document.getElementById('themeSwitcherOverlay');
-  const panel = document.getElementById('themeSwitcherPanel');
-  updateThemeSwitcherUI();
-  overlay.classList.add('show');
-  panel.classList.add('show');
-}
-
-function closeThemeSwitcher() {
-  const overlay = document.getElementById('themeSwitcherOverlay');
-  const panel = document.getElementById('themeSwitcherPanel');
-  overlay.classList.remove('show');
-  panel.classList.remove('show');
-}
-
 function updateThemeSwitcherUI() {
-  document.querySelectorAll('.theme-switcher-item').forEach(item => {
-    if (item.dataset.mode === currentTheme) {
-      item.classList.add('active');
+  document.querySelectorAll('.sidebar-theme-btn').forEach(btn => {
+    if (btn.dataset.mode === currentTheme) {
+      btn.classList.add('active');
     } else {
-      item.classList.remove('active');
+      btn.classList.remove('active');
     }
   });
 }
@@ -2466,11 +2313,10 @@ function showChangelog() {
   const changelog = [
     { v: 'v0.5.0', date: '2026-06-10', items: [
       '🆕 新增「通透模式」：超通透液态玻璃效果',
-      '🎨 底部浮出三档切换面板：深色 / 浅色 / 通透',
+      '🎨 三档切换胶囊嵌入侧边栏：🌙 深色 / ☀️ 浅色 / 💧 通透',
       '💎 通透模式：超高透明度 + 强 backdrop-filter',
       '💎 背景光球增强，彩虹色散边缘微光',
       '💎 所有面板统一超通透风格，文字保持高对比',
-      '🔧 主题切换改为浮层面板，视觉更精致',
     ]},
     { v: 'v0.4.2', date: '2026-06-10', items: [
       '🔧 修复右键/长按菜单不触发的问题',
@@ -2638,7 +2484,7 @@ function showChangelog() {
   if (!THEMES.includes(saved)) saved = 'dark';
   currentTheme = saved;
   document.documentElement.setAttribute('data-theme', saved);
-  updateThemeUI();
+  updateThemeSwitcherUI();
 
   loadConversations();
   const list = Object.values(conversations).sort((a, b) => b.updatedAt - a.updatedAt);
