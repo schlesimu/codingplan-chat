@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>火山编程助手</title>
+<title>【小纸船】codingplan-chat</title>
 <style>
 /* ========== 全局缩放 80%（缩小20%） ========== */
 html { font-size: 13px; }
@@ -1269,7 +1269,7 @@ body {
     <div class="onb-icon-wrap">
       <svg viewBox="0 0 24 24"><path class="flame-outer" d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z"/><path class="flame-core" d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z"/></svg>
     </div>
-    <div class="onb-title">火山编程助手</div>
+    <div class="onb-title">【小纸船】codingplan-chat</div>
     <div class="onb-subtitle">基于火山引擎 CodingPlan</div>
   </div>
 
@@ -1396,7 +1396,7 @@ body {
       <svg viewBox="0 0 24 24"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z" fill="currentColor" opacity="0.5"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z" fill="currentColor"/></svg>
     </div>
     <div class="header-info">
-      <h1 id="headerTitle">火山编程助手</h1>
+      <h1 id="headerTitle">【小纸船】codingplan-chat</h1>
       <div class="status">在线 · 智能模式</div>
     </div>
   </div>
@@ -1413,7 +1413,7 @@ body {
     <div class="avatar">
       <svg viewBox="0 0 24 24"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z" fill="currentColor" opacity="0.5"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z" fill="currentColor"/></svg>
     </div>
-    <div class="bubble">你好！我是火山编程助手，可以帮你：
+    <div class="bubble">你好！我是【小纸船】codingplan-chat，可以帮你：
 
 · 写代码、改代码、查 Bug
 · 解答编程和技术问题
@@ -1624,7 +1624,7 @@ function switchToConversation(id) {
   currentConversationId = id;
   const convo = conversations[id];
   messages = convo.messages ? [...convo.messages] : [];
-  headerTitle.textContent = convo.title || '火山编程助手';
+  headerTitle.textContent = convo.title || '【小纸船】codingplan-chat';
   renderMessages();
   renderChatHistory();
 }
@@ -1647,14 +1647,14 @@ function clearCurrentChat() {
     conversations[currentConversationId].updatedAt = Date.now();
     saveConversations();
   }
-  headerTitle.textContent = '火山编程助手';
+  headerTitle.textContent = '【小纸船】codingplan-chat';
   renderMessages();
   renderChatHistory();
   closeSidebar();
 }
 function exportChat() {
   if (messages.length === 0) { alert('当前对话没有内容'); return; }
-  let text = '# 火山编程助手 - 对话记录\n\n';
+  let text = '# 【小纸船】codingplan-chat - 对话记录\n\n';
   text += `导出时间: ${new Date().toLocaleString()}\n`;
   text += `共 ${messages.length} 条消息\n\n---\n\n`;
   messages.forEach(m => { text += `### ${m.role === 'user' ? '我' : '助手'}\n${m.content}\n\n`; });
@@ -1672,7 +1672,7 @@ function renderMessages() {
   const flameSVG = '<svg viewBox="0 0 24 24" style="width:52%;height:52%"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z" fill="currentColor" opacity="0.5"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z" fill="currentColor"/></svg>';
   const userSVG = '<svg viewBox="0 0 24 24" style="width:52%;height:52%" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
   if (messages.length === 0) {
-    chatArea.innerHTML = `<div class="msg assistant"><div class="avatar">${flameSVG}</div><div class="bubble">你好！我是火山编程助手，可以帮你：\n\n· 写代码、改代码、查 Bug\n· 解答编程和技术问题\n· 解释概念、翻译代码\n\n直接输入问题就行！</div></div>`;
+    chatArea.innerHTML = `<div class="msg assistant"><div class="avatar">${flameSVG}</div><div class="bubble">你好！我是【小纸船】codingplan-chat，可以帮你：\n\n· 写代码、改代码、查 Bug\n· 解答编程和技术问题\n· 解释概念、翻译代码\n\n直接输入问题就行！</div></div>`;
     return;
   }
   chatArea.innerHTML = messages.map(m => {
@@ -1926,7 +1926,7 @@ saveConversations = function() {
 const _originalExportChat = exportChat;
 exportChat = function() {
   if (messages.length === 0) { alert('当前对话没有内容'); return; }
-  let text = '# 火山编程助手 - 对话记录\n\n';
+  let text = '# 【小纸船】codingplan-chat - 对话记录\n\n';
   text += `> 导出时间: ${new Date().toLocaleString()}\n`;
   text += `> 共 ${messages.length} 条消息\n\n---\n\n`;
   messages.forEach(m => {
@@ -1936,7 +1936,7 @@ exportChat = function() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `火山编程助手-${new Date().toISOString().slice(0,10)}.md`;
+  a.download = `【小纸船】codingplan-chat-${new Date().toISOString().slice(0,10)}.md`;
   document.body.appendChild(a); a.click();
   document.body.removeChild(a); URL.revokeObjectURL(url);
   closeSidebar();
