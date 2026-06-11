@@ -45,12 +45,13 @@ echo "📋 条目数: ${#ITEMS[@]}"
 echo ""
 
 # === 2. 替换 index.html ===
-BEFORE=$(grep -c "v=$OLD" index.html || echo 0)
-SIDEBAR_BEFORE=$(grep -c ">v$OLD<" index.html || echo 0)
+# 用 awk 计数避免 BSD grep -c || echo 0 拼接多行的 bug
+BEFORE=$(grep -E "v=$OLD" index.html | wc -l | tr -d ' ')
+SIDEBAR_BEFORE=$(grep -E ">v$OLD<" index.html | wc -l | tr -d ' ')
 sed -i '' "s|?v=$OLD|?v=$NEW|g" index.html
 sed -i '' "s|>v$OLD<|>v$NEW<|g" index.html
-AFTER=$(grep -c "v=$OLD" index.html || echo 0)
-SIDEBAR_AFTER=$(grep -c ">v$OLD<" index.html || echo 0)
+AFTER=$(grep -E "v=$OLD" index.html | wc -l | tr -d ' ')
+SIDEBAR_AFTER=$(grep -E ">v$OLD<" index.html | wc -l | tr -d ' ')
 echo "✅ index.html: ?v= 替换 $((BEFORE - AFTER)) 处, sidebar 替换 $((SIDEBAR_BEFORE - SIDEBAR_AFTER)) 处"
 
 if [ "$AFTER" -gt 0 ] || [ "$SIDEBAR_AFTER" -gt 0 ]; then

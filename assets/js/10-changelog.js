@@ -3,6 +3,21 @@
 
 function showChangelog() {
   const changelog = [
+    { v: 'v0.9.4', date: '2026-06-11', items: [
+      '📱 **移动端键盘弹起补偿**',
+      '   - visualViewport API 监听键盘，输入框自动上浮避免被遮挡',
+      '   - 兼容 ColorOS / 鸿蒙 WebView / iOS Safari / Chrome Android',
+      '   - 焦点失去后自动还原，无残留 padding',
+      '⌨️ **输入框体验优化**',
+      '   - 字号 15px → 16px（iOS Safari 16px 以下会自动放大整页）',
+      '   - max-height 限定 140px，超出在内部滚动而非顶飞主界面',
+      '   - 修复 CSS (100px) 与 JS (120px) 不一致的 bug',
+      '📲 **PWA 添加到主屏支持**',
+      '   - 新增 manifest.json（display=standalone，启动后无地址栏）',
+      '   - 访问 3 次后弹「添加到主屏」横幅引导（关一次不再弹）',
+      '   - 已添加到主屏后从桌面图标点开像原生 App',
+      '🐛 修复历史 100vh 在移动端被底栏遮挡（之前版本已升 100dvh，本版本顺手 audit）',
+    ]},
     { v: 'v0.9.3', date: '2026-06-11', items: [
       '💭 **推理模型思考链显示**',
       '   - 支持 DeepSeek-V4-Pro / Claude extended thinking 等推理模型的思考过程展示',
