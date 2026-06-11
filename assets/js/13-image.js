@@ -164,7 +164,8 @@ function addStreamingMessage() {
   avatar.innerHTML = '<img src="logo.png" alt="小纸船" style="width:52%;height:52%;object-fit:contain;border-radius:50%">';
   const bodyWrap = document.createElement('div'); bodyWrap.style.cssText = 'display:flex;flex-direction:column;align-items:flex-start;max-width:80%';
   const bubble = document.createElement('div'); bubble.className = 'bubble';
-  bubble.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+  // v0.9.8.3 D2-a: 三点 + 小纸船划水文案
+  bubble.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span><span class="typing-label">小纸船划水中…</span></div>';
   bodyWrap.appendChild(bubble);
   div.appendChild(avatar); div.appendChild(bodyWrap);
   chatArea.appendChild(div);
