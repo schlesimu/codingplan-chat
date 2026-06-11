@@ -27,44 +27,61 @@ function updateThemeSwitcherUI() {
   });
 }
 
-// ========== v0.9.5.7: 弱视觉效果开关 ==========
-const REDUCE_FX_KEY = 'codingplan-reduce-fx';
+// ========== v0.9.5.8: 视觉效果三档式（标准 / 简约 / 极简） ==========
+const FX_MODE_KEY = 'codingplan-fx-mode';
+const FX_MODES = ['standard', 'simple', 'minimal'];
+const FX_LABELS = {
+  standard: '视觉效果：标准',
+  simple: '视觉效果：简约',
+  minimal: '视觉效果：极简'
+};
 
-function isReduceFxOn() {
-  return localStorage.getItem(REDUCE_FX_KEY) === '1';
+function getFxMode() {
+  const m = localStorage.getItem(FX_MODE_KEY);
+  return FX_MODES.includes(m) ? m : 'standard';
 }
 
-function applyReduceFx(on) {
-  document.body.classList.toggle('reduce-fx', !!on);
+function applyFxMode(mode) {
+  document.body.classList.remove('fx-simple', 'fx-minimal');
+  if (mode === 'simple') document.body.classList.add('fx-simple');
+  else if (mode === 'minimal') document.body.classList.add('fx-minimal');
+
   const btn = document.getElementById('reduceFxToggle');
   const label = document.getElementById('reduceFxLabel');
-  if (btn) btn.classList.toggle('reduce-fx-active', !!on);
-  if (label) label.textContent = on ? '弱视觉效果（已开启）' : '弱视觉效果';
+  if (btn) {
+    btn.classList.remove('fx-mode-simple', 'fx-mode-minimal');
+    if (mode === 'simple') btn.classList.add('fx-mode-simple');
+    else if (mode === 'minimal') btn.classList.add('fx-mode-minimal');
+  }
+  if (label) label.textContent = FX_LABELS[mode] || FX_LABELS.standard;
 }
 
 function toggleReduceFx() {
-  const on = !isReduceFxOn();
-  if (on) {
-    localStorage.setItem(REDUCE_FX_KEY, '1');
+  const cur = getFxMode();
+  const idx = FX_MODES.indexOf(cur);
+  const next = FX_MODES[(idx + 1) % FX_MODES.length];
+  if (next === 'standard') {
+    localStorage.removeItem(FX_MODE_KEY);
   } else {
-    localStorage.removeItem(REDUCE_FX_KEY);
+    localStorage.setItem(FX_MODE_KEY, next);
   }
-  applyReduceFx(on);
+  applyFxMode(next);
 }
 
-// 启动时恢复弱视觉状态
-function _initReduceFx() {
-  try { applyReduceFx(isReduceFxOn()); }
-  catch (e) { console.error('[reduce-fx] init 失败', e); }
+// 启动恢复
+function _initFxMode() {
+  try { applyFxMode(getFxMode()); }
+  catch (e) { console.error('[fx-mode] init 失败', e); }
 }
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', _initReduceFx);
+  document.addEventListener('DOMContentLoaded', _initFxMode);
 } else {
-  _initReduceFx();
+  _initFxMode();
 }
 
 if (typeof window !== 'undefined') {
   window.toggleReduceFx = toggleReduceFx;
+  window.getFxMode = getFxMode;
 }
 
 // ========== GitHub Gist 云存储 ==========
