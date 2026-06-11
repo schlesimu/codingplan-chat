@@ -3,6 +3,15 @@
 
 function showChangelog() {
   const changelog = [
+    { v: 'v0.9.5.9', date: '2026-06-11', items: [
+      '🔧 修 v0.9.5.8 bug：极简档夜间/白天模式残留渐变光晕、反光高光',
+      '   - 原因：CSS 选择器漏了 ::before/::after 伪元素 → 渐变光晕、反光球还在飘',
+      '   - 修法：极简档下所有元素 + 所有反光伪元素一起砍，确保百分百纯色无光',
+      '🔧 修 OPPO/ColorOS 浏览器 bug：简约档下侧边栏太透看不清',
+      '   - 原因：Liquid 主题侧边栏背景只有 rgba(255,255,255,0.02)，靠 backdrop-filter 显示',
+      '     OPPO ColorOS 内核对 backdrop-filter 支持差 → 几乎全透',
+      '   - 修法：简约档下给 Liquid 主题的 sidebar/header/input-area 加 0.55 不透明白底兜底',
+    ]},
     { v: 'v0.9.5.8', date: '2026-06-11', items: [
       '「弱视觉效果」升级为「视觉效果三档式」（设置 → 更多工具）',
       '   - 点一下循环切换：标准 → 简约 → 极简 → 标准',
