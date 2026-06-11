@@ -3,7 +3,7 @@
 
 let messages = [];
 let isStreaming = false;
-let currentTheme = 'dark';
+let currentTheme = 'light';
 let currentConversationId = null;
 let conversations = {};
 let cloudToken = null;       // 用户同步码（多设备共享，作为 Gist ID 种子）
