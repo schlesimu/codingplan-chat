@@ -3,6 +3,15 @@
 
 function showChangelog() {
   const changelog = [
+    { v: 'v0.9.5.7', date: '2026-06-11', items: [
+      '新增「弱视觉效果」开关（设置 → 更多工具 → 弱视觉效果）',
+      '   - 砍掉夜间/白天模式的毛玻璃（backdrop-filter）',
+      '   - 砍掉聊天气泡的渐变背景，用户气泡改纯色（青绿）',
+      '   - 砍掉鼠标 hover 时的 transform 动画（气泡放大、按钮上浮等）',
+      '   - Liquid 通透模式：保留毛玻璃质感，但砍掉浅紫色背景渐变 + 漂浮光斑',
+      '   - localStorage 持久化，刷新后状态保留',
+      '   - 适合：老旧设备性能拉满 / 长时间盯屏减少眼睛疲劳',
+    ]},
     { v: 'v0.9.5.6', date: '2026-06-11', items: [
       'M5 收尾：Provider 配置弹窗里 API Key 输入框下方新增「测试 Key 有效性」+「查询余额」按钮',
       '   - 支持余额查询：DeepSeek / Moonshot / 智谱 GLM（其他 provider 只显示测试按钮）',
