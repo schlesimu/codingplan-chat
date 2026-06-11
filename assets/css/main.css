@@ -278,7 +278,7 @@ body {
   --icon-accent: #ff6b35;
   --icon-accent2: #ff3d00;
 }
-#app-main { display: none; flex-direction: column; height: 100%; }
+#app-main { display: none; flex-direction: column; height: 100%; position: relative; /* v0.9.8.1 F4: 给 .header/.input-area absolute 提供锚点 */ }
 #app-main.visible { display: flex; }
 
 /* ================================================ */
@@ -709,6 +709,13 @@ body {
 .chat-list-item.active {
   background: var(--sidebar-item-active); color: var(--sidebar-text-active);
 }
+/* v0.9.8.1 A1+: 键盘导航选中态（搜索时 ↑↓ 切换） */
+.chat-list-item.search-selected {
+  background: rgba(255, 107, 53, 0.15);
+  color: var(--sidebar-text-active);
+  box-shadow: inset 2px 0 0 #ff6b35;
+}
+.chat-list-item.search-selected .chat-delete { opacity: 0.6; }
 .chat-list-item .chat-icon { font-size: 14px; opacity: 0.6; flex-shrink: 0; }
 .chat-list-item .chat-title { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: 450; }
 .chat-list-item .chat-time { font-size: 10px; color: var(--sidebar-section-title); flex-shrink: 0; transition: color 0.5s; }
@@ -719,6 +726,56 @@ body {
 .chat-list-item:hover .chat-delete,
 .chat-list-item:active .chat-delete { opacity: 0.6; }
 .chat-list-item .chat-delete:active { opacity: 1; color: #ff4444; }
+
+/* v0.9.8.1 A2: 对话右键菜单 */
+.conv-context-menu {
+  position: fixed;
+  z-index: 99999;
+  background: var(--sidebar-bg, #1e1e2e);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 6px;
+  min-width: 160px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: convCtxFadeIn 0.12s ease;
+}
+[data-theme="light"] .conv-context-menu {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+@keyframes convCtxFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.conv-ctx-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: none;
+  color: var(--sidebar-text, #c9d1d9);
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s;
+}
+.conv-ctx-item:hover { background: rgba(255, 107, 53, 0.12); color: #ff8c5a; }
+.conv-ctx-item.conv-ctx-danger:hover { background: rgba(255, 68, 68, 0.15); color: #ff6b6b; }
+.conv-ctx-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 4px 0;
+}
+[data-theme="light"] .conv-ctx-divider { background: rgba(0, 0, 0, 0.08); }
+
+/* 置顶图标颜色突出 */
+.chat-list-item.pinned .chat-icon { color: #ff6b35; opacity: 1; }
 
 .empty-history {
   text-align: center; padding: 20px 12px;
@@ -1408,106 +1465,114 @@ body {
   border-bottom-color: rgba(255, 107, 53, 0.15);
 }
 
-/* v0.9.5.4：去聊天气泡两侧头像（参考豆包/DeepSeek），气泡贴边、宽度加大
-   v0.9.5.5：让用户气泡真正靠右 — bubble 用 fit-content + max-width 限制 */
+/* ╔══════════════════════════════════════════════════════════════════════╗
+   ║                    💬 气泡宽度系统  ·  v0.9.8.1                       ║
+   ║ ──────────────────────────────────────────────────────────────────── ║
+   ║  ⚠️  改气泡宽度只在这一段改！别的地方禁止重复定义 .bubble 宽度        ║
+   ║                                                                      ║
+   ║  历史教训（v0.9.5 → v0.9.8 踩过的坑）：                              ║
+   ║   ① v0.5/v0.7 旧版到处散落 .bubble { max-width: 80% / 88% }          ║
+   ║   ② .bubble-wrap 用了 flex:1 → fit-content 失效，长 user 卡 146px    ║
+   ║   ③ 600px 媒体查询写 .msg .bubble{max-width:88%} 覆盖分档            ║
+   ║   ④ 多套规则交叉污染 → v0.9.7 强制 width:100% 全错方向                ║
+   ║                                                                      ║
+   ║  v0.9.8.1 统一原则：                                                 ║
+   ║   · fit-content + 视口分档 max-width                                 ║
+   ║   · 短消息跟字、长消息撑到上限                                       ║
+   ║   · AI 上限 > 用户上限（信息密度差异）                               ║
+   ║   · F2: 流式期防跳动锁宽 → 通过 .msg.assistant.streaming 类           ║
+   ║                                                                      ║
+   ║  分档表（max-width 上限）：                                          ║
+   ║   ┌──────────────┬─────────────┬─────────────┐                       ║
+   ║   │ 视口宽度     │  AI 气泡    │  用户气泡   │                       ║
+   ║   ├──────────────┼─────────────┼─────────────┤                       ║
+   ║   │ ≤480  小屏   │   98vw      │   92vw      │                       ║
+   ║   │ ≤768  手机   │   96vw      │   88vw      │                       ║
+   ║   │ ≤1280 笔电   │   85vw      │   65vw      │                       ║
+   ║   │ ≤1600 桌面   │   1200px    │   900px     │ ← 默认                ║
+   ║   │ >1600 宽屏   │   1400px    │   1000px    │                       ║
+   ║   └──────────────┴─────────────┴─────────────┘                       ║
+   ║                                                                      ║
+   ║  历史包袱清理记录（v0.9.8.1）：                                       ║
+   ║   ✗ 删除 .bubble { max-width: 80% }   (原 line 1696)                 ║
+   ║   ✗ 删除 .bubble-wrap { flex: 1 }     (原 line 2202)                 ║
+   ║   ✗ 删除 @media(max-width:600px) .msg .bubble{88%} (原 line 1995)    ║
+   ║   ✗ 合并 v0.9.5.4/v0.9.5.5 头像/对齐规则到本块顶部                    ║
+   ╚══════════════════════════════════════════════════════════════════════╝ */
+
+/* ---- 1. 头像 / 对齐 / 基础布局（自 v0.9.5.4-5 沿用） ---- */
 .avatar { display: none !important; }
 .msg { gap: 0 !important; }
 .msg.user { justify-content: flex-end; flex-direction: row !important; }
 .msg.assistant { justify-content: flex-start; }
-.bubble {
-  width: fit-content;
-}
+
+/* ---- 2. 基础宽度模式：fit-content（关键！） ---- */
+.bubble,
 .bubble-wrap {
   width: fit-content;
 }
-/* 用户消息整行靠右 */
+
+/* ---- 3. 用户气泡靠右 / AI 气泡靠左 ---- */
+.msg.user .bubble,
 .msg.user .bubble-wrap { margin-left: auto; }
-.msg.user .bubble { margin-left: auto; }
-/* AI 消息整行靠左 */
+.msg.assistant .bubble,
 .msg.assistant .bubble-wrap { margin-right: auto; }
-.msg.assistant .bubble { margin-right: auto; }
 
-/* ============================================================
-   v0.9.8: 气泡宽度自适应（按内容伸缩 + 视口分档上限）
-   核心原则：fit-content + max-width 上限
-     · 短消息 → 跟字（宽度 = 内容宽度）
-     · 长消息 → 撑到 max-width 上限
-     · 视口越大上限越高，不死磕固定数值
-
-   分档（max-width 取窗口百分比 与 px 上限的较小值）：
-   ──────────────────────────────────────────────────────────
-   视口宽度        AI 气泡上限              用户气泡上限
-   ──────────────────────────────────────────────────────────
-   ≤480 (小屏)    98vw                    92vw
-   ≤768 (手机)    96vw                    88vw
-   ≤1280 (笔电)   85vw                    65vw
-   ≤1600 (桌面)   1200px / 80vw 较小      900px / 60vw 较小
-   >1600 (宽屏)   1400px                  1000px
-   ──────────────────────────────────────────────────────────
-   - AI 上限更高（信息密度大）
-   - 用户上限稍低（一般是问题/指令，过宽影响阅读）
-   - 都用 fit-content 让短消息自然紧凑
-   ============================================================ */
-
-/* AI 气泡 */
+/* ---- 4. 默认 max-width（桌面 ≤1600px 档） ---- */
 .msg.assistant .bubble,
 .msg.assistant .bubble-wrap {
   max-width: 1200px;
-  width: fit-content;
 }
-/* 用户气泡 */
 .msg.user .bubble,
 .msg.user .bubble-wrap {
   max-width: 900px;
-  width: fit-content;
 }
 
-/* 宽屏（>1600px）：AI 1400 / 用户 1000 */
+/* ---- 5. 宽屏（>1600px）：上限提高 ---- */
 @media (min-width: 1601px) {
   .msg.assistant .bubble,
-  .msg.assistant .bubble-wrap {
-    max-width: 1400px;
-  }
+  .msg.assistant .bubble-wrap { max-width: 1400px; }
   .msg.user .bubble,
-  .msg.user .bubble-wrap {
-    max-width: 1000px;
-  }
+  .msg.user .bubble-wrap { max-width: 1000px; }
 }
 
-/* 笔电（≤1280）：用 vw 比例 */
+/* ---- 6. 笔电（≤1280px）：vw 比例 ---- */
 @media (max-width: 1280px) {
   .msg.assistant .bubble,
-  .msg.assistant .bubble-wrap {
-    max-width: 85vw;
-  }
+  .msg.assistant .bubble-wrap { max-width: 85vw; }
   .msg.user .bubble,
-  .msg.user .bubble-wrap {
-    max-width: 65vw;
-  }
+  .msg.user .bubble-wrap { max-width: 65vw; }
 }
 
-/* 手机（≤768）：让 AI 接近占满 */
+/* ---- 7. 手机（≤768px）：AI 接近占满 ---- */
 @media (max-width: 768px) {
   .msg.assistant .bubble,
-  .msg.assistant .bubble-wrap {
-    max-width: 96vw;
-  }
+  .msg.assistant .bubble-wrap { max-width: 96vw; }
   .msg.user .bubble,
-  .msg.user .bubble-wrap {
-    max-width: 88vw;
-  }
+  .msg.user .bubble-wrap { max-width: 88vw; }
 }
 
-/* 小屏（≤480）：进一步放宽 */
+/* ---- 8. 小屏（≤480px）：进一步放宽 ---- */
 @media (max-width: 480px) {
   .msg.assistant .bubble,
-  .msg.assistant .bubble-wrap {
-    max-width: 98vw;
-  }
+  .msg.assistant .bubble-wrap { max-width: 98vw; }
   .msg.user .bubble,
-  .msg.user .bubble-wrap {
-    max-width: 92vw;
-  }
+  .msg.user .bubble-wrap { max-width: 92vw; }
+}
+
+/* ---- 9. v0.9.8.1 F2：AI 流式回复时锁宽防跳动 ----
+   原理：流式期间 word 一个个吐出来，fit-content 每帧重排导致气泡跳；
+   给 .streaming 状态的 AI 气泡固定 min-width，让宽度只增不减。
+   流式结束 JS 会移除 .streaming 类，气泡恢复自然收缩。 */
+.msg.assistant.streaming .bubble,
+.msg.assistant.streaming .bubble-wrap {
+  min-width: 280px;
+  /* 同时 transition 让宽度变化平滑 */
+  transition: max-width 0.15s ease, min-width 0.15s ease;
+}
+@media (max-width: 768px) {
+  .msg.assistant.streaming .bubble,
+  .msg.assistant.streaming .bubble-wrap { min-width: 75vw; }
 }
 
 /* v0.9.5.4：浅色主题 */
@@ -1534,13 +1599,15 @@ body {
 }
 
 /* ========== 顶栏 ========== */
+/* v0.9.8.1 F4: position:absolute 浮在 chat-area 之上（不再占 flex 空间），
+   让聊天内容能滚到玻璃后面 */
 .header {
-  position: relative; z-index: 10;
+  position: absolute; z-index: 20;
+  top: 0; left: 0; right: 0;
   margin: 8px 10px 0;
   padding: 8px 12px;
   padding-top: max(8px, env(safe-area-inset-top));
   display: flex; align-items: center;
-  flex-shrink: 0;
   /* 悬浮圆角矩形 — 与输入栏统一风格 */
   border-radius: 22px;
   backdrop-filter: blur(40px) saturate(200%) brightness(1.05);
@@ -1655,10 +1722,21 @@ body {
 }
 
 /* ========== 聊天区 ========== */
+/* v0.9.8.1 F4: 玻璃穿透 —— chat-area 占满 #app-main，header/quick-actions/input-area 全部 absolute 浮在上层
+   做法：
+   1) chat-area 改 absolute 撑满整列，padding 顶/底 撑出"虚拟安全区"
+   2) scroll-padding 让自动滚到底/锚定时不被遮（textarea focus/scrollIntoView 友好）
+   3) header / quick-actions / input-area 用 absolute 浮在 chat-area 之上
+      聊天内容滚动时能"穿过"它们身后被模糊折射 */
 .chat-area {
-  flex: 1; overflow-y: auto; padding: 12px 10px;
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  overflow-y: auto; padding: 12px 10px;
+  padding-top: 72px;       /* header 高度 ~56 + margin/留白 */
+  padding-bottom: 170px;   /* input-area ~110 + quick-actions ~49 + 留白 */
+  scroll-padding-top: 80px;
+  scroll-padding-bottom: 180px;
   scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
-  position: relative; z-index: 5;
+  z-index: 5;
 }
 
 /* ========== 消息气泡 ========== */
@@ -1833,10 +1911,13 @@ body {
 }
 
 /* ========== 快捷按钮 ========== */
+/* v0.9.8.1 F4: 浮在 input-area 正上方 */
 .quick-actions {
+  position: absolute; z-index: 8;
+  left: 0; right: 0; bottom: calc(110px + env(safe-area-inset-bottom, 0px));
   display: flex; gap: 6px; padding: 8px 10px;
-  overflow-x: auto; flex-shrink: 0;
-  -webkit-overflow-scrolling: touch; position: relative; z-index: 5;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .quick-actions::-webkit-scrollbar { display: none; }
 .quick-btn {
@@ -1874,8 +1955,11 @@ body {
 }
 
 /* ========== 输入区 — iOS26 悬浮 Dock 栏 ========== */
+/* v0.9.8.1 F4: position:absolute 浮在 chat-area 底部之上，配合 .chat-area 的
+   padding-bottom 让最后一条气泡能滚到玻璃 dock 后面 */
 .input-area {
-  position: relative; z-index: 10;
+  position: absolute; z-index: 10;
+  left: 0; right: 0; bottom: 0;
   margin: 0 10px 10px;
   padding: 0;
   padding-bottom: max(10px, env(safe-area-inset-bottom));
@@ -1885,7 +1969,7 @@ body {
   -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(1.08);
   background: var(--input-area-bg);
   border: 1px solid var(--input-area-border);
-  flex-shrink: 0; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   /* 悬浮阴影 — 模拟 dock 离地效果 */
   box-shadow: 
     0 -1px 0 rgba(255,255,255,0.08),
@@ -2802,6 +2886,67 @@ body.fx-simple .qrsync-generate-btn:hover { transform: none !important; }
   border-color: rgba(34,197,94,0.4);
   color: #4ade80;
 }
+
+/* v0.9.8.1 B1+: 代码块操作按钮组（行号 / 下载 / 复制） */
+.code-block-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.code-block-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #c9d1d9;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.code-block-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+.code-block-btn.active {
+  background: rgba(255,107,53,0.18);
+  border-color: rgba(255,107,53,0.4);
+  color: #ff8c5a;
+}
+.code-block-btn.code-copied {
+  background: rgba(34,197,94,0.2);
+  border-color: rgba(34,197,94,0.4);
+  color: #4ade80;
+}
+/* 手机端按钮文字隐藏，只留图标 */
+@media (max-width: 600px) {
+  .code-block-btn span { display: none; }
+  .code-block-btn { padding: 4px 6px; }
+}
+
+/* v0.9.8.1 B1+: 行号样式 */
+.code-block-body.with-linenums code {
+  display: block;
+  white-space: pre;
+}
+.code-block-body .code-line {
+  display: block;
+  white-space: pre;
+}
+.code-block-body .code-linenum {
+  display: inline-block;
+  width: 2.5em;
+  margin-right: 1em;
+  padding-right: 0.5em;
+  color: #6e7681;
+  text-align: right;
+  user-select: none;
+  border-right: 1px solid rgba(255,255,255,0.08);
+  font-variant-numeric: tabular-nums;
+}
+[data-theme="light"] .code-block-body .code-linenum {
+  color: #8b949e;
+  border-right-color: rgba(0,0,0,0.08);
+}
 .code-block-body {
   margin: 0 !important;
   padding: 12px 14px !important;
@@ -2847,6 +2992,85 @@ body.fx-simple .qrsync-generate-btn:hover { transform: none !important; }
   transition: background 0.15s, color 0.15s;
 }
 .code-block-fold-toggle:hover { background: rgba(255,255,255,0.08); color: #c9d1d9; }
+
+/* ============================================================
+   v0.9.8.1 F3: 代码块横向滚动美化 + 左右淡出渐变提示
+   - 自定义滚动条更细更隐形（webkit 系内核）
+   - 内容超宽时左右边缘淡出，提示"还有内容可滑"
+   - 手机端滚动条更细（4px）
+   ============================================================ */
+.code-block-body {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.18) transparent;
+}
+.code-block-body::-webkit-scrollbar {
+  height: 6px;
+  background: transparent;
+}
+.code-block-body::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.18);
+  border-radius: 3px;
+}
+.code-block-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.32);
+}
+.code-block-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* 左右淡出渐变（提示横向可滑） */
+.code-block-wrap {
+  position: relative;
+}
+.code-block-wrap::before,
+.code-block-wrap::after {
+  content: '';
+  position: absolute;
+  top: 32px;  /* 让出 header 高度 */
+  bottom: 0;
+  width: 24px;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.code-block-wrap::before {
+  left: 0;
+  background: linear-gradient(to right, #0d1117 0%, rgba(13,17,23,0) 100%);
+}
+.code-block-wrap::after {
+  right: 0;
+  background: linear-gradient(to left, #0d1117 0%, rgba(13,17,23,0) 100%);
+}
+/* 加上 .has-overflow 类后渐变才显示（JS 检测） */
+.code-block-wrap.has-overflow::before { opacity: 1; }
+.code-block-wrap.has-overflow::after { opacity: 1; }
+/* 滑到最左/最右时对应渐变隐藏 */
+.code-block-wrap.scrolled-left::before { opacity: 0; }
+.code-block-wrap.scrolled-right::after { opacity: 0; }
+
+/* 浅色主题渐变色对齐 */
+[data-theme="light"] .code-block-wrap::before {
+  background: linear-gradient(to right, #1e1e2e 0%, rgba(30,30,46,0) 100%);
+}
+[data-theme="light"] .code-block-wrap::after {
+  background: linear-gradient(to left, #1e1e2e 0%, rgba(30,30,46,0) 100%);
+}
+
+/* 手机端：滚动条更细 + 字号略缩，单行不至于太挤 */
+@media (max-width: 768px) {
+  .code-block-body {
+    font-size: 12.5px;
+    padding: 10px 12px !important;
+  }
+  .code-block-body::-webkit-scrollbar {
+    height: 4px;
+  }
+  .code-block-wrap::before,
+  .code-block-wrap::after {
+    width: 18px;
+  }
+}
 
 /* 行内代码 */
 .inline-code {
@@ -3051,4 +3275,37 @@ body.share-view-mode { background: #0a0a14; color: #e8e8ee; margin: 0; }
   font-size: 14px;
 }
 .share-view-cta:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(255,107,53,0.4); }
+
+/* v0.9.8.1 B3+: 分享查看页"复制到我的"按钮 */
+.share-view-actions {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0 24px;
+}
+.share-view-import-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 107, 53, 0.12);
+  border: 1px solid rgba(255, 107, 53, 0.4);
+  color: #ff6b35;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.share-view-import-btn:hover {
+  background: #ff6b35;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(255, 107, 53, 0.35);
+}
+.share-view-import-btn:disabled {
+  opacity: 0.7;
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+}
 

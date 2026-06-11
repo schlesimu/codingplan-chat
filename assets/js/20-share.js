@@ -182,6 +182,12 @@ async function renderShareView(gistId) {
     const html = `
       <h1 class="share-view-title">${escapeHtml(convo.title || '未命名对话')}</h1>
       <div class="share-view-meta">共 ${messages.length} 条消息 · 分享于 ${sharedAt}</div>
+      <div class="share-view-actions">
+        <button class="share-view-import-btn" id="shareViewImportBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          复制到我的 codingplan
+        </button>
+      </div>
       <div class="share-view-messages">
         ${messages.map(m => {
           const role = m.role === 'user' ? 'user' : 'assistant';
@@ -197,6 +203,28 @@ async function renderShareView(gistId) {
       </div>
     `;
     body.innerHTML = html;
+    // v0.9.8.1 B3+: "复制到我的" 按钮
+    const importBtn = document.getElementById('shareViewImportBtn');
+    if (importBtn) {
+      importBtn.onclick = () => {
+        try {
+          const payload = {
+            title: convo.title || '从分享导入',
+            messages: messages,
+            sharedFrom: gistId,
+            importedAt: Date.now(),
+          };
+          sessionStorage.setItem('__codingplan_import_shared', JSON.stringify(payload));
+          importBtn.disabled = true;
+          importBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 即将跳转…';
+          setTimeout(() => {
+            location.href = location.origin + location.pathname;
+          }, 600);
+        } catch (e) {
+          alert('导入失败：' + (e.message || String(e)));
+        }
+      };
+    }
     // 高亮代码块
     if (typeof loadHighlightJS === 'function') {
       loadHighlightJS().then(() => {
