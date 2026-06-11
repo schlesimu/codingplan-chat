@@ -29,15 +29,15 @@ function showApiKeyDialog() {
   const hasCustomBaseURL = !!baseURL;
   const hasCustomSearch = !!searchKey;
 
-  let html = '<div style="text-align:center;margin-bottom:16px;font-size:16px;font-weight:700;color:var(--text-main)">🔑 API Key 设置</div>';
+  let html = '<div style="text-align:center;margin-bottom:16px;font-size:16px;font-weight:700;color:var(--text-main)"> API Key 设置</div>';
 
   // ===== 多模型 Provider 入口（v0.9.0+ 改造：从顶栏徽章迁来）=====
   html += '<div style="margin-bottom:16px;padding:12px;background:var(--input-bg);border-radius:10px;border:1px dashed var(--sidebar-divider)">';
-  html += '<div style="font-size:13px;font-weight:600;color:var(--text-main);margin-bottom:6px">🤖 模型 Provider 切换</div>';
+  html += '<div style="font-size:13px;font-weight:600;color:var(--text-main);margin-bottom:6px"> 模型 Provider 切换</div>';
   html += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;line-height:1.5">';
   html += '默认走火山 CodingPlan（免费共享 key）。如需切到 <b>智谱 GLM / DeepSeek / Kimi / OpenAI 兼容 / Claude</b> 等第三方 provider 并填自己的 Key，请打开下方面板。';
   html += '</div>';
-  html += '<button id="open-provider-dialog-btn" style="width:100%;padding:8px 14px;border-radius:8px;border:1px solid var(--btn-border);background:var(--btn-bg);color:var(--btn-color);cursor:pointer;font-size:12px;font-family:inherit">⚙️ 打开「多 Provider 配置」面板</button>';
+  html += '<button id="open-provider-dialog-btn" style="width:100%;padding:8px 14px;border-radius:8px;border:1px solid var(--btn-border);background:var(--btn-bg);color:var(--btn-color);cursor:pointer;font-size:12px;font-family:inherit">️ 打开「多 Provider 配置」面板</button>';
   html += '</div>';
 
   html += '<div style="margin-bottom:12px">';
@@ -61,15 +61,15 @@ function showApiKeyDialog() {
   // ===== 语音朗读（TTS）设置 =====
   const ttsCfg = getTTSConfig();
   html += '<div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--sidebar-divider)">';
-  html += '<div style="font-size:13px;font-weight:600;color:var(--text-main);margin-bottom:10px">🔊 语音朗读（TTS）</div>';
+  html += '<div style="font-size:13px;font-weight:600;color:var(--text-main);margin-bottom:10px"> 语音朗读（TTS）</div>';
 
   // 引擎选择
   html += '<div style="margin-bottom:10px">';
   html += '<div style="font-size:12px;color:var(--sidebar-text);margin-bottom:4px">语音引擎</div>';
   html += `<select id="tts-provider" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--sidebar-divider);background:var(--input-bg);color:var(--input-color);font-size:12px;font-family:inherit">
-    <option value="browser" ${ttsCfg.provider === 'browser' ? 'selected' : ''}>浏览器原生（默认，离线可用 ⭐）</option>
+    <option value="browser" ${ttsCfg.provider === 'browser' ? 'selected' : ''}>浏览器原生（默认，离线可用 ）</option>
     <option value="volc" ${ttsCfg.provider === 'volc' ? 'selected' : ''}>火山引擎 TTS（豆包同源，需 AppID + Token）</option>
-    <option value="edge" ${ttsCfg.provider === 'edge' ? 'selected' : ''}>Edge 神经 TTS（⚠️ 需 Chrome 扩展环境，普通浏览器不可用）</option>
+    <option value="edge" ${ttsCfg.provider === 'edge' ? 'selected' : ''}>Edge 神经 TTS（️ 需 Chrome 扩展环境，普通浏览器不可用）</option>
   </select>`;
   html += `<div style="font-size:10px;color:var(--text-dim);margin-top:3px">默认浏览器原生即可使用；火山为云端神经 TTS，需自备 AppID+Token</div>`;
   html += '</div>';
@@ -94,7 +94,7 @@ function showApiKeyDialog() {
   html += '</div>';
 
   // 试听按钮
-  html += '<button id="tts-test-btn" style="width:100%;margin-top:10px;padding:8px 14px;border-radius:10px;border:1px dashed var(--btn-border);background:transparent;color:var(--text-main);cursor:pointer;font-size:12px;font-family:inherit">🎧 试听当前配置</button>';
+  html += '<button id="tts-test-btn" style="width:100%;margin-top:10px;padding:8px 14px;border-radius:10px;border:1px dashed var(--btn-border);background:transparent;color:var(--text-main);cursor:pointer;font-size:12px;font-family:inherit"> 试听当前配置</button>';
   html += '</div>';
 
   // 弹窗
@@ -147,11 +147,11 @@ function showApiKeyDialog() {
 
     overlay.remove();
     const providerLabel = { edge: 'Edge 神经 TTS', volc: '火山引擎 TTS', browser: '浏览器原生' }[newTTS.provider];
-    alert('✅ 设置已保存！\n\n' +
+    alert('设置已保存！\n\n' +
       (codingplanVal ? 'CodingPlan Key：自定义\n' : 'CodingPlan Key：使用默认\n') +
       (baseURLVal ? 'Base URL：自定义\n' : 'Base URL：使用默认\n') +
       (searchVal ? '搜索 Key：自定义\n' : '搜索 Key：使用默认\n') +
-      `🔊 语音引擎：${providerLabel}（${newTTS.voice}，${newTTS.rate}x）`);
+      ` 语音引擎：${providerLabel}（${newTTS.voice}，${newTTS.rate}x）`);
   };
 
   btnRow.appendChild(cancelBtn);
@@ -216,7 +216,7 @@ function showApiKeyDialog() {
 
   testBtn.addEventListener('click', async () => {
     testBtn.disabled = true;
-    testBtn.textContent = '🎧 合成中...';
+    testBtn.textContent = '合成中...';
     // 临时配置（不写 localStorage）
     const tempCfg = {
       provider: providerSel.value,
@@ -235,11 +235,11 @@ function showApiKeyDialog() {
         audio.addEventListener('ended', () => URL.revokeObjectURL(url));
         await audio.play();
       }
-      testBtn.textContent = '✅ 已播放';
+      testBtn.textContent = '已播放';
     } catch (e) {
-      testBtn.textContent = '❌ 失败：' + (e.message || '').slice(0, 30);
+      testBtn.textContent = '失败：' + (e.message || '').slice(0, 30);
     }
-    setTimeout(() => { testBtn.disabled = false; testBtn.textContent = '🎧 试听当前配置'; }, 2500);
+    setTimeout(() => { testBtn.disabled = false; testBtn.textContent = '试听当前配置'; }, 2500);
   });
 }
 // ========== 更新日志 ==========
