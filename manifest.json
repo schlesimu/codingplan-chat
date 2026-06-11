@@ -1,0 +1,30 @@
+{
+  "name": "小纸船 - codingplan-chat",
+  "short_name": "小纸船",
+  "description": "基于火山引擎 CodingPlan 的 AI 对话助手",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a1f",
+  "theme_color": "#0a0a1f",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": [
+    "productivity",
+    "utilities"
+  ],
+  "lang": "zh-CN",
+  "dir": "ltr"
+}
