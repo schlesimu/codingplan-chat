@@ -1610,11 +1610,18 @@ body {
   display: flex; align-items: center;
   /* 悬浮圆角矩形 — 与输入栏统一风格 */
   border-radius: 22px;
-  backdrop-filter: blur(40px) saturate(200%) brightness(1.05);
-  -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(1.05);
+  /* v0.9.8.2 C1: 玻璃强度随滚动动态加深（--header-glass-extra 0~1） */
+  backdrop-filter:
+    blur(calc(40px + var(--header-glass-extra, 0) * 12px))
+    saturate(calc(200% + var(--header-glass-extra, 0) * 60%))
+    brightness(calc(1.05 + var(--header-glass-extra, 0) * 0.05));
+  -webkit-backdrop-filter:
+    blur(calc(40px + var(--header-glass-extra, 0) * 12px))
+    saturate(calc(200% + var(--header-glass-extra, 0) * 60%))
+    brightness(calc(1.05 + var(--header-glass-extra, 0) * 0.05));
   background: var(--input-area-bg);
   border: 1px solid var(--input-area-border);
-  transition: background 0.5s, border-color 0.5s, box-shadow 0.5s;
+  transition: background 0.5s, border-color 0.5s, box-shadow 0.5s, backdrop-filter 0.25s ease, -webkit-backdrop-filter 0.25s ease;
   /* 悬浮阴影 — 与输入栏对称 */
   box-shadow: 
     0 1px 0 rgba(255,255,255,0.08),
@@ -1749,6 +1756,88 @@ body {
   from { opacity: 0; transform: translateY(16px) scale(0.96); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
+
+/* ========== v0.9.8.2 C2: Liquid 凝结发送动画 — 小纸船激起水面涟漪 ========== */
+/* 涟漪：从 send-btn 中心向外扩散一圈玻璃环 */
+.liquid-send-ripple {
+  position: fixed; z-index: 999;
+  pointer-events: none;
+  width: 10px; height: 10px;
+  border: 2px solid var(--icon-accent, #ff6b35);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: liquidSendRipple 0.6s ease-out forwards;
+  /* 加一圈柔光，更像水面涟漪 */
+  box-shadow:
+    0 0 12px rgba(255, 107, 53, 0.4),
+    inset 0 0 8px rgba(255, 107, 53, 0.3);
+}
+@keyframes liquidSendRipple {
+  0%   { width: 10px; height: 10px; opacity: 0.95; border-width: 3px; }
+  60%  { opacity: 0.6; border-width: 2px; }
+  100% { width: 320px; height: 320px; opacity: 0; border-width: 1px; }
+}
+/* 用户气泡凝结：从模糊液滴 → 圆角矩形 */
+.bubble.bubble-liquid-condense {
+  animation: liquidCondense 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation-delay: 0.12s;
+  animation-fill-mode: both;
+  transform-origin: bottom right;
+  /* 凝结期间禁用 :hover 等其它 transform，避免打架 */
+  will-change: transform, filter, border-radius;
+}
+@keyframes liquidCondense {
+  0% {
+    opacity: 0;
+    transform: translateY(28px) scale(0.62);
+    filter: blur(6px) saturate(180%);
+    border-radius: 50% 30% 40% 35% / 40% 35% 50% 30%;
+  }
+  55% {
+    opacity: 0.85;
+    filter: blur(1.5px) saturate(160%);
+    border-radius: 32% 26% 30% 24% / 30% 26% 32% 26%;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0) saturate(100%);
+    /* 不写 border-radius:16px，让原 .bubble 默认值接管，避免覆盖主题不同 radius */
+  }
+}
+/* 极简档 / reduce-motion / 移动端 ColorOS 兜底：完全关闭 */
+body.fx-simple .bubble.bubble-liquid-condense,
+body.fx-simple .liquid-send-ripple { animation: none !important; display: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .bubble.bubble-liquid-condense { animation: none !important; }
+  .liquid-send-ripple { display: none !important; }
+}
+
+/* ========== v0.9.8.2 C3: AI 流式回复打字余晖 ========== */
+/* 流式期间整个气泡持续柔和橙色光晕，呼吸式脉动，结束时自然消失 */
+.msg.assistant.streaming .bubble {
+  animation: streamingGlow 1.8s ease-in-out infinite;
+}
+@keyframes streamingGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(255, 107, 53, 0.12),
+      0 0 16px rgba(255, 107, 53, 0.15),
+      0 0 32px rgba(255, 107, 53, 0.08);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(255, 107, 53, 0.25),
+      0 0 24px rgba(255, 107, 53, 0.3),
+      0 0 48px rgba(255, 107, 53, 0.15);
+  }
+}
+/* 极简档 / reduce-motion 关闭 */
+body.fx-simple .msg.assistant.streaming .bubble { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .msg.assistant.streaming .bubble { animation: none !important; }
+}
+
 .msg.user { flex-direction: row-reverse; }
 .avatar {
   width: 28px; height: 28px; border-radius: 8px;
@@ -1965,11 +2054,18 @@ body {
   padding-bottom: max(10px, env(safe-area-inset-bottom));
   /* 悬浮 dock 核心：独立圆角 + 液态玻璃 + 悬浮阴影 */
   border-radius: 22px;
-  backdrop-filter: blur(40px) saturate(200%) brightness(1.08);
-  -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(1.08);
+  /* v0.9.8.2 C1: 玻璃强度随滚动动态加深（--input-glass-extra 0~1） */
+  backdrop-filter:
+    blur(calc(40px + var(--input-glass-extra, 0) * 12px))
+    saturate(calc(200% + var(--input-glass-extra, 0) * 60%))
+    brightness(calc(1.08 + var(--input-glass-extra, 0) * 0.05));
+  -webkit-backdrop-filter:
+    blur(calc(40px + var(--input-glass-extra, 0) * 12px))
+    saturate(calc(200% + var(--input-glass-extra, 0) * 60%))
+    brightness(calc(1.08 + var(--input-glass-extra, 0) * 0.05));
   background: var(--input-area-bg);
   border: 1px solid var(--input-area-border);
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), backdrop-filter 0.25s ease, -webkit-backdrop-filter 0.25s ease;
   /* 悬浮阴影 — 模拟 dock 离地效果 */
   box-shadow: 
     0 -1px 0 rgba(255,255,255,0.08),

@@ -124,11 +124,42 @@ function addMessage(role, content, hasImage = false) {
   div.appendChild(avatar); div.appendChild(bodyWrap);
   chatArea.appendChild(div);
   chatArea.scrollTop = chatArea.scrollHeight;
+
+  // v0.9.8.2 C2: Liquid 凝结发送动画 — 小纸船激起水面涟漪
+  // 触发条件：user 消息 + 标准档（非 fx-simple） + 非 reduce-motion
+  if (role === 'user'
+      && !document.body.classList.contains('fx-simple')
+      && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    triggerLiquidCondense(bubble);
+  }
+
   return { div, bubble };
 }
 
+// v0.9.8.2 C2: Liquid 凝结动画核心
+// 1) 从 send-btn 中心发射一圈玻璃涟漪（fixed 定位，跨 chat-area 不受 scroll 影响）
+// 2) bubble 自身加 .bubble-liquid-condense 类播放凝结动画（模糊液滴 → 圆角矩形）
+function triggerLiquidCondense(bubble) {
+  // 涟漪
+  const sendBtn = document.getElementById('sendBtn');
+  if (sendBtn) {
+    const btnRect = sendBtn.getBoundingClientRect();
+    const ripple = document.createElement('div');
+    ripple.className = 'liquid-send-ripple';
+    ripple.style.left = (btnRect.left + btnRect.width / 2) + 'px';
+    ripple.style.top  = (btnRect.top  + btnRect.height / 2) + 'px';
+    document.body.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 650);
+  }
+  // 气泡凝结
+  bubble.classList.add('bubble-liquid-condense');
+  setTimeout(() => bubble.classList.remove('bubble-liquid-condense'), 700);
+}
+
 function addStreamingMessage() {
-  const div = document.createElement('div'); div.className = 'msg assistant';
+  const div = document.createElement('div');
+  // v0.9.8.1 F2: 加 streaming 类，CSS 会锁 min-width 防气泡跳动
+  div.className = 'msg assistant streaming';
   const avatar = document.createElement('div'); avatar.className = 'avatar';
   avatar.innerHTML = '<img src="logo.png" alt="小纸船" style="width:52%;height:52%;object-fit:contain;border-radius:50%">';
   const bodyWrap = document.createElement('div'); bodyWrap.style.cssText = 'display:flex;flex-direction:column;align-items:flex-start;max-width:80%';
@@ -143,6 +174,8 @@ function addStreamingMessage() {
 
 // 给流式消息 div 补上操作按钮和右键/长按事件
 function setupAssistantActions(div, bubble, content) {
+  // v0.9.8.1 F2: 流式结束，移除 streaming 类让气泡恢复 fit-content 自然收缩
+  div.classList.remove('streaming');
   // 操作按钮
   const actions = document.createElement('div'); actions.className = 'msg-actions';
   actions.innerHTML = `
