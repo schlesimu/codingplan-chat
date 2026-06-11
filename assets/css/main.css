@@ -1408,14 +1408,26 @@ body {
   border-bottom-color: rgba(255, 107, 53, 0.15);
 }
 
-/* v0.9.5.4：去聊天气泡两侧头像（参考豆包/DeepSeek），气泡贴边、宽度加大 */
+/* v0.9.5.4：去聊天气泡两侧头像（参考豆包/DeepSeek），气泡贴边、宽度加大
+   v0.9.5.5：让用户气泡真正靠右 — bubble 用 fit-content + max-width 限制 */
 .avatar { display: none !important; }
 .msg { gap: 0 !important; }
-.msg.user { justify-content: flex-end; }
+.msg.user { justify-content: flex-end; flex-direction: row !important; }
 .msg.assistant { justify-content: flex-start; }
-.bubble { max-width: 92% !important; }
-/* 多 bubble-wrap 容器跟随同步 */
-.bubble-wrap { max-width: 92%; }
+.bubble {
+  max-width: 88% !important;
+  width: fit-content;
+}
+.bubble-wrap {
+  max-width: 88%;
+  width: fit-content;
+}
+/* 用户消息整行靠右 */
+.msg.user .bubble-wrap { margin-left: auto; }
+.msg.user .bubble { margin-left: auto; }
+/* AI 消息整行靠左 */
+.msg.assistant .bubble-wrap { margin-right: auto; }
+.msg.assistant .bubble { margin-right: auto; }
 
 /* v0.9.5.4：浅色主题 */
 [data-theme="light"] .qrcode-dialog-header {
