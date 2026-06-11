@@ -187,7 +187,7 @@ function renderPendingFiles() {
     const sizeStr = f.size < 1024 ? `${f.size}B` :
                     f.size < 1024*1024 ? `${(f.size/1024).toFixed(1)}KB` :
                     `${(f.size/1024/1024).toFixed(1)}MB`;
-    const info = f.status === 'parsing' ? '解析中...' :
+    const info = f.status === 'parsing' ? '小纸船拆包中…' :
                  f.status === 'error' ? f.error :
                  f.truncated ? `✂️ ${f.chars.toLocaleString()} 字符（已截断）` :
                  `${(f.chars || 0).toLocaleString()} 字符`;
