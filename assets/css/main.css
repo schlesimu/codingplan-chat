@@ -1056,7 +1056,7 @@ body {
     0 4px 12px 0 rgba(0,0,0,0.06) !important;
 }
 
-/* 小按钮（关闭✕）→ 圆形/小圆角，但用同款玻璃配方 */
+/* 小按钮（关闭 X）→ 圆形/小圆角，但用同款玻璃配方 */
 [data-theme="liquid"] .sidebar-close {
   border-radius: 14px !important;
   backdrop-filter: url(#liquidGlassBig) blur(20px) saturate(180%) brightness(1.15) !important;
@@ -1184,10 +1184,261 @@ body {
 }
 .sidebar-collapse-toggle.open .arrow { transform: rotate(90deg); }
 .sidebar-collapse-content {
-  overflow: hidden; max-height: 0;
+  max-height: 0;
+  overflow: hidden;
   transition: max-height 0.3s ease;
 }
-.sidebar-collapse-content.open { max-height: 200px; }
+.sidebar-collapse-content.open { max-height: 600px; }
+
+/* v0.9.5.3：子项样式（带轻微缩进 + 字号略小，体现层级）*/
+.sidebar-subitem {
+  padding-left: 22px !important;
+  font-size: 13px !important;
+  opacity: 0.92;
+}
+.sidebar-subitem:hover { opacity: 1; }
+.sidebar-subsection-divider {
+  font-size: 11px;
+  opacity: 0.5;
+  padding: 10px 14px 4px;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+  text-transform: none;
+}
+
+/* v0.9.5.4：弹窗标题栏 — 左「扫一扫」icon-btn / 中标题 / 右关闭 */
+.qrcode-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.qrcode-dialog-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #f0f0f5;
+  flex: 1;
+  text-align: center;
+}
+.qrsync-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 107, 53, 0.12);
+  border: 1px solid rgba(255, 107, 53, 0.3);
+  color: #ff6b35;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.qrsync-icon-btn:hover {
+  background: rgba(255, 107, 53, 0.22);
+  border-color: rgba(255, 107, 53, 0.5);
+}
+.qrcode-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: #f0f0f5;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.qrcode-close-btn:hover { background: rgba(255, 255, 255, 0.14); }
+
+/* v0.9.5.4：占位区（默认显示，引导用户点「生成二维码」）*/
+.qrcode-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 36px 24px;
+  gap: 14px;
+  min-height: 280px;
+}
+.qrcode-placeholder-icon {
+  color: rgba(255, 107, 53, 0.6);
+  opacity: 0.8;
+}
+.qrcode-placeholder-text {
+  font-size: 14px;
+  color: #f0f0f5;
+  text-align: center;
+  line-height: 1.6;
+}
+.qrcode-placeholder-sub {
+  font-size: 12px;
+  color: #a0a0b0;
+  opacity: 0.8;
+}
+.qrsync-generate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #ff6b35, #ff9659);
+  border: none;
+  color: #fff;
+  padding: 10px 22px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 6px;
+  box-shadow: 0 4px 14px rgba(255, 107, 53, 0.3);
+}
+.qrsync-generate-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.45);
+}
+.qrsync-generate-btn:active { transform: translateY(0); }
+
+/* v0.9.5.4：返回按钮带 icon */
+.qrsync-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f0f0f5;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: background 0.2s;
+}
+.qrsync-back-btn:hover { background: rgba(255, 255, 255, 0.12); }
+
+/* v0.9.5.4：隐藏按钮 */
+.qr-hide-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #a0a0b0;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-left: 4px;
+}
+.qr-hide-btn:hover { background: rgba(255, 255, 255, 0.12); color: #f0f0f5; }
+
+/* v0.9.5.4：刷新按钮带 icon */
+.qr-refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 107, 53, 0.18);
+  border: 1px solid rgba(255, 107, 53, 0.4);
+  color: #ff6b35;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.qr-refresh-btn:hover { background: rgba(255, 107, 53, 0.3); }
+
+/* v0.9.5.4：复制按钮 icon */
+.qrcode-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 107, 53, 0.15);
+  border: 1px solid rgba(255, 107, 53, 0.35);
+  border-radius: 10px;
+  color: #ff6b35;
+  cursor: pointer;
+  margin-left: 8px;
+  transition: background 0.2s;
+}
+.qrcode-copy-btn:hover { background: rgba(255, 107, 53, 0.25); }
+
+/* v0.9.5.4：相机取消按钮（线性图标）*/
+.qr-camera-cancel {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  z-index: 100;
+}
+.qr-camera-cancel:hover { background: rgba(0,0,0,0.75); }
+
+/* v0.9.5.4：无图标 sidebar 子项（设置 API Key、清空对话）让文字靠左但保持缩进 */
+.sidebar-subitem:not(:has(.footer-icon)) > span {
+  padding-left: 0;
+}
+
+/* v0.9.5.4：同步状态指示项（云端备份按钮，置顶在同步与备份分组最上）*/
+.sidebar-status-item {
+  background: rgba(255, 107, 53, 0.08);
+  border-bottom: 1px dashed rgba(255, 107, 53, 0.2);
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.sidebar-status-item:hover {
+  background: rgba(255, 107, 53, 0.16);
+}
+.sidebar-status-item .footer-icon { color: #ff6b35; }
+[data-theme="light"] .sidebar-status-item {
+  background: rgba(255, 107, 53, 0.05);
+  border-bottom-color: rgba(255, 107, 53, 0.15);
+}
+
+/* v0.9.5.4：去聊天气泡两侧头像（参考豆包/DeepSeek），气泡贴边、宽度加大 */
+.avatar { display: none !important; }
+.msg { gap: 0 !important; }
+.msg.user { justify-content: flex-end; }
+.msg.assistant { justify-content: flex-start; }
+.bubble { max-width: 92% !important; }
+/* 多 bubble-wrap 容器跟随同步 */
+.bubble-wrap { max-width: 92%; }
+
+/* v0.9.5.4：浅色主题 */
+[data-theme="light"] .qrcode-dialog-header {
+  border-bottom-color: rgba(0,0,0,0.08);
+}
+[data-theme="light"] .qrcode-dialog-title { color: #1a1a2e; }
+[data-theme="light"] .qrcode-close-btn {
+  background: rgba(0,0,0,0.04);
+  border-color: rgba(0,0,0,0.1);
+  color: #1a1a2e;
+}
+[data-theme="light"] .qrcode-close-btn:hover { background: rgba(0,0,0,0.1); }
+[data-theme="light"] .qrcode-placeholder-text { color: #1a1a2e; }
+[data-theme="light"] .qrcode-placeholder-sub { color: #666; }
+[data-theme="light"] .qrsync-icon-btn {
+  background: rgba(255, 107, 53, 0.08);
+  border-color: rgba(255, 107, 53, 0.3);
+}
+[data-theme="light"] .qr-hide-btn {
+  background: rgba(0,0,0,0.04);
+  border-color: rgba(0,0,0,0.1);
+  color: #666;
+}
 
 /* ========== 顶栏 ========== */
 .header {
