@@ -349,13 +349,13 @@ async function generateQRSyncLink() {
     container.innerHTML = '';
 
     if (typeof QRCode !== 'undefined') {
-      // 使用 qrcodejs 库
+      // 使用 qrcodejs 库 — 白底黑码（v0.9.5.2 hotfix，扫码最稳）
       const qr = new QRCode(container, {
         text: appURL,
         width: 210,
         height: 210,
-        colorDark: '#ffffff',
-        colorLight: 'transparent',
+        colorDark: '#000000',
+        colorLight: '#ffffff',
         correctLevel: QRCode.CorrectLevel.M,
       });
     } else {
