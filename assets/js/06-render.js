@@ -15,7 +15,7 @@ function renderMessages() {
     let reasoningHTML = '';
     if (m.role === 'assistant' && m.reasoning) {
       const escaped = String(m.reasoning).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      reasoningHTML = `<details class="reasoning-box"><summary>💭 <span class="reasoning-label">思考过程（${m.reasoning.length} 字，点击展开）</span></summary><div class="reasoning-body">${escaped}</div></details>`;
+      reasoningHTML = `<details class="reasoning-box"><summary> <span class="reasoning-label">思考过程（${m.reasoning.length} 字，点击展开）</span></summary><div class="reasoning-body">${escaped}</div></details>`;
     }
     return `<div class="msg ${role}"><div class="avatar">${avatar}</div><div class="bubble-wrap">${reasoningHTML}<div class="bubble">${formatContent(m.content)}</div></div></div>`;
   }).join('');
