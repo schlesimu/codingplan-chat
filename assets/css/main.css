@@ -2337,61 +2337,224 @@ body {
 [data-theme="light"] .qrcode-container { background: #ffffff; }
 
 /* ============================================================
-   v0.9.5.7: 弱视觉效果模式（body.reduce-fx）
-   注：data-theme 在 <html> 上，所以选择器写成 [data-theme] body.reduce-fx
-   - 砍掉 backdrop-filter（毛玻璃）：dark/light 全关，liquid 保留
-   - 砍掉聊天气泡渐变背景：用户气泡改纯色
-   - 砍掉 hover 动画（transform/scale/translate）
-   - Liquid 主题保留毛玻璃，但砍掉浅紫色背景渐变 + 光斑漂浮
+   v0.9.5.8: 视觉效果三档式（标准 / 简约 / 极简）
+   - body.fx-simple  = 简约档（原 reduce-fx 效果）
+   - body.fx-minimal = 极简档（dark/light 纯扁平、liquid 仅保毛玻璃）
+   设计主旨：Liquid 永远是表现力最强的主题，极简档下保留毛玻璃质感
    ============================================================ */
 
-/* 1. 毛玻璃：dark/light 主题全关（liquid 不动） */
-[data-theme="dark"] body.reduce-fx *,
-[data-theme="light"] body.reduce-fx * {
+/* ====== 简约档：fx-simple ====== */
+/* 1. 毛玻璃：dark/light 主题全关（liquid 保留） */
+[data-theme="dark"] body.fx-simple *,
+[data-theme="light"] body.fx-simple * {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
-
-/* 2. 用户气泡渐变 → 纯色（CSS 变量覆盖） */
-[data-theme="dark"] body.reduce-fx {
-  --bubble-user-bg: rgba(0,160,150,0.55);
-}
-[data-theme="light"] body.reduce-fx {
-  --bubble-user-bg: rgba(0,160,150,0.45);
-}
-[data-theme="liquid"] body.reduce-fx {
-  --bubble-user-bg: rgba(120,150,240,0.35);
-}
-
-/* 3. hover 动画：移除所有 transform 类动效 */
-body.reduce-fx *:hover,
-body.reduce-fx *:active {
-  transform: none !important;
-}
-body.reduce-fx .msg.assistant .bubble:hover,
-body.reduce-fx .msg.user .bubble:hover,
-body.reduce-fx .send-btn:hover,
-body.reduce-fx .quick-btn:hover,
-body.reduce-fx .qrsync-generate-btn:hover {
-  transform: none !important;
-}
-
-/* 4. Liquid 主题：保留毛玻璃，砍背景渐变 + 浮动光斑 */
-[data-theme="liquid"] body.reduce-fx .bg-layer {
+/* 2. 用户气泡渐变 → 纯色 */
+[data-theme="dark"] body.fx-simple { --bubble-user-bg: rgba(0,160,150,0.55); }
+[data-theme="light"] body.fx-simple { --bubble-user-bg: rgba(0,160,150,0.45); }
+[data-theme="liquid"] body.fx-simple { --bubble-user-bg: rgba(120,150,240,0.35); }
+/* 3. hover 动画 → 关 */
+body.fx-simple *:hover,
+body.fx-simple *:active { transform: none !important; }
+body.fx-simple .msg.assistant .bubble:hover,
+body.fx-simple .msg.user .bubble:hover,
+body.fx-simple .send-btn:hover,
+body.fx-simple .quick-btn:hover,
+body.fx-simple .qrsync-generate-btn:hover { transform: none !important; }
+/* 4. Liquid：保毛玻璃，砍背景渐变 + 漂浮光斑 */
+[data-theme="liquid"] body.fx-simple .bg-layer {
   background: rgba(245,245,250,0.85) !important;
 }
-[data-theme="liquid"] body.reduce-fx .bg-layer::before {
+[data-theme="liquid"] body.fx-simple .bg-layer::before {
   display: none !important;
   animation: none !important;
 }
 
-/* 5. 弱视觉模式按钮的勾选态视觉反馈 */
-.sidebar-footer-item.reduce-fx-active {
+/* ====== 极简档：fx-minimal ====== */
+/* 5. dark/light 主题全砍：毛玻璃 + 所有阴影 + 所有渐变 + 所有动画 + 所有 filter */
+[data-theme="dark"] body.fx-minimal *,
+[data-theme="light"] body.fx-minimal * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  transition: none !important;
+  animation: none !important;
+}
+[data-theme="dark"] body.fx-minimal *:hover,
+[data-theme="light"] body.fx-minimal *:hover {
+  transform: none !important;
+  filter: none !important;
+}
+/* filter 单独处理：drop-shadow/blur/saturate 全关，但 invert（svg 反色）保留 */
+[data-theme="dark"] body.fx-minimal .bubble,
+[data-theme="dark"] body.fx-minimal .send-btn,
+[data-theme="dark"] body.fx-minimal .quick-btn,
+[data-theme="dark"] body.fx-minimal .header,
+[data-theme="dark"] body.fx-minimal .input-area,
+[data-theme="dark"] body.fx-minimal .sidebar,
+[data-theme="light"] body.fx-minimal .bubble,
+[data-theme="light"] body.fx-minimal .send-btn,
+[data-theme="light"] body.fx-minimal .quick-btn,
+[data-theme="light"] body.fx-minimal .header,
+[data-theme="light"] body.fx-minimal .input-area,
+[data-theme="light"] body.fx-minimal .sidebar { filter: none !important; }
+
+/* 6. 极简档：用户气泡纯色（更深一档，去掉透明感） */
+[data-theme="dark"] body.fx-minimal { --bubble-user-bg: #0d8478; }
+[data-theme="light"] body.fx-minimal { --bubble-user-bg: #0d8478; }
+
+/* 7. 极简档：助手气泡也砍透明 + 边框线代替阴影 */
+[data-theme="dark"] body.fx-minimal .msg.assistant .bubble {
+  background: #1a1a26 !important;
+  background-image: none !important;
+  border: 1px solid #2a2a3a !important;
+  color: #e8e8ee !important;
+}
+[data-theme="light"] body.fx-minimal .msg.assistant .bubble {
+  background: #f5f5f7 !important;
+  background-image: none !important;
+  border: 1px solid #e2e2e8 !important;
+  color: #1a1a26 !important;
+}
+/* 用户气泡：极简档强制纯色 + 边框 */
+[data-theme="dark"] body.fx-minimal .msg.user .bubble,
+[data-theme="light"] body.fx-minimal .msg.user .bubble {
+  background: #0d8478 !important;
+  background-image: none !important;
+  border: 1px solid #0a6e63 !important;
+  color: #ffffff !important;
+}
+
+/* 8. 极简档：背景纯色（盖掉 bg-layer 任何渐变） */
+[data-theme="dark"] body.fx-minimal .bg-layer {
+  background: #0a0a14 !important;
+}
+[data-theme="dark"] body.fx-minimal .bg-layer::before { display: none !important; }
+[data-theme="light"] body.fx-minimal .bg-layer {
+  background: #f0f2f5 !important;
+}
+[data-theme="light"] body.fx-minimal .bg-layer::before { display: none !important; }
+
+/* 9. 极简档：按钮去渐变去阴影，纯色 + 边框 */
+[data-theme="dark"] body.fx-minimal .send-btn,
+[data-theme="light"] body.fx-minimal .send-btn {
+  background: #ff6b35 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+[data-theme="dark"] body.fx-minimal .quick-btn,
+[data-theme="light"] body.fx-minimal .quick-btn {
+  background: transparent !important;
+  background-image: none !important;
+}
+[data-theme="dark"] body.fx-minimal .quick-btn {
+  border: 1px solid #3a3a4a !important;
+  color: #c8c8d0 !important;
+}
+[data-theme="light"] body.fx-minimal .quick-btn {
+  border: 1px solid #d0d0d8 !important;
+  color: #2a2a3a !important;
+}
+
+/* 10. 极简档：侧边栏 + 顶栏 + 输入区纯色 */
+[data-theme="dark"] body.fx-minimal .sidebar,
+[data-theme="dark"] body.fx-minimal .header,
+[data-theme="dark"] body.fx-minimal .input-area {
+  background: #14141e !important;
+  background-image: none !important;
+  border-color: #2a2a3a !important;
+}
+[data-theme="light"] body.fx-minimal .sidebar,
+[data-theme="light"] body.fx-minimal .header,
+[data-theme="light"] body.fx-minimal .input-area {
+  background: #ffffff !important;
+  background-image: none !important;
+  border-color: #e2e2e8 !important;
+}
+
+/* ====== 极简档 Liquid 特殊处理：仅允许毛玻璃，砍其他所有 ====== */
+/* 11. Liquid 极简：砍所有阴影/动画/text-shadow（但保留 backdrop-filter） */
+[data-theme="liquid"] body.fx-minimal * {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  transition: none !important;
+  animation: none !important;
+}
+[data-theme="liquid"] body.fx-minimal *:hover,
+[data-theme="liquid"] body.fx-minimal *:active { transform: none !important; }
+
+/* 12. Liquid 极简：背景层砍紫色渐变 + 砍漂浮光斑 → 纯白半透 */
+[data-theme="liquid"] body.fx-minimal .bg-layer {
+  background: rgba(248,248,252,0.92) !important;
+}
+[data-theme="liquid"] body.fx-minimal .bg-layer::before {
+  display: none !important;
+  animation: none !important;
+}
+
+/* 13. Liquid 极简：用户气泡砍紫色渐变 + 砍文字描边，但保留毛玻璃 */
+[data-theme="liquid"] body.fx-minimal .msg.user .bubble {
+  background-color: rgba(120,140,235,0.20) !important;
+  background-image: none !important;
+  border: 1px solid rgba(180,160,255,0.35) !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+  /* backdrop-filter 保留 → 不覆盖，让原 [data-theme=liquid] .msg.user .bubble 的 blur(40px) 继续生效 */
+}
+
+/* 14. Liquid 极简：助手气泡也用纯色 + 保毛玻璃 */
+[data-theme="liquid"] body.fx-minimal .msg.assistant .bubble {
+  background-color: rgba(255,255,255,0.55) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* 15. Liquid 极简：quick-btn 砍渐变 + 保毛玻璃 */
+[data-theme="liquid"] body.fx-minimal .quick-btn {
+  background-color: rgba(255,255,255,0.04) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* 16. Liquid 极简：侧边栏/顶栏/输入区 → 砍紫色，保毛玻璃 */
+[data-theme="liquid"] body.fx-minimal .sidebar,
+[data-theme="liquid"] body.fx-minimal .header,
+[data-theme="liquid"] body.fx-minimal .input-area {
+  background-color: rgba(255,255,255,0.4) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* 16b. Liquid 极简：send-btn 砍渐变保橙色实色（极简档主色统一不渐变） */
+[data-theme="liquid"] body.fx-minimal .send-btn {
+  background: #ff6b35 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+[data-theme="liquid"] body.fx-minimal .quick-btn {
+  background-color: rgba(255,255,255,0.04) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* 17. 三档式按钮的视觉态反馈 */
+.sidebar-footer-item.fx-mode-simple {
+  background: var(--sidebar-item-hover);
+  font-weight: 500;
+}
+.sidebar-footer-item.fx-mode-simple::before {
+  content: '◐ ';
+  color: #f59e0b;
+  margin-right: 2px;
+}
+.sidebar-footer-item.fx-mode-minimal {
   background: var(--sidebar-item-hover);
   font-weight: 600;
 }
-.sidebar-footer-item.reduce-fx-active::before {
-  content: '✓ ';
+.sidebar-footer-item.fx-mode-minimal::before {
+  content: '● ';
   color: #22c55e;
   margin-right: 2px;
 }
