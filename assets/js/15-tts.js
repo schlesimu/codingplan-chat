@@ -65,14 +65,14 @@ function normalizeForTTS(text) {
     // 表格分隔行
     .replace(/^\s*\|[-:\s|]+\|\s*$/gm, '')
     // emoji 大部分保留（神经 TTS 会跳过），单独剥几个常见冗余
-    .replace(/[✅❌⚠️🔧📐🪟🔘🎯]/g, '')
+    .replace(/[️]/g, '')
     // 多空行变停顿
     .replace(/\n{2,}/g, '。')
     .replace(/\n/g, '，')
     // 常见冗余符号
     .replace(/[#*_~|]/g, '')
     // 多余空白
-    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/[ \t]{2,}/g, '')
     .trim();
   return t;
 }
@@ -352,6 +352,15 @@ function toggleMoreTools() {
   toggle.classList.toggle('open');
 }
 
+// v0.9.5.3 新增：同步与备份折叠
+function toggleSyncBackup() {
+  const content = document.getElementById('syncBackupContent');
+  const toggle = document.getElementById('syncBackupToggle');
+  if (!content || !toggle) return;
+  content.classList.toggle('open');
+  toggle.classList.toggle('open');
+}
+
 // 系统提示词：告诉 AI 如何使用搜索工具
 const SYSTEM_PROMPT = {
   role: 'system',
@@ -380,7 +389,7 @@ async function callAI(sendMessages, bubble, allowSearch = true) {
         reasoningBox = document.createElement('details');
         reasoningBox.className = 'reasoning-box';
         reasoningBox.open = true;
-        reasoningBox.innerHTML = '<summary>💭 <span class="reasoning-label">正在思考...</span></summary><div class="reasoning-body"></div>';
+        reasoningBox.innerHTML = '<summary> <span class="reasoning-label">正在思考...</span></summary><div class="reasoning-body"></div>';
         bubble.parentElement.insertBefore(reasoningBox, bubble);
         reasoningBody = reasoningBox.querySelector('.reasoning-body');
       }
@@ -414,7 +423,7 @@ async function callAI(sendMessages, bubble, allowSearch = true) {
       if (searchMatch) {
         const searchQuery = searchMatch[1].trim();
         // 清除 <search> 标记，显示搜索状态
-        bubble.innerHTML = formatContent('🔍 正在搜索：' + searchQuery);
+        bubble.innerHTML = formatContent('正在搜索：' + searchQuery);
         chatArea.scrollTop = chatArea.scrollHeight;
 
         // 执行搜索
@@ -439,7 +448,7 @@ async function callAI(sendMessages, bubble, allowSearch = true) {
     ret.reasoning = fullReasoning;
     return ret;
   } catch (e) {
-    bubble.innerHTML = `<span style="color:var(--text-error)">❌ 网络出错：${e.message}，请重试</span>`;
+    bubble.innerHTML = `<span style="color:var(--text-error)"> 网络出错：${e.message}，请重试</span>`;
     return '';
   }
 }
@@ -459,7 +468,7 @@ async function sendMessage() {
   const hasImage = imageB64s.length > 0;
 
   // v0.9.0: 处理文件附件
-  const fileSummaryForDisplay = hasFiles ? pendingFiles.filter(f => f.status === 'ok').map(f => `📎 ${f.name}${f.truncated ? '（截断）' : ''}`).join('  ') : '';
+  const fileSummaryForDisplay = hasFiles ? pendingFiles.filter(f => f.status === 'ok').map(f => ` ${f.name}${f.truncated ? '（截断）' : ''}`).join('') : '';
   // 真正给模型看的内容：原文本 + 文件正文
   const contentForLLM = hasFiles ? injectPendingFilesToMessage(text) : text;
   if (hasFiles) clearPendingFiles();
@@ -467,7 +476,7 @@ async function sendMessage() {
   // 构建用户消息内容
   let userContent = contentForLLM;
   if (quotedText) {
-    userContent = '> ' + quotedText.replace(/\n/g, '\n> ') + '\n\n' + contentForLLM;
+    userContent = '>' + quotedText.replace(/\n/g, '\n>') + '\n\n' + contentForLLM;
     quotedText = '';
   }
 
