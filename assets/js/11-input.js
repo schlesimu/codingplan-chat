@@ -121,10 +121,18 @@ function formatContent(text) {
     const foldable = lineCount > 20;
     const codeId = 'code-' + Math.random().toString(36).slice(2, 9);
     const langClass = language ? `language-${language}` : '';
+    // v0.9.8.3 E3: 检测 html/css/js → 显示预览按钮
+    const langLower = language.toLowerCase();
+    const previewable = ['html', 'css', 'javascript', 'js'].includes(langLower);
+    const previewBtn = previewable ? `<button class="code-block-btn code-block-preview" onclick="togglePreviewBlock('${codeId}', '${langLower}', this)" title="实时预览">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span>预览</span>
+          </button>` : '';
     return `<div class="code-block-wrap${foldable ? ' code-foldable' : ''}" data-lang="${langLabel}">
       <div class="code-block-header">
         <span class="code-block-lang">${langLabel}</span>
         <div class="code-block-actions">
+          ${previewBtn}
           <button class="code-block-btn code-block-linenums" onclick="toggleLineNumbers(this)" title="显示行号">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
             <span>行号</span>
