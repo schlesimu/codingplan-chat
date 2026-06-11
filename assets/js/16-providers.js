@@ -342,8 +342,8 @@ function showProviderDialog() {
   html += '<select id="prov-model" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--sidebar-divider);background:var(--input-bg);color:var(--input-color);font-size:13px"></select>';
   html += '</div>';
 
-  // 4. 保存按钮
-  html += '<div style="display:flex;gap:8px;margin-top:16px">';
+  // 4. 保存按钮（v0.9.2 改 sticky 底部）
+  html += '<div style="display:flex;gap:8px;margin-top:16px;position:sticky;bottom:0;background:var(--sidebar-bg);padding:12px 0 4px 0;border-top:1px solid var(--sidebar-divider)">';
   html += '<button onclick="closeProviderDialog()" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--sidebar-divider);background:transparent;color:var(--text-main);font-size:13px;cursor:pointer">取消</button>';
   html += '<button onclick="saveProviderDialog()" style="flex:1;padding:10px;border-radius:8px;border:none;background:linear-gradient(135deg,#7c66dc,#5e8ef7);color:white;font-size:13px;cursor:pointer">保存</button>';
   html += '</div>';

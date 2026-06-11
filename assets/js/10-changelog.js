@@ -3,6 +3,15 @@
 
 function showChangelog() {
   const changelog = [
+    { v: 'v0.9.2', date: '2026-06-11', items: [
+      '🐛 **修复启动页按钮点击无反应**',
+      '   - 原因：02-onboarding.js 的事件绑定依赖 10-changelog.js init 时序，若 init 出错按钮就死按不响应',
+      '   - 修复：按钮改 inline onclick + 函数自身容错（找不到元素也不炸），不再依赖任何 init 时序',
+      '🐛 **修复 API Key 设置弹窗按钮看不到**',
+      '   - 弹窗内容超过屏幕高度时，「保存/取消」按钮被顶到底外看不见',
+      '   - 修复：弹窗改 flex 列布局 + 内容区独立滚动 + 按钮区固定在底部（永远可见）',
+      '   - 同时给「多 Provider 配置」弹窗的保存按钮加 sticky 底部',
+    ]},
     { v: 'v0.9.1', date: '2026-06-11', items: [
       '🎯 **顶栏徽章重做：只显示当前 CodingPlan 用的具体模型**',
       '   - 顶栏徽章不再是多 provider 入口，改为「🔥 CodingPlan · {当前模型}」展示',
