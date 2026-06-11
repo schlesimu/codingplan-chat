@@ -103,12 +103,19 @@ function showApiKeyDialog() {
   overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
 
   const dialog = document.createElement('div');
-  dialog.style.cssText = 'max-width:400px;width:100%;padding:20px;border-radius:18px;background:var(--sidebar-bg);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border:1px solid var(--sidebar-border);box-shadow:0 16px 48px rgba(0,0,0,0.25);color:var(--text-main)';
-  dialog.innerHTML = html;
+  // v0.9.2: 加 max-height + 滚动 + flex 布局，防内容超出按钮看不到
+  dialog.style.cssText = 'max-width:400px;width:100%;max-height:90vh;display:flex;flex-direction:column;border-radius:18px;background:var(--sidebar-bg);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border:1px solid var(--sidebar-border);box-shadow:0 16px 48px rgba(0,0,0,0.25);color:var(--text-main);overflow:hidden';
+
+  // 可滚动内容区
+  const scrollBox = document.createElement('div');
+  scrollBox.style.cssText = 'padding:20px;overflow-y:auto;flex:1;min-height:0';
+  scrollBox.innerHTML = html;
+  dialog.appendChild(scrollBox);
   dialog.onclick = function(e) { e.stopPropagation(); };
 
   const btnRow = document.createElement('div');
-  btnRow.style.cssText = 'display:flex;gap:8px;justify-content:flex-end;margin-top:16px';
+  // v0.9.2: sticky 底部，永远可见，不参与 scrollBox 滚动
+  btnRow.style.cssText = 'display:flex;gap:8px;justify-content:flex-end;padding:14px 20px;border-top:1px solid var(--sidebar-divider);background:var(--sidebar-bg);flex:0 0 auto';
 
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = '取消';
