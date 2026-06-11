@@ -237,15 +237,20 @@ function showQRSyncDialog() {
 
         <!-- 扫码 TAB -->
         <div class="qrcode-tab-content" id="qrtab-scan">
-          <p style="margin:0 0 12px;opacity:0.7;font-size:13px">
-            请已在电脑端登录的设备在「扫二维码同步」功能中展示二维码，<br>
-            或用手机相机扫描电脑屏幕上的二维码。
+          <p style="margin:0 0 12px;font-size:13px">
+            点击下方按钮调用手机摄像头，对准电脑端二维码即可同步配置。
           </p>
-          <div class="qrcode-scan-area" onclick="document.getElementById('qr-file-input').click()">
-            <input type="file" id="qr-file-input" accept="image/*" capture="environment" style="display:none"
-              onchange="handleQRScreenshot(event)">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="opacity:0.4"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-            <div style="margin-top:8px;font-size:13px;opacity:0.5">点击在此上传二维码截图，或使用相机扫描</div>
+          <div class="qrcode-scan-area" onclick="startCameraScan()" id="qr-scan-trigger">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ff6b35" stroke-width="2" stroke-linecap="round" style="opacity:0.9"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <div style="margin-top:10px;font-size:14px;color:#ff6b35;font-weight:600">📷 启动摄像头扫码</div>
+            <div style="margin-top:4px;font-size:12px;color:#a0a0b0">首次使用需授权摄像头权限</div>
+          </div>
+          <!-- 摄像头实时画面 -->
+          <div id="qr-camera-view" style="display:none">
+            <button class="qr-camera-cancel" onclick="stopCameraScan()" title="取消">×</button>
+            <video id="qr-camera-video" playsinline muted autoplay></video>
+            <div class="qr-scan-overlay"></div>
+            <div class="qr-scan-frame"></div>
           </div>
           <div id="qr-scan-result" style="display:none;margin-top:8px"></div>
         </div>
@@ -363,67 +368,136 @@ async function generateQRSyncLink() {
   }
 }
 
-// 扫码上传
-async function handleQRScreenshot(event) {
-  const file = event.target.files[0];
-  if (!file) return;
+// 启动摄像头实时扫码（v0.9.5.1）
+let _qrCameraStream = null;
+let _qrScanRAF = null;
+
+async function startCameraScan() {
   const resultDiv = document.getElementById('qr-scan-result');
-  resultDiv.style.display = 'block';
-  resultDiv.innerHTML = '⏳ 识别中...';
+  const trigger = document.getElementById('qr-scan-trigger');
+  const cameraView = document.getElementById('qr-camera-view');
+  const video = document.getElementById('qr-camera-video');
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    if (resultDiv) {
+      resultDiv.style.display = 'block';
+      resultDiv.innerHTML = '<div style="color:#ff8a5e">❌ 浏览器不支持摄像头 API，请用最新版浏览器</div>';
+    }
+    return;
+  }
+
+  if (typeof jsQR === 'undefined') {
+    if (resultDiv) {
+      resultDiv.style.display = 'block';
+      resultDiv.innerHTML = '<div style="color:#ff8a5e">❌ jsQR 库未加载，请刷新页面重试</div>';
+    }
+    return;
+  }
 
   try {
-    // 使用免费在线 QR 解码 API（无需注册）
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('apikey', '');
-    // 使用 goQR.me API
-    const resp = await fetch('https://api.qrserver.com/v1/read-qr-code/', {
-      method: 'POST',
-      body: formData,
+    _qrCameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' }, // 后置摄像头
+      audio: false,
     });
-    const [result] = await resp.json();
-    const data = result.symbol[0].data;
-    if (!data) {
-      resultDiv.innerHTML = '❌ 未识别到二维码';
-      return;
-    }
+    video.srcObject = _qrCameraStream;
+    await video.play();
 
-    // 解析 URL
-    const url = new URL(data);
+    trigger.style.display = 'none';
+    cameraView.style.display = 'flex';
+    if (resultDiv) resultDiv.style.display = 'none';
+
+    // 用 canvas 抓帧解码
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+    const scanFrame = () => {
+      if (!_qrCameraStream) return;
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: 'dontInvert',
+        });
+        if (code && code.data) {
+          handleQRDecoded(code.data);
+          return;
+        }
+      }
+      _qrScanRAF = requestAnimationFrame(scanFrame);
+    };
+    scanFrame();
+  } catch (e) {
+    let msg = e.message;
+    if (e.name === 'NotAllowedError') msg = '摄像头权限被拒绝，请在浏览器设置中允许';
+    else if (e.name === 'NotFoundError') msg = '未找到摄像头设备';
+    if (resultDiv) {
+      resultDiv.style.display = 'block';
+      resultDiv.innerHTML = '<div style="color:#ff8a5e">❌ ' + msg + '</div>';
+    }
+    stopCameraScan();
+  }
+}
+
+function stopCameraScan() {
+  if (_qrScanRAF) {
+    cancelAnimationFrame(_qrScanRAF);
+    _qrScanRAF = null;
+  }
+  if (_qrCameraStream) {
+    _qrCameraStream.getTracks().forEach(t => t.stop());
+    _qrCameraStream = null;
+  }
+  const cameraView = document.getElementById('qr-camera-view');
+  const trigger = document.getElementById('qr-scan-trigger');
+  if (cameraView) cameraView.style.display = 'none';
+  if (trigger) trigger.style.display = 'block';
+}
+
+async function handleQRDecoded(qrData) {
+  stopCameraScan();
+  const resultDiv = document.getElementById('qr-scan-result');
+  if (resultDiv) {
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = '<div style="color:#4ade80">⏳ 已识别到二维码，正在解密配置...</div>';
+  }
+
+  try {
+    const url = new URL(qrData);
     const encConfig = url.searchParams.get('import');
     const pin = url.searchParams.get('pin');
 
     if (!encConfig || !pin) {
-      resultDiv.innerHTML = '❌ 二维码格式错误，请使用本应用生成的二维码';
-      return;
+      throw new Error('二维码格式错误，请使用本应用生成的二维码');
     }
 
-    // 解密并导入
     const configStr = await decryptConfigWithPIN(encConfig, pin);
     const config = JSON.parse(configStr);
 
-    if (config.syncCode) {
-      setCloudToken(config.syncCode);
-    }
-    if (config.apiKeys) {
-      setApiKeys(config.apiKeys);
-    }
+    if (config.syncCode) setCloudToken(config.syncCode);
+    if (config.apiKeys) setApiKeys(config.apiKeys);
     if (config.preferences && config.preferences.theme) {
       localStorage.setItem('codingplan-theme', config.preferences.theme);
       document.documentElement.setAttribute('data-theme', config.preferences.theme);
     }
 
-    resultDiv.innerHTML = '✅ 配置已同步！\n同步码已更新，API Key 配置已导入。';
+    if (resultDiv) {
+      const keyCount = config.apiKeys ? Object.keys(config.apiKeys).length : 0;
+      resultDiv.innerHTML = '<div style="color:#4ade80;font-weight:600">✅ 配置已同步！</div>' +
+        '<div style="color:#a0a0b0;font-size:12px;margin-top:4px">同步码已更新，导入 ' + keyCount + ' 个 API Key 配置</div>';
+    }
 
-    // 自动下载云端对话
     setTimeout(() => {
-      if (document.getElementById('qrcode-overlay')) {
-        document.getElementById('qrcode-overlay').remove();
-      }
+      const overlay = document.getElementById('qrcode-overlay');
+      if (overlay) overlay.remove();
       cloudDownload();
-    }, 1500);
+    }, 1800);
   } catch (e) {
-    resultDiv.innerHTML = '❌ 识别失败：' + e.message;
+    if (resultDiv) {
+      resultDiv.innerHTML = '<div style="color:#ff8a5e">❌ ' + e.message + '</div>' +
+        '<button onclick="startCameraScan()" style="margin-top:8px;background:#ff6b35;color:#fff;border:none;padding:8px 16px;border-radius:10px;cursor:pointer">🔄 重新扫码</button>';
+    }
   }
 }
 
