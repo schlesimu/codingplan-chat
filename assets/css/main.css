@@ -1429,6 +1429,32 @@ body {
 .msg.assistant .bubble-wrap { margin-right: auto; }
 .msg.assistant .bubble { margin-right: auto; }
 
+/* ============================================================
+   v0.9.7: AI 气泡宽度优化
+   - 手机端（<=768px）：AI 气泡占满（96% 屏宽）
+   - 桌面端：AI 气泡上限 1200px，可用宽度内尽量撑大
+   - 用户气泡保持紧凑（fit-content + 88% 上限）
+   - 关键：取消 fit-content 让 AI 气泡能撑到 max-width；
+          取消 bubble-wrap 的 88% 收紧让外层不二次卡死。
+   ============================================================ */
+.msg.assistant .bubble-wrap {
+  max-width: 1200px !important;
+  width: 96% !important;
+}
+.msg.assistant .bubble {
+  max-width: 1200px !important;
+  width: 100% !important;
+  margin-right: auto !important;
+}
+@media (max-width: 768px) {
+  .msg.assistant .bubble-wrap {
+    width: 98% !important;
+  }
+  .msg.assistant .bubble {
+    width: 100% !important;
+  }
+}
+
 /* v0.9.5.4：浅色主题 */
 [data-theme="light"] .qrcode-dialog-header {
   border-bottom-color: rgba(0,0,0,0.08);
