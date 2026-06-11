@@ -3,6 +3,14 @@
 
 function showChangelog() {
   const changelog = [
+    { v: 'v0.9.5.6', date: '2026-06-11', items: [
+      'M5 收尾：Provider 配置弹窗里 API Key 输入框下方新增「测试 Key 有效性」+「查询余额」按钮',
+      '   - 支持余额查询：DeepSeek / Moonshot / 智谱 GLM（其他 provider 只显示测试按钮）',
+      '   - 结果实时显示在按钮下方：绿色 ✓ 有效 / 红色 ✗ 失败 / 橙色提示',
+      '   - 出门在外先查额度再问 AI，避免发到一半余额耗尽',
+      '修复 M5 后端隐藏 bug：Authorization header 缺空格（Bearer+key 应为 Bearer key）',
+      '   - 此前的余额查询其实一直 401，本版本一并修好',
+    ]},
     { v: 'v0.9.5.5', date: '2026-06-11', items: [
       '用户气泡正确靠右贴边（v0.9.5.4 没去掉头像后 row-reverse 失效的 bug）',
       '气泡 max-width 改 fit-content + 88% 上限，短消息不再撑满整行',
