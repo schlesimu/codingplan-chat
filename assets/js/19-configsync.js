@@ -315,13 +315,6 @@ function showQRSyncDialog() {
             </div>
             <div id="qr-countdown" class="qr-countdown-bar">
               <span class="qr-countdown-text">有效期：<span id="qr-countdown-num">5:00</span></span>
-              <button class="qr-refresh-btn" onclick="generateQRSyncLink()" title="刷新">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                <span>刷新</span>
-              </button>
-              <button class="qr-hide-btn" onclick="hideQRCode()" title="隐藏二维码">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-              </button>
             </div>
             <div class="qrcode-output-row">
               <input type="text" id="qrcode-share-url" readonly class="qrcode-share-input">
