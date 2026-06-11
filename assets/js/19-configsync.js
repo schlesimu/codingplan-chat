@@ -12,7 +12,7 @@ function exportConfigAsJSON() {
     syncCode: localStorage.getItem(CLOUD_TOKEN_KEY) || '',
     apiKeys: getApiKeys(),
     preferences: {
-      theme: localStorage.getItem('codingplan-theme') || 'dark',
+      theme: localStorage.getItem('codingplan-theme') || 'light',
       webSearchEnabled: localStorage.getItem('webSearchEnabled') === 'true',
     },
     // 只导出配置，不导出对话（对话已通过 KV 云同步）
@@ -38,7 +38,7 @@ function importConfigFromJSON() {
       const text = await file.text();
       const data = JSON.parse(text);
       if (!data.version || !data.apiKeys) {
-        alert('❌ 无效的配置文件');
+        alert('无效的配置文件');
         return;
       }
       // 导入同步码
@@ -57,9 +57,9 @@ function importConfigFromJSON() {
           localStorage.setItem('webSearchEnabled', String(data.preferences.webSearchEnabled));
         }
       }
-      alert('✅ 配置已导入！\n\n包括：API Keys、同步码、主题偏好');
+      alert('配置已导入！\n\n包括：API Keys、同步码、主题偏好');
     } catch (err) {
-      alert('❌ 导入失败：' + err.message);
+      alert('导入失败：' + err.message);
     }
   };
   input.click();
@@ -85,7 +85,7 @@ cloudUpload = async function enhancedCloudUpload() {
         conversations,
         apiKeys: getApiKeys(),  // v0.9.5: 同步 API key 配置
         preferences: {
-          theme: localStorage.getItem('codingplan-theme') || 'dark',
+          theme: localStorage.getItem('codingplan-theme') || 'light',
         },
         updatedAt: Date.now(),
       }),
@@ -114,7 +114,7 @@ cloudDownload = async function enhancedCloudDownload() {
     if (!resp.ok) {
       const errTxt = await resp.text().catch(() => '');
       console.warn('云端恢复失败:', resp.status, errTxt.slice(0, 200));
-      alert('云端暂无备份数据 (HTTP ' + resp.status + ')');
+      alert('云端暂无备份数据 (HTTP' + resp.status + ')');
       return;
     }
     const respJson = await resp.json();
@@ -159,15 +159,15 @@ cloudDownload = async function enhancedCloudDownload() {
     if (list.length > 0) switchToConversation(list[0].id);
     renderChatHistory();
     updateCloudStatus();
-    const msg = '✅ 云端数据已恢复！\n共 ' + Object.keys(cloudConvos).length + ' 个对话';
+    const msg = '云端数据已恢复！\n共' + Object.keys(cloudConvos).length + '个对话';
     if (cloudApiKeys && Object.keys(cloudApiKeys).length > 0) {
       const keyCount = Object.keys(cloudApiKeys).length;
-      alert(msg + '\n配置同步：' + keyCount + ' 个 API Key');
+      alert(msg + '\n配置同步：' + keyCount + '个 API Key');
     } else {
       alert(msg);
     }
   } catch (e) {
-    alert('❌ 恢复失败：' + e.message);
+    alert('恢复失败：' + e.message);
   }
 };
 
@@ -202,14 +202,48 @@ async function decryptConfigWithPIN(encoded, pin) {
   return new TextDecoder().decode(decrypted);
 }
 
+// ========== v0.9.5.3: 时间戳加密（5分钟自动失效，无需 PIN）==========
+// 加密 key 用一个固定 salt 派生（设备无关），二维码本身 5 分钟过期保证安全
+const _QR_SALT = 'codingplan-chat-sync-v1';
+const _QR_TTL_MS = 5 * 60 * 1000; // 5 分钟
+
+async function _deriveStaticKey() {
+  const enc = new TextEncoder();
+  const hash = await crypto.subtle.digest('SHA-256', enc.encode(_QR_SALT));
+  return new Uint8Array(hash);
+}
+
+async function encryptConfigTimed(configStr) {
+  const key = await _deriveStaticKey();
+  const payload = JSON.stringify({ t: Date.now(), d: configStr });
+  const data = new TextEncoder().encode(payload);
+  const out = new Uint8Array(data.length);
+  for (let i = 0; i < data.length; i++) out[i] = data[i] ^ key[i % key.length];
+  return btoa(String.fromCharCode(...out));
+}
+
+async function decryptConfigTimed(encoded) {
+  const key = await _deriveStaticKey();
+  const data = Uint8Array.from(atob(encoded), c => c.charCodeAt(0));
+  const out = new Uint8Array(data.length);
+  for (let i = 0; i < data.length; i++) out[i] = data[i] ^ key[i % key.length];
+  const payload = JSON.parse(new TextDecoder().decode(out));
+  const age = Date.now() - payload.t;
+  if (age > _QR_TTL_MS) {
+    const mins = Math.floor(age / 60000);
+    throw new Error(`二维码已过期（生成于 ${mins} 分钟前，5 分钟内有效）`);
+  }
+  if (age < -60000) throw new Error('二维码时间异常（生成时间晚于当前）');
+  return payload.d;
+}
+
 function showQRSyncDialog() {
   const syncCode = localStorage.getItem(CLOUD_TOKEN_KEY) || '';
   if (!syncCode) {
-    alert('⚠️ 尚无同步码，系统会自动生成，请稍后重试。');
+    alert('尚无同步码，系统会自动生成，请稍后重试。');
     return;
   }
 
-  // 弹窗节点的 HTML：用 DIV#qrcode-sync-dialog
   let overlay = document.getElementById('qrcode-overlay');
   if (overlay) { overlay.style.display = 'flex'; return; }
 
@@ -221,61 +255,80 @@ function showQRSyncDialog() {
     display: flex; align-items: center; justify-content: center;
     animation: fadeIn 0.2s ease;
   `;
-  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+  overlay.onclick = (e) => {
+    if (e.target === overlay) {
+      stopCameraScan();
+      stopQRCountdown();
+      overlay.remove();
+    }
+  };
 
+  // v0.9.5.4: 单一界面（去掉主入口选择页），默认进分享视图但二维码隐藏，点「生成二维码」才出
   overlay.innerHTML = `
     <div class="qrcode-dialog">
       <div class="qrcode-dialog-header">
-        <span>📲 扫码同步配置</span>
-        <button class="qrcode-close-btn" onclick="this.closest('#qrcode-overlay').remove()">×</button>
+        <button class="qrsync-icon-btn" onclick="enterScanMode()" title="扫一扫">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><line x1="15" y1="15" x2="15" y2="21"/><line x1="18" y1="15" x2="18" y2="18"/><line x1="21" y1="15" x2="21" y2="21"/><line x1="15" y1="18" x2="18" y2="18"/></svg>
+          <span>扫一扫</span>
+        </button>
+        <span class="qrcode-dialog-title">跨设备同步</span>
+        <button class="qrcode-close-btn" onclick="stopCameraScan();stopQRCountdown();this.closest('#qrcode-overlay').remove()" title="关闭">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
       <div class="qrcode-dialog-body">
-        <div class="qrcode-tabs">
-          <button class="qrcode-tab active" onclick="switchQRTab('scan',this)">📥 我扫别人</button>
-          <button class="qrcode-tab" onclick="switchQRTab('share',this)">📤 分享给他人</button>
-        </div>
-
-        <!-- 扫码 TAB -->
-        <div class="qrcode-tab-content" id="qrtab-scan">
-          <p style="margin:0 0 12px;font-size:13px">
-            点击下方按钮调用手机摄像头，对准电脑端二维码即可同步配置。
-          </p>
-          <div class="qrcode-scan-area" onclick="startCameraScan()" id="qr-scan-trigger">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ff6b35" stroke-width="2" stroke-linecap="round" style="opacity:0.9"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-            <div style="margin-top:10px;font-size:14px;color:#ff6b35;font-weight:600">📷 启动摄像头扫码</div>
-            <div style="margin-top:4px;font-size:12px;color:#a0a0b0">首次使用需授权摄像头权限</div>
-          </div>
-          <!-- 摄像头实时画面 -->
-          <div id="qr-camera-view" style="display:none">
-            <button class="qr-camera-cancel" onclick="stopCameraScan()" title="取消">×</button>
+        <!-- 扫码画面（初始隐藏，点右上「扫一扫」进）-->
+        <div id="qrsync-scan" style="display:none">
+          <button class="qrsync-back-btn" onclick="backToMain()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            <span>返回</span>
+          </button>
+          <div id="qr-camera-view" style="display:flex">
+            <button class="qr-camera-cancel" onclick="backToMain()" title="取消">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
             <video id="qr-camera-video" playsinline muted autoplay></video>
             <div class="qr-scan-overlay"></div>
             <div class="qr-scan-frame"></div>
           </div>
-          <div id="qr-scan-result" style="display:none;margin-top:8px"></div>
+          <div id="qr-scan-result" style="display:none;margin-top:10px"></div>
         </div>
 
-        <!-- 分享 TAB -->
-        <div class="qrcode-tab-content" id="qrtab-share" style="display:none">
-          <p style="margin:0 0 12px;opacity:0.7;font-size:13px">
-            让其他设备用相机扫描此二维码，或在浏览器输入下方链接即可同步。
-          </p>
-          <!-- PIN 输入 -->
-          <div class="qrcode-pin-row">
-            <label style="font-size:12px;opacity:0.6">设置 PIN 码保护（4-6 位数字，防止泄露）：</label>
-            <div style="display:flex;gap:8px;margin-top:4px">
-              <input type="password" id="qr-pin-input" class="qrcode-pin-input" placeholder="请输入 PIN 码" maxlength="6" inputmode="numeric" pattern="[0-9]*" value="1234">
-              <button class="qrcode-pin-toggle" onclick="togglePINVisibility()" title="显示/隐藏">👁️</button>
+        <!-- 分享画面（默认显示，但二维码隐藏，等用户点「生成二维码」）-->
+        <div id="qrsync-share">
+          <!-- 占位区：二维码隐藏时显示提示 + 生成按钮 -->
+          <div id="qrcode-placeholder" class="qrcode-placeholder">
+            <div class="qrcode-placeholder-icon">
+              <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
             </div>
+            <div class="qrcode-placeholder-text">点击下方按钮生成同步二维码<br><span class="qrcode-placeholder-sub">5 分钟内有效，扫码即可同步配置</span></div>
+            <button class="qrsync-generate-btn" onclick="generateQRSyncLink()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/></svg>
+              <span>生成二维码</span>
+            </button>
           </div>
-          <div class="qrcode-container" style="position:relative">
-            <div id="qrcode-canvas" style="display:flex;align-items:center;justify-content:center;min-height:220px">
-              <div style="opacity:0.4;font-size:13px">输入 PIN 后自动生成二维码...</div>
+
+          <!-- 二维码区（初始隐藏，generateQRSyncLink 调用后才显示）-->
+          <div id="qrcode-area" style="display:none">
+            <div class="qrcode-container">
+              <div id="qrcode-canvas" style="display:flex;align-items:center;justify-content:center;min-height:220px"></div>
             </div>
-          </div>
-          <div class="qrcode-output-row" style="position:relative">
-            <input type="text" id="qrcode-share-url" readonly style="flex:1;padding:8px 12px;border-radius:10px;border:1px solid var(--input-border,rgba(255,255,255,0.1));background:var(--input-bg,rgba(255,255,255,0.05));color:var(--input-color,#fff);font-size:12px;font-family:monospace">
-            <button class="qrcode-copy-btn" onclick="copyQRSyncLink()">📋</button>
+            <div id="qr-countdown" class="qr-countdown-bar">
+              <span class="qr-countdown-text">有效期：<span id="qr-countdown-num">5:00</span></span>
+              <button class="qr-refresh-btn" onclick="generateQRSyncLink()" title="刷新">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                <span>刷新</span>
+              </button>
+              <button class="qr-hide-btn" onclick="hideQRCode()" title="隐藏二维码">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
+            <div class="qrcode-output-row">
+              <input type="text" id="qrcode-share-url" readonly class="qrcode-share-input">
+              <button class="qrcode-copy-btn" onclick="copyQRSyncLink()" title="复制链接">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -283,88 +336,122 @@ function showQRSyncDialog() {
   `;
   document.body.appendChild(overlay);
 
-  // 添加过渡动画
   if (!document.getElementById('qrcode-fade-anim')) {
     const s = document.createElement('style');
     s.id = 'qrcode-fade-anim';
     s.textContent = '@keyframes fadeIn { from { opacity:0 } to { opacity:1 } }';
     document.head.appendChild(s);
   }
-
-  // 自动切换到分享 tab + 生成二维码
-  const shareTab = overlay.querySelector('[onclick*="share"]');
-  if (shareTab) shareTab.click();
 }
 
-// PIN 显示/隐藏
-function togglePINVisibility() {
-  const input = document.getElementById('qr-pin-input');
-  if (input) input.type = input.type === 'password' ? 'text' : 'password';
+// 进扫码视图
+function enterScanMode() {
+  document.getElementById('qrsync-share').style.display = 'none';
+  document.getElementById('qrsync-scan').style.display = 'block';
+  stopQRCountdown();
+  startCameraScan();
 }
 
-// Tab 切换
-function switchQRTab(name, btn) {
-  document.querySelectorAll('.qrcode-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.qrcode-tab-content').forEach(t => t.style.display = 'none');
-  if (btn) btn.classList.add('active');
-  document.getElementById('qrtab-' + name).style.display = 'block';
-  // 切换到分享 tab 时，自动生成二维码
-  if (name === 'share') generateQRSyncLink();
+// 回主菜单（= 分享视图，但隐藏二维码）
+function backToMain() {
+  stopCameraScan();
+  stopQRCountdown();
+  const scan = document.getElementById('qrsync-scan');
+  const share = document.getElementById('qrsync-share');
+  const placeholder = document.getElementById('qrcode-placeholder');
+  const area = document.getElementById('qrcode-area');
+  if (scan) scan.style.display = 'none';
+  if (share) share.style.display = 'block';
+  if (placeholder) placeholder.style.display = 'flex';
+  if (area) area.style.display = 'none';
+  const result = document.getElementById('qr-scan-result');
+  if (result) result.style.display = 'none';
 }
 
-// 生成同步链接 + 二维码
+// 隐藏二维码（回到占位提示态）
+function hideQRCode() {
+  stopQRCountdown();
+  const placeholder = document.getElementById('qrcode-placeholder');
+  const area = document.getElementById('qrcode-area');
+  if (placeholder) placeholder.style.display = 'flex';
+  if (area) area.style.display = 'none';
+}
+
+// 倒计时
+let _qrCountdownTimer = null;
+let _qrCountdownEnd = 0;
+function startQRCountdown() {
+  stopQRCountdown();
+  _qrCountdownEnd = Date.now() + _QR_TTL_MS;
+  const tick = () => {
+    const remain = _qrCountdownEnd - Date.now();
+    const el = document.getElementById('qr-countdown-num');
+    if (!el) { stopQRCountdown(); return; }
+    if (remain <= 0) {
+      el.textContent = '已过期';
+      el.style.color = '#ff8a5e';
+      const canvas = document.getElementById('qrcode-canvas');
+      if (canvas) canvas.style.opacity = '0.25';
+      stopQRCountdown();
+      return;
+    }
+    const mins = Math.floor(remain / 60000);
+    const secs = Math.floor((remain % 60000) / 1000);
+    el.textContent = mins + ':' + String(secs).padStart(2, '0');
+    el.style.color = remain < 60000 ? '#ff8a5e' : '#4ade80';
+  };
+  tick();
+  _qrCountdownTimer = setInterval(tick, 1000);
+}
+function stopQRCountdown() {
+  if (_qrCountdownTimer) { clearInterval(_qrCountdownTimer); _qrCountdownTimer = null; }
+}
+
+// 生成同步链接 + 二维码（v0.9.5.4：从占位态切到二维码态）
 async function generateQRSyncLink() {
   const syncCode = localStorage.getItem(CLOUD_TOKEN_KEY) || '';
   if (!syncCode) return;
 
-  const pinInput = document.getElementById('qr-pin-input');
-  const pin = pinInput ? pinInput.value.trim() : '1234';
-  if (!pin || pin.length < 4) {
-    document.getElementById('qrcode-canvas').innerHTML = '<div style="opacity:0.4;font-size:13px">PIN 码至少 4 位</div>';
-    return;
-  }
+  // 切换显示：隐藏占位、显示二维码区
+  const placeholder = document.getElementById('qrcode-placeholder');
+  const area = document.getElementById('qrcode-area');
+  if (placeholder) placeholder.style.display = 'none';
+  if (area) area.style.display = 'block';
+
+  const canvas = document.getElementById('qrcode-canvas');
+  if (canvas) canvas.style.opacity = '1';
 
   try {
-    // 构建配置 JSON 字符串
     const configStr = JSON.stringify({
       syncCode,
       apiKeys: getApiKeys(),
       preferences: {
-        theme: localStorage.getItem('codingplan-theme') || 'dark',
+        theme: localStorage.getItem('codingplan-theme') || 'light',
       },
     });
+    const encConfig = await encryptConfigTimed(configStr);
+    const appURL = window.location.origin + '/?import=' + encodeURIComponent(encConfig);
 
-    // 用 PIN 加密
-    const encConfig = await encryptConfigWithPIN(configStr, pin);
-
-    // 构建链接
-    const appURL = window.location.origin + '/?import=' + encodeURIComponent(encConfig) + '&pin=' + pin;
-
-    // 更新输入框
     const urlInput = document.getElementById('qrcode-share-url');
     if (urlInput) urlInput.value = appURL;
 
-    // 生成二维码
-    const container = document.getElementById('qrcode-canvas');
-    container.innerHTML = '';
-
+    canvas.innerHTML = '';
     if (typeof QRCode !== 'undefined') {
-      // 使用 qrcodejs 库 — 白底黑码（v0.9.5.2 hotfix，扫码最稳）
-      const qr = new QRCode(container, {
+      new QRCode(canvas, {
         text: appURL,
-        width: 210,
-        height: 210,
+        width: 220,
+        height: 220,
         colorDark: '#000000',
         colorLight: '#ffffff',
         correctLevel: QRCode.CorrectLevel.M,
       });
     } else {
-      // 降级：显示链接文本
-      container.innerHTML = `<div style="font-size:12px;opacity:0.5;text-align:center;word-break:break-all;padding:16px">${appURL}</div>`;
+      canvas.innerHTML = '<div style="font-size:12px;opacity:0.5;text-align:center;word-break:break-all;padding:16px">' + appURL + '</div>';
     }
+    startQRCountdown();
   } catch(e) {
-    console.warn('[v0.9.5] QR 生成失败:', e);
-    document.getElementById('qrcode-canvas').innerHTML = '<div style="opacity:0.4;font-size:12px;color:red">生成失败: ' + e.message + '</div>';
+    console.warn('[v0.9.5.4] QR 生成失败:', e);
+    if (canvas) canvas.innerHTML = '<div style="opacity:0.7;font-size:13px;color:#ff8a5e;text-align:center">生成失败:' + e.message + '</div>';
   }
 }
 
@@ -381,7 +468,7 @@ async function startCameraScan() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     if (resultDiv) {
       resultDiv.style.display = 'block';
-      resultDiv.innerHTML = '<div style="color:#ff8a5e">❌ 浏览器不支持摄像头 API，请用最新版浏览器</div>';
+      resultDiv.innerHTML = '<div style="color:#ff8a5e"> 浏览器不支持摄像头 API，请用最新版浏览器</div>';
     }
     return;
   }
@@ -389,7 +476,7 @@ async function startCameraScan() {
   if (typeof jsQR === 'undefined') {
     if (resultDiv) {
       resultDiv.style.display = 'block';
-      resultDiv.innerHTML = '<div style="color:#ff8a5e">❌ jsQR 库未加载，请刷新页面重试</div>';
+      resultDiv.innerHTML = '<div style="color:#ff8a5e"> jsQR 库未加载，请刷新页面重试</div>';
     }
     return;
   }
@@ -434,7 +521,7 @@ async function startCameraScan() {
     else if (e.name === 'NotFoundError') msg = '未找到摄像头设备';
     if (resultDiv) {
       resultDiv.style.display = 'block';
-      resultDiv.innerHTML = '<div style="color:#ff8a5e">❌ ' + msg + '</div>';
+      resultDiv.innerHTML = '<div style="color:#ff8a5e">' + msg + '</div>';
     }
     stopCameraScan();
   }
@@ -460,19 +547,18 @@ async function handleQRDecoded(qrData) {
   const resultDiv = document.getElementById('qr-scan-result');
   if (resultDiv) {
     resultDiv.style.display = 'block';
-    resultDiv.innerHTML = '<div style="color:#4ade80">⏳ 已识别到二维码，正在解密配置...</div>';
+    resultDiv.innerHTML = '<div style="color:#4ade80"> 已识别到二维码，正在解密配置...</div>';
   }
 
   try {
     const url = new URL(qrData);
     const encConfig = url.searchParams.get('import');
-    const pin = url.searchParams.get('pin');
 
-    if (!encConfig || !pin) {
+    if (!encConfig) {
       throw new Error('二维码格式错误，请使用本应用生成的二维码');
     }
 
-    const configStr = await decryptConfigWithPIN(encConfig, pin);
+    const configStr = await decryptConfigTimed(encConfig);
     const config = JSON.parse(configStr);
 
     if (config.syncCode) setCloudToken(config.syncCode);
@@ -484,8 +570,8 @@ async function handleQRDecoded(qrData) {
 
     if (resultDiv) {
       const keyCount = config.apiKeys ? Object.keys(config.apiKeys).length : 0;
-      resultDiv.innerHTML = '<div style="color:#4ade80;font-weight:600">✅ 配置已同步！</div>' +
-        '<div style="color:#a0a0b0;font-size:12px;margin-top:4px">同步码已更新，导入 ' + keyCount + ' 个 API Key 配置</div>';
+      resultDiv.innerHTML = '<div style="color:#4ade80;font-weight:600"> 配置已同步！</div>' +
+        '<div style="color:#a0a0b0;font-size:12px;margin-top:4px">同步码已更新，导入' + keyCount + '个 API Key 配置</div>';
     }
 
     setTimeout(() => {
@@ -495,8 +581,8 @@ async function handleQRDecoded(qrData) {
     }, 1800);
   } catch (e) {
     if (resultDiv) {
-      resultDiv.innerHTML = '<div style="color:#ff8a5e">❌ ' + e.message + '</div>' +
-        '<button onclick="startCameraScan()" style="margin-top:8px;background:#ff6b35;color:#fff;border:none;padding:8px 16px;border-radius:10px;cursor:pointer">🔄 重新扫码</button>';
+      resultDiv.innerHTML = '<div style="color:#ff8a5e">' + e.message + '</div>' +
+        '<button onclick="startCameraScan()" style="margin-top:8px;background:#ff6b35;color:#fff;border:none;padding:8px 16px;border-radius:10px;cursor:pointer"> 重新扫码</button>';
     }
   }
 }
@@ -509,18 +595,11 @@ function copyQRSyncLink() {
   navigator.clipboard.writeText(input.value).then(() => {
     const btn = document.querySelector('.qrcode-copy-btn');
     if (btn) {
-      btn.textContent = '✅';
-      setTimeout(() => { btn.textContent = '📋'; }, 2000);
+      btn.textContent = '';
+      setTimeout(() => { btn.textContent = ''; }, 2000);
     }
   });
 }
-
-// PIN 变化时自动重新生成二维码
-document.addEventListener('input', (e) => {
-  if (e.target && e.target.id === 'qr-pin-input') {
-    generateQRSyncLink();
-  }
-});
 
 
 // ─────────────────────────────────────────────────
@@ -531,10 +610,9 @@ document.addEventListener('input', (e) => {
   try {
     const params = new URLSearchParams(window.location.search);
     const encConfig = params.get('import');
-    const pin = params.get('pin');
-    if (!encConfig || !pin) return;
+    if (!encConfig) return;
 
-    const configStr = await decryptConfigWithPIN(encConfig, pin);
+    const configStr = await decryptConfigTimed(encConfig);
     const config = JSON.parse(configStr);
 
     if (config.syncCode) setCloudToken(config.syncCode);
@@ -550,7 +628,7 @@ document.addEventListener('input', (e) => {
 
     // 延迟弹出提示
     setTimeout(() => {
-      alert('📲 配置已从二维码导入！\n同步码 + API Keys 已生效。\n是否从云端恢复对话？');
+      alert('配置已从二维码导入！\n同步码 + API Keys 已生效。\n是否从云端恢复对话？');
       // 用户点确定后自动下载
       if (confirm('是否立即从云端下载备份数据？')) {
         cloudDownload();
@@ -583,7 +661,7 @@ async function validateApiKey(providerId, apiKey) {
     const resp = await fetch(valiCfg.url, {
       method: valiCfg.method || 'GET',
       headers: {
-        'Authorization': 'Bearer ' + apiKey,
+        'Authorization': 'Bearer' + apiKey,
         'Content-Type': 'application/json',
         ...(valiCfg.headers || {}),
       },
@@ -599,7 +677,7 @@ async function validateApiKey(providerId, apiKey) {
       return { valid: false, error: 'API Key 无效（' + resp.status + '）' };
     }
     // 其他 4xx / 5xx — 可能是网络问题
-    return { valid: false, error: '校验失败（HTTP ' + resp.status + '）' };
+    return { valid: false, error: '校验失败（HTTP' + resp.status + '）' };
   } catch (e) {
     return { valid: false, error: '网络错误：' + e.message };
   }
@@ -612,27 +690,27 @@ const VALIDATION_ENDPOINTS = {
     method: 'POST',
     headers: { 'X-Validate-Only': '1' },
     body: { model: 'auto', messages: [{ role: 'user', content: '' }], max_tokens: 1 },
-    successLabel: '✅ CodingPlan Key 有效',
+    successLabel: 'CodingPlan Key 有效',
   },
   deepseek: {
     url: 'https://api.deepseek.com/v1/models',
     method: 'GET',
-    successLabel: '✅ DeepSeek Key 有效',
+    successLabel: 'DeepSeek Key 有效',
   },
   zhipu: {
     url: 'https://open.bigmodel.cn/api/paas/v4/models',
     method: 'GET',
-    successLabel: '✅ 智谱 GLM Key 有效',
+    successLabel: '智谱 GLM Key 有效',
   },
   moonshot: {
     url: 'https://api.moonshot.cn/v1/models',
     method: 'GET',
-    successLabel: '✅ Moonshot Key 有效',
+    successLabel: 'Moonshot Key 有效',
   },
   custom: {
     url: 'https://api.openai.com/v1/models',
     method: 'GET',
-    successLabel: '✅ Key 有效（自定义 OpenAI 兼容）',
+    successLabel: 'Key 有效（自定义 OpenAI 兼容）',
   },
 };
 
@@ -652,7 +730,7 @@ async function checkBalance(providerId, apiKey) {
     const resp = await fetch(balCfg.url, {
       method: balCfg.method || 'GET',
       headers: {
-        'Authorization': 'Bearer ' + apiKey,
+        'Authorization': 'Bearer' + apiKey,
         'Content-Type': 'application/json',
         ...(balCfg.headers || {}),
       },
@@ -662,7 +740,7 @@ async function checkBalance(providerId, apiKey) {
       if (resp.status === 401 || resp.status === 403) {
         return { supported: true, error: 'API Key 无效，无法查询余额' };
       }
-      return { supported: true, error: '查询失败（HTTP ' + resp.status + '）' };
+      return { supported: true, error: '查询失败（HTTP' + resp.status + '）' };
     }
 
     const data = await resp.json();
@@ -685,7 +763,7 @@ const BALANCE_ENDPOINTS = {
       const bal = parseFloat(info.total_balance || '0');
       const expiring = parseFloat(info.granted_balance || '0');
       let desc = '¥' + bal.toFixed(2);
-      if (expiring > 0) desc += '（含 ' + expiring.toFixed(2) + ' 即将过期赠送金）';
+      if (expiring > 0) desc += '（含' + expiring.toFixed(2) + '即将过期赠送金）';
       return { supported: true, balance: desc };
     },
   },
@@ -695,7 +773,7 @@ const BALANCE_ENDPOINTS = {
     parse: (data) => {
       // Moonshot 返回: { "balance": "49.99", "currency": "CNY", "total": "100.00" }
       const bal = parseFloat(data.balance || '0');
-      const total = data.total ? ' / 总额 ¥' + parseFloat(data.total).toFixed(2) : '';
+      const total = data.total ? '/ 总额 ¥' + parseFloat(data.total).toFixed(2) : '';
       return { supported: true, balance: '¥' + bal.toFixed(2) + total };
     },
   },
