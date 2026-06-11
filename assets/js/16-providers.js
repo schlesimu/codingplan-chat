@@ -7,7 +7,7 @@
 const PROVIDERS = {
   codingplan: {
     id: 'codingplan',
-    label: '🔥 火山 CodingPlan（默认免费）',
+    label: '火山 CodingPlan（默认免费）',
     description: '平台共享 key，无需配置，开箱即用',
     needsKey: false,
     backend: 'cf-proxy',   // 走 /api/chat
@@ -30,7 +30,7 @@ const PROVIDERS = {
   },
   zhipu: {
     id: 'zhipu',
-    label: '🧠 智谱 GLM（zhipu.ai）',
+    label: '智谱 GLM（zhipu.ai）',
     description: 'GLM-4.5 / GLM-4.5-Air / GLM-4-Flash 免费版',
     needsKey: true,
     backend: 'openai-compatible',
@@ -46,7 +46,7 @@ const PROVIDERS = {
   },
   deepseek: {
     id: 'deepseek',
-    label: '🐳 DeepSeek（deepseek.com）',
+    label: 'DeepSeek（deepseek.com）',
     description: 'DeepSeek V3 / R1 推理模型',
     needsKey: true,
     backend: 'openai-compatible',
@@ -60,7 +60,7 @@ const PROVIDERS = {
   },
   moonshot: {
     id: 'moonshot',
-    label: '🌙 Moonshot Kimi（moonshot.cn）',
+    label: 'Moonshot Kimi（moonshot.cn）',
     description: 'Kimi 长上下文 8k / 32k / 128k',
     needsKey: true,
     backend: 'openai-compatible',
@@ -75,7 +75,7 @@ const PROVIDERS = {
   },
   openai: {
     id: 'openai',
-    label: '🤖 OpenAI 兼容（自定义）',
+    label: 'OpenAI 兼容（自定义）',
     description: '支持 OpenAI 官方、One-API、新 API 等所有 OpenAI 兼容协议',
     needsKey: true,
     needsCustomEndpoint: true,
@@ -92,7 +92,7 @@ const PROVIDERS = {
   },
   anthropic: {
     id: 'anthropic',
-    label: '🦋 Anthropic Claude（直连，需代理）',
+    label: 'Anthropic Claude（直连，需代理）',
     description: 'Claude Sonnet 4.5 / Opus 4 - 浏览器直连受 CORS 限制，建议通过代理',
     needsKey: true,
     backend: 'anthropic',  // 特殊协议
@@ -103,7 +103,7 @@ const PROVIDERS = {
       { id: 'claude-haiku-4-5-20251022', label: 'Claude Haiku 4.5' },
     ],
     docsUrl: 'https://console.anthropic.com/settings/keys',
-    keyHelp: '⚠️ Anthropic 官方端点不允许浏览器直连，需通过 OpenRouter 或自建代理',
+    keyHelp: '️ Anthropic 官方端点不允许浏览器直连，需通过 OpenRouter 或自建代理',
   },
 };
 
@@ -152,7 +152,7 @@ function saveProviderConfig(pid, cfg) {
 async function callLLMProvider(sendMessages, onDelta, options = {}) {
   const pid = getActiveProvider();
   const provider = PROVIDERS[pid];
-  if (!provider) throw new Error('未知 provider: ' + pid);
+  if (!provider) throw new Error('未知 provider:' + pid);
 
   const cfg = getProviderConfig(pid);
   const modelId = getActiveModel();
@@ -166,7 +166,7 @@ async function callLLMProvider(sendMessages, onDelta, options = {}) {
   if (provider.backend === 'anthropic') {
     return await callAnthropicDirect(provider, cfg, modelId, sendMessages, onDelta, options);
   }
-  throw new Error('未实现的 backend: ' + provider.backend);
+  throw new Error('未实现的 backend:' + provider.backend);
 }
 
 // ===== CF Proxy（默认 CodingPlan）=====
@@ -202,7 +202,7 @@ async function callOpenAICompatible(provider, cfg, modelId, sendMessages, onDelt
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + key,
+      'Authorization': 'Bearer' + key,
     },
     body: JSON.stringify({
       model,
@@ -267,7 +267,7 @@ async function callAnthropicDirect(provider, cfg, modelId, sendMessages, onDelta
     buffer += decoder.decode(value, { stream: true });
     const lines = buffer.split('\n'); buffer = lines.pop() || '';
     for (const line of lines) {
-      if (!line.startsWith('data: ')) continue;
+      if (!line.startsWith('data:')) continue;
       const data = line.slice(6).trim();
       if (!data) continue;
       try {
@@ -307,7 +307,7 @@ async function readSSE(resp, onDelta) {
     buffer += decoder.decode(value, { stream: true });
     const lines = buffer.split('\n'); buffer = lines.pop() || '';
     for (const line of lines) {
-      if (!line.startsWith('data: ')) continue;
+      if (!line.startsWith('data:')) continue;
       const data = line.slice(6).trim();
       if (data === '[DONE]') continue;
       try {
@@ -341,7 +341,7 @@ function showProviderDialog() {
   const activeModelId = getActiveModel();
 
   let html = '<div style="padding:0">';
-  html += '<h3 style="margin:0 0 12px 0;font-size:15px;color:var(--text-main)">🤖 模型选择</h3>';
+  html += '<h3 style="margin:0 0 12px 0;font-size:15px;color:var(--text-main)"> 模型选择</h3>';
 
   // 1. Provider 列表
   html += '<div style="margin-bottom:14px">';
@@ -450,7 +450,7 @@ function saveProviderDialog() {
   // 更新顶栏显示
   updateModelBadge();
   // 友好提示
-  if (typeof toast === 'function') toast(`✅ 已切换到 ${provider.label}`);
+  if (typeof toast === 'function') toast(` 已切换到 ${provider.label}`);
 }
 
 // 顶栏显示当前模型徽章
@@ -470,8 +470,8 @@ function updateModelBadge() {
     if (modelId === 'auto') shortLabel = 'Auto';
     else if (model?.label) shortLabel = model.label.split('（')[0].trim();
     else shortLabel = modelId || 'auto';
-    badge.textContent = '🔥 CodingPlan · ' + shortLabel;
-    badge.title = '当前使用火山 CodingPlan 的 ' + shortLabel + ' 模型，点击切换内部模型';
+    badge.textContent = 'CodingPlan · ' + shortLabel;
+    badge.title = '当前使用火山 CodingPlan 的' + shortLabel + '模型，点击切换内部模型';
   } else {
     const model = provider?.models.find(m => m.id === modelId);
     const cleanLabel = (provider?.label || '?').replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]\s*/u, '');
@@ -490,7 +490,7 @@ function showCodingplanModelDialog() {
     : (getProviderConfig('codingplan').model || 'auto');
 
   let html = '<div style="padding:0">';
-  html += '<h3 style="margin:0 0 6px 0;font-size:15px;color:var(--text-main)">🔥 CodingPlan 模型</h3>';
+  html += '<h3 style="margin:0 0 6px 0;font-size:15px;color:var(--text-main)"> CodingPlan 模型</h3>';
   html += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:14px;line-height:1.5">';
   html += '默认 <b>Auto</b> 模式 = 用你在 <a href="https://www.volcengine.com/product/coding-copilot" target="_blank" style="color:#7c66dc">火山控制台</a>「开通管理」里选的那个模型（切换后 3-5 分钟生效）。';
   html += '<br>也可以下面直接选具体 Model Name 实时切换，不消耗控制台切换次数。';
@@ -500,13 +500,13 @@ function showCodingplanModelDialog() {
   html += '<div style="font-size:12px;color:var(--sidebar-text);margin-bottom:6px">选择模型</div>';
   html += '<select id="cpm-model" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--sidebar-divider);background:var(--input-bg);color:var(--input-color);font-size:13px">';
   for (const m of codingplan.models) {
-    html += '<option value="' + m.id + '"' + (m.id === activeModelId ? ' selected' : '') + '>' + m.label + '</option>';
+    html += '<option value="' + m.id + '"' + (m.id === activeModelId ? 'selected' : '') + '>' + m.label + '</option>';
   }
   html += '</select>';
   html += '</div>';
 
   html += '<div style="font-size:10px;color:var(--text-dim);margin-bottom:12px;padding:8px;background:var(--input-bg);border-radius:6px;line-height:1.6">';
-  html += '💡 想接入<b>智谱 / DeepSeek / Kimi / OpenAI 兼容 / Claude</b> 等第三方 provider？请去侧边栏 → 更多工具 → <b>设置 API Key</b>，里面有完整 provider 配置入口。';
+  html += '想接入<b>智谱 / DeepSeek / Kimi / OpenAI 兼容 / Claude</b> 等第三方 provider？请去侧边栏 → 更多工具 → <b>设置 API Key</b>，里面有完整 provider 配置入口。';
   html += '</div>';
 
   html += '<div style="display:flex;gap:8px;margin-top:12px">';
@@ -538,7 +538,7 @@ function saveCodingplanModelDialog() {
   closeCodingplanModelDialog();
   updateModelBadge();
   const m = PROVIDERS.codingplan.models.find(x => x.id === modelId);
-  if (typeof toast === 'function') toast('✅ 已切换到 ' + (m?.label || modelId).split('（')[0].trim());
+  if (typeof toast === 'function') toast('已切换到' + (m?.label || modelId).split('（')[0].trim());
 }
 
 // 保留旧 showProviderDialog 别名给设置面板用（在 09-settings.js 里调）
