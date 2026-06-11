@@ -44,7 +44,7 @@ function setCloudToken(code) {
 
 function showSyncCodeDialog() {
   const code = localStorage.getItem(CLOUD_TOKEN_KEY) || '';
-  const msg = '📱 多设备同步\n\n'
+  const msg = '多设备同步\n\n'
     + '你的同步码：' + code + '\n\n'
     + '在其他设备输入相同同步码即可共享数据。\n'
     + '修改同步码将无法访问之前的数据！\n\n'
@@ -54,7 +54,7 @@ function showSyncCodeDialog() {
   if (action === null) return;
   if (action === code) return;
   if (setCloudToken(action)) {
-    alert('✅ 同步码已更新为：' + action + '\n\n在其他设备输入此码即可同步。');
+    alert('同步码已更新为：' + action + '\n\n在其他设备输入此码即可同步。');
   }
 }
 
@@ -116,7 +116,7 @@ async function cloudUpload() {
     if (resp.ok) {
       const data = await resp.json().catch(() => ({}));
       lastCloudSync = Date.now();
-      console.log('☁️ KV 备份成功', data);
+      console.log('️ KV 备份成功', data);
       updateCloudStatus();
     } else {
       const errTxt = await resp.text().catch(() => '');
@@ -136,7 +136,7 @@ async function cloudDownload() {
     if (!resp.ok) {
       const errTxt = await resp.text().catch(() => '');
       console.warn('云端恢复失败:', resp.status, errTxt.slice(0, 200));
-      alert('云端暂无备份数据 (HTTP ' + resp.status + ')');
+      alert('云端暂无备份数据 (HTTP' + resp.status + ')');
       return;
     }
     const respJson = await resp.json();
@@ -163,9 +163,9 @@ async function cloudDownload() {
     if (list.length > 0) switchToConversation(list[0].id);
     renderChatHistory();
     updateCloudStatus();
-    alert('✅ 云端数据已恢复！\n共 ' + Object.keys(cloud).length + ' 个对话\n\n存储方式：GitHub Gist（免费）');
+    alert('云端数据已恢复！\n共' + Object.keys(cloud).length + '个对话\n\n存储方式：GitHub Gist（免费）');
   } catch (e) {
-    alert('❌ 恢复失败：' + e.message);
+    alert('恢复失败：' + e.message);
   }
 }
 
@@ -177,9 +177,9 @@ async function manualBackup() {
   }
   await cloudUpload();
   if (lastCloudSync > 0) {
-    alert('✅ 备份成功！\n\n共备份 ' + Object.keys(conversations).length + ' 个对话\n备份时间：' + new Date(lastCloudSync).toLocaleString() + '\n\n存储方式：GitHub Gist（免费永久）');
+    alert('备份成功！\n\n共备份' + Object.keys(conversations).length + '个对话\n备份时间：' + new Date(lastCloudSync).toLocaleString() + '\n\n存储方式：GitHub Gist（免费永久）');
   } else {
-    alert('❌ 备份失败，请检查网络连接');
+    alert('备份失败，请检查网络连接');
   }
 }
 
@@ -219,7 +219,7 @@ exportChat = function() {
   text += `> 导出时间: ${new Date().toLocaleString()}\n`;
   text += `> 共 ${messages.length} 条消息\n\n---\n\n`;
   messages.forEach(m => {
-    text += `### ${m.role === 'user' ? '🧑 我' : '🔥 助手'}\n\n${m.content}\n\n---\n\n`;
+    text += `### ${m.role === 'user' ? '我' : '助手'}\n\n${m.content}\n\n---\n\n`;
   });
   const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
   const url = URL.createObjectURL(blob);
@@ -242,7 +242,7 @@ function exportAllChats() {
       text += `> 导出时间: ${new Date().toLocaleString()}\n`;
       text += `> 共 ${(c.messages||[]).length} 条消息\n\n---\n\n`;
       (c.messages||[]).forEach(m => {
-        text += `### ${m.role === 'user' ? '🧑 我' : '🔥 助手'}\n\n${m.content}\n\n---\n\n`;
+        text += `### ${m.role === 'user' ? '我' : '助手'}\n\n${m.content}\n\n---\n\n`;
       });
       const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
       const url = URL.createObjectURL(blob);
