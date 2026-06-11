@@ -3,6 +3,21 @@
 
 function showChangelog() {
   const changelog = [
+    { v: 'v0.9.1', date: '2026-06-11', items: [
+      '🎯 **顶栏徽章重做：只显示当前 CodingPlan 用的具体模型**',
+      '   - 顶栏徽章不再是多 provider 入口，改为「🔥 CodingPlan · {当前模型}」展示',
+      '   - 点击徽章 → 弹出只切换 CodingPlan 内部 Model Name 的精简对话框',
+      '   - 默认 Auto 模式 = 用控制台「开通管理」里选的模型（切换 3-5 分钟生效）',
+      '   - 也可下拉直接选 doubao-seed-2.0-code / minimax-m3 / glm-5.1 / deepseek-v4-pro / kimi-k2.6 等 10 种 Model Name（实时切换）',
+      '🛠️ **多 Provider 配置迁移到「设置 API Key」面板**',
+      '   - 设置面板顶部新增「⚙️ 打开多 Provider 配置」按钮',
+      '   - 智谱 GLM / DeepSeek / Kimi / OpenAI 兼容 / Claude 等第三方接入入口整合到这里',
+      '   - 顶栏只承担「我现在用啥模型」的展示职责，逻辑更清晰',
+      '🔧 **后端 /api/chat 接受 model 参数**',
+      '   - 带 10 个 Model Name 白名单校验（防乱传）',
+      '   - auto 自动映射到 ark-code-latest',
+      '   - 默认行为不变（不传 model 仍走 ark-code-latest）',
+    ]},
     { v: 'v0.9.0', date: '2026-06-11', items: [
       '🏗️ **重大重构：代码模块化**',
       '   - 原 4176 行单文件 index.html 拆为 363 行入口 + assets/css/main.css（1846 行）+ 16 个 JS 模块',

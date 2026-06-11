@@ -4,7 +4,18 @@
 
 const DEFAULT_API_KEY = "ark-0807eeda-ed14-41c5-b2ab-cfc593367186-fa539";
 const DEFAULT_API_BASE = "https://ark.cn-beijing.volces.com/api/coding/v3";
-const MODEL = "ark-code-latest";
+const DEFAULT_MODEL = "ark-code-latest";  // 控制台选的 auto 模式
+
+// 火山 Coding Plan 支持的 Model Name 白名单（防止前端乱传）
+const ALLOWED_MODELS = new Set([
+  'ark-code-latest', 'auto',
+  'doubao-seed-2.0-code', 'doubao-seed-2.0-pro', 'doubao-seed-2.0-lite',
+  'doubao-seed-code',
+  'minimax-m2.7', 'minimax-m3',
+  'glm-5.1',
+  'deepseek-v4-flash', 'deepseek-v4-pro',
+  'kimi-k2.6',
+]);
 
 export async function onRequest(context) {
   const { request } = context;
@@ -30,7 +41,13 @@ export async function onRequest(context) {
 
   try {
     const body = await request.json();
-    const { messages, stream } = body || {};
+    const { messages, stream, model: reqModel } = body || {};
+
+    // 校验 model：必须在白名单里，'auto' 映射到 ark-code-latest
+    let model = DEFAULT_MODEL;
+    if (reqModel && ALLOWED_MODELS.has(reqModel)) {
+      model = (reqModel === 'auto') ? 'ark-code-latest' : reqModel;
+    }
 
     const apiBase = request.headers.get('X-Codingplan-Base') || DEFAULT_API_BASE;
 
@@ -41,7 +58,7 @@ export async function onRequest(context) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: MODEL,
+        model,
         messages,
         stream: stream || false
       })
