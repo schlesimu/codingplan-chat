@@ -27,4 +27,44 @@ function updateThemeSwitcherUI() {
   });
 }
 
+// ========== v0.9.5.7: 弱视觉效果开关 ==========
+const REDUCE_FX_KEY = 'codingplan-reduce-fx';
+
+function isReduceFxOn() {
+  return localStorage.getItem(REDUCE_FX_KEY) === '1';
+}
+
+function applyReduceFx(on) {
+  document.body.classList.toggle('reduce-fx', !!on);
+  const btn = document.getElementById('reduceFxToggle');
+  const label = document.getElementById('reduceFxLabel');
+  if (btn) btn.classList.toggle('reduce-fx-active', !!on);
+  if (label) label.textContent = on ? '弱视觉效果（已开启）' : '弱视觉效果';
+}
+
+function toggleReduceFx() {
+  const on = !isReduceFxOn();
+  if (on) {
+    localStorage.setItem(REDUCE_FX_KEY, '1');
+  } else {
+    localStorage.removeItem(REDUCE_FX_KEY);
+  }
+  applyReduceFx(on);
+}
+
+// 启动时恢复弱视觉状态
+function _initReduceFx() {
+  try { applyReduceFx(isReduceFxOn()); }
+  catch (e) { console.error('[reduce-fx] init 失败', e); }
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _initReduceFx);
+} else {
+  _initReduceFx();
+}
+
+if (typeof window !== 'undefined') {
+  window.toggleReduceFx = toggleReduceFx;
+}
+
 // ========== GitHub Gist 云存储 ==========
