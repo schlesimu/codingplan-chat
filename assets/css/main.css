@@ -2335,3 +2335,63 @@ body {
 [data-theme="light"] .qrcode-tab { color: #666; }
 [data-theme="light"] .qrcode-scan-area { color: #2a2a3a; }
 [data-theme="light"] .qrcode-container { background: #ffffff; }
+
+/* ============================================================
+   v0.9.5.7: 弱视觉效果模式（body.reduce-fx）
+   注：data-theme 在 <html> 上，所以选择器写成 [data-theme] body.reduce-fx
+   - 砍掉 backdrop-filter（毛玻璃）：dark/light 全关，liquid 保留
+   - 砍掉聊天气泡渐变背景：用户气泡改纯色
+   - 砍掉 hover 动画（transform/scale/translate）
+   - Liquid 主题保留毛玻璃，但砍掉浅紫色背景渐变 + 光斑漂浮
+   ============================================================ */
+
+/* 1. 毛玻璃：dark/light 主题全关（liquid 不动） */
+[data-theme="dark"] body.reduce-fx *,
+[data-theme="light"] body.reduce-fx * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* 2. 用户气泡渐变 → 纯色（CSS 变量覆盖） */
+[data-theme="dark"] body.reduce-fx {
+  --bubble-user-bg: rgba(0,160,150,0.55);
+}
+[data-theme="light"] body.reduce-fx {
+  --bubble-user-bg: rgba(0,160,150,0.45);
+}
+[data-theme="liquid"] body.reduce-fx {
+  --bubble-user-bg: rgba(120,150,240,0.35);
+}
+
+/* 3. hover 动画：移除所有 transform 类动效 */
+body.reduce-fx *:hover,
+body.reduce-fx *:active {
+  transform: none !important;
+}
+body.reduce-fx .msg.assistant .bubble:hover,
+body.reduce-fx .msg.user .bubble:hover,
+body.reduce-fx .send-btn:hover,
+body.reduce-fx .quick-btn:hover,
+body.reduce-fx .qrsync-generate-btn:hover {
+  transform: none !important;
+}
+
+/* 4. Liquid 主题：保留毛玻璃，砍背景渐变 + 浮动光斑 */
+[data-theme="liquid"] body.reduce-fx .bg-layer {
+  background: rgba(245,245,250,0.85) !important;
+}
+[data-theme="liquid"] body.reduce-fx .bg-layer::before {
+  display: none !important;
+  animation: none !important;
+}
+
+/* 5. 弱视觉模式按钮的勾选态视觉反馈 */
+.sidebar-footer-item.reduce-fx-active {
+  background: var(--sidebar-item-hover);
+  font-weight: 600;
+}
+.sidebar-footer-item.reduce-fx-active::before {
+  content: '✓ ';
+  color: #22c55e;
+  margin-right: 2px;
+}
