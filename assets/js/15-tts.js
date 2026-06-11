@@ -389,7 +389,7 @@ async function callAI(sendMessages, bubble, allowSearch = true) {
         reasoningBox = document.createElement('details');
         reasoningBox.className = 'reasoning-box';
         reasoningBox.open = true;
-        reasoningBox.innerHTML = '<summary> <span class="reasoning-label">正在思考...</span></summary><div class="reasoning-body"></div>';
+        reasoningBox.innerHTML = '<summary> <span class="reasoning-label">🧠 小纸船在打草稿…</span></summary><div class="reasoning-body"></div>';
         bubble.parentElement.insertBefore(reasoningBox, bubble);
         reasoningBody = reasoningBox.querySelector('.reasoning-body');
       }
@@ -423,7 +423,7 @@ async function callAI(sendMessages, bubble, allowSearch = true) {
       if (searchMatch) {
         const searchQuery = searchMatch[1].trim();
         // 清除 <search> 标记，显示搜索状态
-        bubble.innerHTML = formatContent('正在搜索：' + searchQuery);
+        bubble.innerHTML = formatContent('🌊 小纸船在打捞「' + searchQuery + '」…');
         chatArea.scrollTop = chatArea.scrollHeight;
 
         // 执行搜索
@@ -448,7 +448,7 @@ async function callAI(sendMessages, bubble, allowSearch = true) {
     ret.reasoning = fullReasoning;
     return ret;
   } catch (e) {
-    bubble.innerHTML = `<span style="color:var(--text-error)"> 网络出错：${e.message}，请重试</span>`;
+    bubble.innerHTML = `<span style="color:var(--text-error)">🌫️ 小纸船迷航了：${e.message}，请重试</span>`;
     return '';
   }
 }
