@@ -107,7 +107,7 @@
       animation: pwaSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     `;
     banner.innerHTML = `
-      <div style="font-size:24px">📲</div>
+      <div style="font-size:24px"></div>
       <div style="flex:1;min-width:0">
         <div style="font-weight:600;margin-bottom:2px">添加到主屏</div>
         <div style="font-size:12px;opacity:0.7">像 App 一样从桌面打开，体验更好</div>
