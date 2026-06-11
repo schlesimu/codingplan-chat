@@ -1415,11 +1415,9 @@ body {
 .msg.user { justify-content: flex-end; flex-direction: row !important; }
 .msg.assistant { justify-content: flex-start; }
 .bubble {
-  max-width: 88% !important;
   width: fit-content;
 }
 .bubble-wrap {
-  max-width: 88%;
   width: fit-content;
 }
 /* 用户消息整行靠右 */
@@ -1430,28 +1428,85 @@ body {
 .msg.assistant .bubble { margin-right: auto; }
 
 /* ============================================================
-   v0.9.7: AI 气泡宽度优化
-   - 手机端（<=768px）：AI 气泡占满（96% 屏宽）
-   - 桌面端：AI 气泡上限 1200px，可用宽度内尽量撑大
-   - 用户气泡保持紧凑（fit-content + 88% 上限）
-   - 关键：取消 fit-content 让 AI 气泡能撑到 max-width；
-          取消 bubble-wrap 的 88% 收紧让外层不二次卡死。
+   v0.9.8: 气泡宽度自适应（按内容伸缩 + 视口分档上限）
+   核心原则：fit-content + max-width 上限
+     · 短消息 → 跟字（宽度 = 内容宽度）
+     · 长消息 → 撑到 max-width 上限
+     · 视口越大上限越高，不死磕固定数值
+
+   分档（max-width 取窗口百分比 与 px 上限的较小值）：
+   ──────────────────────────────────────────────────────────
+   视口宽度        AI 气泡上限              用户气泡上限
+   ──────────────────────────────────────────────────────────
+   ≤480 (小屏)    98vw                    92vw
+   ≤768 (手机)    96vw                    88vw
+   ≤1280 (笔电)   85vw                    65vw
+   ≤1600 (桌面)   1200px / 80vw 较小      900px / 60vw 较小
+   >1600 (宽屏)   1400px                  1000px
+   ──────────────────────────────────────────────────────────
+   - AI 上限更高（信息密度大）
+   - 用户上限稍低（一般是问题/指令，过宽影响阅读）
+   - 都用 fit-content 让短消息自然紧凑
    ============================================================ */
+
+/* AI 气泡 */
+.msg.assistant .bubble,
 .msg.assistant .bubble-wrap {
-  max-width: 1200px !important;
-  width: 96% !important;
+  max-width: 1200px;
+  width: fit-content;
 }
-.msg.assistant .bubble {
-  max-width: 1200px !important;
-  width: 100% !important;
-  margin-right: auto !important;
+/* 用户气泡 */
+.msg.user .bubble,
+.msg.user .bubble-wrap {
+  max-width: 900px;
+  width: fit-content;
 }
-@media (max-width: 768px) {
+
+/* 宽屏（>1600px）：AI 1400 / 用户 1000 */
+@media (min-width: 1601px) {
+  .msg.assistant .bubble,
   .msg.assistant .bubble-wrap {
-    width: 98% !important;
+    max-width: 1400px;
   }
-  .msg.assistant .bubble {
-    width: 100% !important;
+  .msg.user .bubble,
+  .msg.user .bubble-wrap {
+    max-width: 1000px;
+  }
+}
+
+/* 笔电（≤1280）：用 vw 比例 */
+@media (max-width: 1280px) {
+  .msg.assistant .bubble,
+  .msg.assistant .bubble-wrap {
+    max-width: 85vw;
+  }
+  .msg.user .bubble,
+  .msg.user .bubble-wrap {
+    max-width: 65vw;
+  }
+}
+
+/* 手机（≤768）：让 AI 接近占满 */
+@media (max-width: 768px) {
+  .msg.assistant .bubble,
+  .msg.assistant .bubble-wrap {
+    max-width: 96vw;
+  }
+  .msg.user .bubble,
+  .msg.user .bubble-wrap {
+    max-width: 88vw;
+  }
+}
+
+/* 小屏（≤480）：进一步放宽 */
+@media (max-width: 480px) {
+  .msg.assistant .bubble,
+  .msg.assistant .bubble-wrap {
+    max-width: 98vw;
+  }
+  .msg.user .bubble,
+  .msg.user .bubble-wrap {
+    max-width: 92vw;
   }
 }
 
@@ -1638,7 +1693,8 @@ body {
 
 /* ---- 液态玻璃气泡核心 ---- */
 .bubble {
-  max-width: 80%; padding: 8px 12px; border-radius: 14px;
+  /* v0.9.8: max-width 由前面分档规则控制，这里只管视觉样式 */
+  padding: 8px 12px; border-radius: 14px;
   font-size: 14px; line-height: 1.55;
   word-break: break-word; white-space: pre-wrap; position: relative;
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -1937,9 +1993,7 @@ body {
   position: relative; z-index: 1;
 }
 
-@media (max-width: 600px) {
-  .msg .bubble { max-width: 88%; }
-}
+/* v0.9.8: 旧 600px 88% 规则已被 v0.9.8 自适应方案替代，删除避免覆盖 */
 
 /* ========== 消息操作菜单（液态玻璃风格） ========== */
 .msg-actions {
@@ -2142,11 +2196,11 @@ body {
 
 
 /* ===== v0.9.3: Reasoning 折叠块（思考过程）===== */
+/* v0.9.8: 去掉 flex:1 让 bubble-wrap 跟着 bubble 收缩，气泡能真正贴合内容宽度 */
 .bubble-wrap {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  flex: 1;
   min-width: 0;
 }
 .reasoning-box {
