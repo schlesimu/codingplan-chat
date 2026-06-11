@@ -369,12 +369,44 @@ const SYSTEM_PROMPT = {
 // 调用 AI（支持搜索工具调用）
 async function callAI(sendMessages, bubble, allowSearch = true) {
   let fullContent = '';
+  let fullReasoning = '';
+  let reasoningBox = null;
+  let reasoningBody = null;
   try {
-    // v0.9.0: 路由到当前 provider（CodingPlan / 智谱 / DeepSeek / Moonshot / OpenAI 兼容 / Anthropic）
-    fullContent = await callLLMProvider(sendMessages, (delta, full) => {
-      bubble.innerHTML = formatContent(full);
-      chatArea.scrollTop = chatArea.scrollHeight;
+    // v0.9.3: 路由到当前 provider；onDelta 多出 reasoning 两参支持推理模型
+    const result = await callLLMProvider(sendMessages, (dContent, fContent, dReasoning, fReasoning) => {
+      // 思考期：第一次收到 reasoning 就在气泡前面插入展开的 reasoning-box
+      if (fReasoning && !reasoningBox) {
+        reasoningBox = document.createElement('details');
+        reasoningBox.className = 'reasoning-box';
+        reasoningBox.open = true;
+        reasoningBox.innerHTML = '<summary>💭 <span class="reasoning-label">正在思考...</span></summary><div class="reasoning-body"></div>';
+        bubble.parentElement.insertBefore(reasoningBox, bubble);
+        reasoningBody = reasoningBox.querySelector('.reasoning-body');
+      }
+      if (dReasoning && reasoningBody) {
+        reasoningBody.textContent = fReasoning;
+        chatArea.scrollTop = chatArea.scrollHeight;
+      }
+      // 回答期：第一次收到 content 就自动折叠 reasoning + 改 summary 文案
+      if (dContent && reasoningBox && reasoningBox.open) {
+        reasoningBox.open = false;
+        const label = reasoningBox.querySelector('.reasoning-label');
+        if (label) label.textContent = `思考过程（${fReasoning.length} 字，点击展开）`;
+      }
+      if (dContent) {
+        bubble.innerHTML = formatContent(fContent);
+        chatArea.scrollTop = chatArea.scrollHeight;
+      }
     });
+    fullContent = String(result);
+    fullReasoning = result.reasoning || '';
+    // 流结束后兜底：如果只吐了 reasoning 没吐 content（极端情况），把 reasoning-box 折叠
+    if (reasoningBox && reasoningBox.open) {
+      reasoningBox.open = false;
+      const label = reasoningBox.querySelector('.reasoning-label');
+      if (label) label.textContent = `思考过程（${fullReasoning.length} 字，点击展开）`;
+    }
 
     // 检测是否需要搜索（联网搜索开启时）
     if (allowSearch && webSearchEnabled) {
@@ -402,7 +434,10 @@ async function callAI(sendMessages, bubble, allowSearch = true) {
       }
     }
 
-    return fullContent;
+    // v0.9.3: 把 reasoning 也带回去，调用方用 .reasoning 取
+    const ret = new String(fullContent);
+    ret.reasoning = fullReasoning;
+    return ret;
   } catch (e) {
     bubble.innerHTML = `<span style="color:var(--text-error)">❌ 网络出错：${e.message}，请重试</span>`;
     return '';
@@ -460,10 +495,14 @@ async function sendMessage() {
   // 构建消息上下文（包含系统提示）
   const sendMessages = [SYSTEM_PROMPT, ...messages];
 
-  const fullContent = await callAI(sendMessages, bubble);
+  const aiResult = await callAI(sendMessages, bubble);
+  const fullContent = String(aiResult || '');
+  const fullReasoning = (aiResult && aiResult.reasoning) || '';
 
   if (fullContent) {
-    messages.push({ role: 'assistant', content: fullContent });
+    const msg = { role: 'assistant', content: fullContent };
+    if (fullReasoning) msg.reasoning = fullReasoning;  // v0.9.3: 持久化思考链
+    messages.push(msg);
     saveCurrentConversation();
     // 给流式消息 div 加上右键/长按/操作按钮
     setupAssistantActions(div, bubble, fullContent);

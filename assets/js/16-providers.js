@@ -255,10 +255,12 @@ async function callAnthropicDirect(provider, cfg, modelId, sendMessages, onDelta
   }
 
   // Anthropic SSE 格式不同，要解 event: content_block_delta
+  // v0.9.3: 兼容 extended thinking（delta.type === 'thinking_delta'）
   const reader = resp.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
   let fullContent = '';
+  let fullReasoning = '';
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
@@ -270,14 +272,22 @@ async function callAnthropicDirect(provider, cfg, modelId, sendMessages, onDelta
       if (!data) continue;
       try {
         const json = JSON.parse(data);
-        if (json.type === 'content_block_delta' && json.delta?.text) {
-          fullContent += json.delta.text;
-          onDelta(json.delta.text, fullContent);
+        if (json.type === 'content_block_delta') {
+          const d = json.delta || {};
+          if (d.type === 'thinking_delta' && d.thinking) {
+            fullReasoning += d.thinking;
+            onDelta('', fullContent, d.thinking, fullReasoning);
+          } else if (d.text) {
+            fullContent += d.text;
+            onDelta(d.text, fullContent, '', fullReasoning);
+          }
         }
       } catch (e) {}
     }
   }
-  return fullContent;
+  const result = new String(fullContent);
+  result.reasoning = fullReasoning;
+  return result;
 }
 
 // ===== 通用 SSE 解析（OpenAI 兼容协议）=====
@@ -290,6 +300,7 @@ async function readSSE(resp, onDelta) {
   const decoder = new TextDecoder();
   let buffer = '';
   let fullContent = '';
+  let fullReasoning = '';  // v0.9.3: 推理模型的思考链
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
@@ -301,15 +312,25 @@ async function readSSE(resp, onDelta) {
       if (data === '[DONE]') continue;
       try {
         const json = JSON.parse(data);
-        const delta = json.choices?.[0]?.delta?.content;
-        if (delta) {
-          fullContent += delta;
-          onDelta(delta, fullContent);
+        const d = json.choices?.[0]?.delta || {};
+        // v0.9.3: 通用 reasoning 检测，兼容 DeepSeek-R 风格 reasoning_content 和 OpenAI o1 风格 reasoning
+        const dReasoning = d.reasoning_content || d.reasoning || '';
+        const dContent = d.content || '';
+        if (dReasoning) {
+          fullReasoning += dReasoning;
+          onDelta('', fullContent, dReasoning, fullReasoning);
+        }
+        if (dContent) {
+          fullContent += dContent;
+          onDelta(dContent, fullContent, '', fullReasoning);
         }
       } catch (e) {}
     }
   }
-  return fullContent;
+  // v0.9.3: 把 reasoning 挂到返回值上（不破坏老调用 typeof === 'string'）
+  const result = new String(fullContent);
+  result.reasoning = fullReasoning;
+  return result;
 }
 
 // ========== Provider 设置面板 UI ==========

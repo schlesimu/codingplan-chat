@@ -3,6 +3,16 @@
 
 function showChangelog() {
   const changelog = [
+    { v: 'v0.9.3', date: '2026-06-11', items: [
+      '💭 **推理模型思考链显示**',
+      '   - 支持 DeepSeek-V4-Pro / Claude extended thinking 等推理模型的思考过程展示',
+      '   - 思考期实时滚动展开 → 回答开始自动折叠，仿 DeepSeek 官网体验',
+      '   - 通用兼容：未来火山接入任何带 reasoning_content 字段的模型都自动支持',
+      '   - 历史对话刷新后思考过程持久化保存可重看',
+      '🛠 **新增 bump.sh 一键发版脚本**',
+      '   - 一行命令同步 17 个 JS + 1 个 CSS + sidebar 版本号 + changelog 条目',
+      '   - 杜绝以后每次发版手工 sed 18 处版本号的失误风险',
+    ]},
     { v: 'v0.9.2', date: '2026-06-11', items: [
       '🐛 **修复启动页按钮点击无反应**',
       '   - 原因：02-onboarding.js 的事件绑定依赖 10-changelog.js init 时序，若 init 出错按钮就死按不响应',
