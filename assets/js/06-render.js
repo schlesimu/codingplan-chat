@@ -20,6 +20,12 @@ function renderMessages() {
     return `<div class="msg ${role}"><div class="avatar">${avatar}</div><div class="bubble-wrap">${reasoningHTML}<div class="bubble">${formatContent(m.content)}</div></div></div>`;
   }).join('');
   chatArea.scrollTop = chatArea.scrollHeight;
+  // v0.9.6: 渲染完触发 highlight.js（懒加载）
+  if (typeof loadHighlightJS === 'function') {
+    loadHighlightJS().then(() => {
+      if (typeof highlightCodeBlocks === 'function') highlightCodeBlocks(chatArea);
+    });
+  }
 }
 
 // ========== 主题 ==========

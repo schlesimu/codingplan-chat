@@ -112,12 +112,99 @@ function extractKeywords(text) {
 
 function formatContent(text) {
   let f = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  f = f.replace(/```(\w*)\n?([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
-  f = f.replace(/`([^`]+)`/g, '<code>$1</code>');
+  // v0.9.6: 升级代码块 — 语言标签 + 复制按钮 + 折叠（>20 行）
+  f = f.replace(/```(\w*)\n?([\s\S]*?)```/g, (m, lang, code) => {
+    const language = (lang || '').trim();
+    const langLabel = language || 'plain';
+    const codeStr = code.replace(/\n$/, '');
+    const lineCount = codeStr.split('\n').length;
+    const foldable = lineCount > 20;
+    const codeId = 'code-' + Math.random().toString(36).slice(2, 9);
+    const langClass = language ? `language-${language}` : '';
+    return `<div class="code-block-wrap${foldable ? ' code-foldable' : ''}" data-lang="${langLabel}">
+      <div class="code-block-header">
+        <span class="code-block-lang">${langLabel}</span>
+        <button class="code-block-copy" onclick="copyCodeBlock('${codeId}', this)" title="复制代码">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span>复制</span>
+        </button>
+      </div>
+      <pre class="code-block-body${foldable ? ' code-folded' : ''}"><code id="${codeId}" class="${langClass}">${codeStr}</code></pre>
+      ${foldable ? `<button class="code-block-fold-toggle" onclick="toggleCodeFold(this)" data-folded-text="展开全部 ${lineCount} 行" data-unfolded-text="收起代码">展开全部 ${lineCount} 行</button>` : ''}
+    </div>`;
+  });
+  f = f.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
   f = f.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   f = f.replace(/^[-•]\s+(.+)/gm, '• $1');
   f = f.replace(/^>\s+(.+)/gm, '<blockquote>$1</blockquote>');
   return f;
+}
+
+// v0.9.6: 复制代码块
+function copyCodeBlock(codeId, btn) {
+  const code = document.getElementById(codeId);
+  if (!code) return;
+  const text = code.textContent;
+  const done = () => {
+    const span = btn.querySelector('span');
+    const old = span ? span.textContent : '';
+    if (span) span.textContent = '已复制';
+    btn.classList.add('code-copied');
+    setTimeout(() => { if (span) span.textContent = old || '复制'; btn.classList.remove('code-copied'); }, 1500);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    });
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+}
+
+// v0.9.6: 折叠/展开代码块
+function toggleCodeFold(btn) {
+  const wrap = btn.closest('.code-block-wrap');
+  if (!wrap) return;
+  const body = wrap.querySelector('.code-block-body');
+  if (!body) return;
+  const folded = body.classList.toggle('code-folded');
+  btn.textContent = folded ? btn.dataset.foldedText : btn.dataset.unfoldedText;
+}
+
+// v0.9.6: highlight.js 懒加载 + 高亮触发
+let __hljsLoading = null;
+function loadHighlightJS() {
+  if (window.hljs) return Promise.resolve();
+  if (__hljsLoading) return __hljsLoading;
+  __hljsLoading = new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.9.0/highlight.min.js';
+    script.onload = () => resolve();
+    script.onerror = () => resolve(); // 失败也 resolve，不阻塞
+    document.head.appendChild(script);
+  });
+  return __hljsLoading;
+}
+function highlightCodeBlocks(root) {
+  if (!window.hljs) return;
+  const scope = root || document;
+  const blocks = scope.querySelectorAll('pre.code-block-body code:not([data-highlighted])');
+  blocks.forEach(b => {
+    try { window.hljs.highlightElement(b); b.dataset.highlighted = '1'; } catch (e) {}
+  });
+}
+
+if (typeof window !== 'undefined') {
+  window.copyCodeBlock = copyCodeBlock;
+  window.toggleCodeFold = toggleCodeFold;
+  window.loadHighlightJS = loadHighlightJS;
+  window.highlightCodeBlocks = highlightCodeBlocks;
 }
 
 // ========== 消息操作：复制 / 引用 / 右键菜单 / 重新生成 ==========
