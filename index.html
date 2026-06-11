@@ -7,13 +7,13 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <!-- v0.9.4: PWA 支持 添加到主屏后像原生应用 -->
-<link rel="manifest" href="manifest.json?v=0.9.8.2">
+<link rel="manifest" href="manifest.json?v=0.9.8.3">
 <meta name="theme-color" content="#0a0a1f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="小纸船">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="stylesheet" href="assets/css/main.css?v=0.9.8.2">
+<link rel="stylesheet" href="assets/css/main.css?v=0.9.8.3">
 </head>
 <body>
 
@@ -152,7 +152,7 @@
         <img src="logo.png" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.9.8.2</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.9.8.3</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -351,12 +351,54 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
     </button>
     <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="handleImageUpload(event)">
+    <!-- v0.9.8.3 E1: 提示词模板按钮 -->
+    <button class="img-btn" id="promptsBtn" onclick="togglePromptsSheet()" title="提示词模板">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg>
+    </button>
     <textarea id="userInput" rows="1" placeholder="输入你的问题..." autofocus></textarea>
     <button class="send-btn" id="sendBtn" onclick="sendMessage()">
       <span class="icon-send"></span>
     </button>
   </div>
   <div class="footer-hint">回车发送 · Shift+回车换行 · 粘贴图片</div>
+</div>
+
+<!-- v0.9.8.3 E1: 提示词模板 sheet -->
+<div class="prompts-sheet-overlay" id="promptsSheetOverlay" onclick="togglePromptsSheet()"></div>
+<div class="prompts-sheet" id="promptsSheet" role="dialog" aria-label="提示词模板">
+  <div class="prompts-sheet-header">
+    <span class="prompts-sheet-title">💡 提示词模板</span>
+    <button class="prompts-sheet-close" onclick="togglePromptsSheet()" title="关闭">✕</button>
+  </div>
+  <div class="prompts-sheet-body" id="promptsSheetBody">
+    <!-- 由 22-prompts.js 渲染 -->
+  </div>
+  <div class="prompts-sheet-footer">
+    <button class="prompts-add-btn" onclick="openPromptEditor()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      添加自定义
+    </button>
+    <button class="prompts-reset-btn" onclick="resetPromptsToDefault()" title="恢复默认提示词">
+      🔄 恢复默认
+    </button>
+  </div>
+</div>
+
+<!-- v0.9.8.3 E1: 提示词编辑器 modal -->
+<div class="prompt-editor-overlay" id="promptEditorOverlay" onclick="closePromptEditor()"></div>
+<div class="prompt-editor" id="promptEditor" role="dialog" aria-label="编辑提示词">
+  <div class="prompt-editor-header">
+    <span id="promptEditorTitle">添加提示词</span>
+    <button class="prompts-sheet-close" onclick="closePromptEditor()">✕</button>
+  </div>
+  <div class="prompt-editor-body">
+    <label>图标（emoji 1 个）<input type="text" id="promptEditorIcon" maxlength="2" placeholder="✨"></label>
+    <label>名称<input type="text" id="promptEditorName" maxlength="20" placeholder="例如：翻译成英文"></label>
+    <label>提示词内容<textarea id="promptEditorContent" rows="4" placeholder="例如：请把下面的内容翻译成自然流畅的英文：\n\n"></textarea></label>
+  </div>
+  <div class="prompt-editor-footer">
+    <button class="prompts-add-btn" onclick="savePromptEditor()">💾 保存</button>
+  </div>
 </div>
 
 </div><!-- /app-main -->
@@ -397,28 +439,30 @@
     </filter>
   </defs>
 </svg>
-<script src="assets/js/01-state.js?v=0.9.8.2"></script>
-<script src="assets/js/02-onboarding.js?v=0.9.8.2"></script>
-<script src="assets/js/03-storage.js?v=0.9.8.2"></script>
-<script src="assets/js/04-sidebar.js?v=0.9.8.2"></script>
-<script src="assets/js/05-conversation.js?v=0.9.8.2"></script>
-<script src="assets/js/06-render.js?v=0.9.8.2"></script>
-<script src="assets/js/07-theme.js?v=0.9.8.2"></script>
-<script src="assets/js/08-cloudsync.js?v=0.9.8.2"></script>
-<script src="assets/js/09-settings.js?v=0.9.8.2"></script>
-<script src="assets/js/10-changelog.js?v=0.9.8.2"></script>
-<script src="assets/js/11-input.js?v=0.9.8.2"></script>
-<script src="assets/js/12-msgops.js?v=0.9.8.2"></script>
-<script src="assets/js/13-image.js?v=0.9.8.2"></script>
-<script src="assets/js/14-websearch.js?v=0.9.8.2"></script>
-<script src="assets/js/15-tts.js?v=0.9.8.2"></script>
-<script src="assets/js/16-providers.js?v=0.9.8.2"></script>
-<script src="assets/js/17-fileupload.js?v=0.9.8.2"></script>
+<script src="assets/js/01-state.js?v=0.9.8.3"></script>
+<script src="assets/js/02-onboarding.js?v=0.9.8.3"></script>
+<script src="assets/js/03-storage.js?v=0.9.8.3"></script>
+<script src="assets/js/04-sidebar.js?v=0.9.8.3"></script>
+<script src="assets/js/05-conversation.js?v=0.9.8.3"></script>
+<script src="assets/js/06-render.js?v=0.9.8.3"></script>
+<script src="assets/js/07-theme.js?v=0.9.8.3"></script>
+<script src="assets/js/08-cloudsync.js?v=0.9.8.3"></script>
+<script src="assets/js/09-settings.js?v=0.9.8.3"></script>
+<script src="assets/js/10-changelog.js?v=0.9.8.3"></script>
+<script src="assets/js/11-input.js?v=0.9.8.3"></script>
+<script src="assets/js/12-msgops.js?v=0.9.8.3"></script>
+<script src="assets/js/13-image.js?v=0.9.8.3"></script>
+<script src="assets/js/14-websearch.js?v=0.9.8.3"></script>
+<script src="assets/js/15-tts.js?v=0.9.8.3"></script>
+<script src="assets/js/16-providers.js?v=0.9.8.3"></script>
+<script src="assets/js/17-fileupload.js?v=0.9.8.3"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-<script src="assets/js/18-mobile.js?v=0.9.8.2"></script>
-<script src="assets/js/19-configsync.js?v=0.9.8.2"></script>
-<script src="assets/js/20-share.js?v=0.9.8.2"></script>
-<script src="assets/js/21-glass-fx.js?v=0.9.8.2"></script>
+<script src="assets/js/18-mobile.js?v=0.9.8.3"></script>
+<script src="assets/js/19-configsync.js?v=0.9.8.3"></script>
+<script src="assets/js/20-share.js?v=0.9.8.3"></script>
+<script src="assets/js/21-glass-fx.js?v=0.9.8.3"></script>
+<script src="assets/js/22-prompts.js?v=0.9.8.3"></script>
+<script src="assets/js/23-preview.js?v=0.9.8.3"></script>
 </body>
 </html>
