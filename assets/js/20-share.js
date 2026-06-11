@@ -66,7 +66,7 @@ function closeShareDialog() {
 async function doShareUpload() {
   const token = localStorage.getItem('codingplan-github-token');
   if (!token) {
-    showToast('未配置 GitHub Token，请先在「云同步」中设置');
+    showToast('🧭 小纸船还没拿到罗盘，请先在「云同步」中设置 GitHub Token');
     return;
   }
   if (!currentConversationId) { showToast('当前没有对话'); return; }
@@ -75,7 +75,7 @@ async function doShareUpload() {
 
   const actionArea = document.getElementById('shareActionArea');
   const resultArea = document.getElementById('shareResult');
-  if (actionArea) actionArea.innerHTML = '<div style="text-align:center;padding:12px;opacity:0.7">上传中…</div>';
+  if (actionArea) actionArea.innerHTML = '<div style="text-align:center;padding:12px;opacity:0.7">🚢 小纸船在折信封…</div>';
 
   try {
     // 上传 Gist（public=true）
@@ -125,7 +125,7 @@ async function doShareUpload() {
       showToast('链接已复制');
     } catch (e) {}
   } catch (err) {
-    if (actionArea) actionArea.innerHTML = `<div style="color:#ff6b6b;padding:8px">上传失败：${escapeHtml(err.message || String(err))}</div><button class="share-upload-btn" onclick="doShareUpload()" style="margin-top:8px">重试</button>`;
+    if (actionArea) actionArea.innerHTML = `<div style="color:#ff6b6b;padding:8px">🌊 小纸船在风暴里翻了：${escapeHtml(err.message || String(err))}</div><button class="share-upload-btn" onclick="doShareUpload()" style="margin-top:8px">重试</button>`;
   }
 }
 
@@ -163,7 +163,7 @@ async function renderShareView(gistId) {
         <a href="${location.origin}${location.pathname}" class="share-view-home">前往主页 →</a>
       </div>
       <div id="shareViewBody" class="share-view-body">
-        <div style="text-align:center;padding:40px;opacity:0.6">加载中…</div>
+        <div style="text-align:center;padding:40px;opacity:0.6">🌊 小纸船归港中…</div>
       </div>
     </div>
   `;
@@ -221,7 +221,7 @@ async function renderShareView(gistId) {
             location.href = location.origin + location.pathname;
           }, 600);
         } catch (e) {
-          alert('导入失败：' + (e.message || String(e)));
+          alert('🌫️ 小纸船没接住：' + (e.message || String(e)));
         }
       };
     }
@@ -233,7 +233,7 @@ async function renderShareView(gistId) {
     }
   } catch (err) {
     const body = document.getElementById('shareViewBody');
-    if (body) body.innerHTML = `<div style="text-align:center;padding:40px;color:#ff6b6b">加载失败：${escapeHtml(err.message || String(err))}</div>`;
+    if (body) body.innerHTML = `<div style="text-align:center;padding:40px;color:#ff6b6b">🌫️ 小纸船没找到这封信：${escapeHtml(err.message || String(err))}</div>`;
   }
 }
 
