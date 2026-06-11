@@ -12,9 +12,21 @@ const PROVIDERS = {
     needsKey: false,
     backend: 'cf-proxy',   // 走 /api/chat
     models: [
-      { id: 'ark-code-latest', label: 'CodingPlan Latest', default: true },
+      // auto = 控制台开通管理页面里选的那个模型（推荐，省心）
+      { id: 'auto', label: 'Auto（控制台默认模型，推荐）', default: true },
+      // 以下是 Coding Plan 支持的具体 Model Name，可用 /model <name> 实时切换
+      { id: 'doubao-seed-2.0-code', label: 'Doubao Seed 2.0 Code（编程旗舰）' },
+      { id: 'doubao-seed-2.0-pro',  label: 'Doubao Seed 2.0 Pro' },
+      { id: 'doubao-seed-2.0-lite', label: 'Doubao Seed 2.0 Lite（轻量快速）' },
+      { id: 'doubao-seed-code',     label: 'Doubao Seed Code（上一代编程）' },
+      { id: 'minimax-m2.7', label: 'MiniMax M2.7' },
+      { id: 'minimax-m3',   label: 'MiniMax M3' },
+      { id: 'glm-5.1',      label: 'GLM 5.1（智谱）' },
+      { id: 'deepseek-v4-flash', label: 'DeepSeek V4 Flash（快速便宜）' },
+      { id: 'deepseek-v4-pro',   label: 'DeepSeek V4 Pro' },
+      { id: 'kimi-k2.6',    label: 'Kimi K2.6（月之暗面）' },
     ],
-    docsUrl: 'https://www.volcengine.com/product/coding-copilot',
+    docsUrl: 'https://www.volcengine.com/docs/82379/1928261',
   },
   zhipu: {
     id: 'zhipu',
@@ -161,6 +173,7 @@ async function callLLMProvider(sendMessages, onDelta, options = {}) {
 async function callViaCFProxy(sendMessages, onDelta, options) {
   const codingplanKey = getCodingplanKey();
   const baseURL = getCodingplanBaseURL();
+  const modelId = getActiveModel();  // 'auto' / 'doubao-seed-2.0-code' / ...
   const headers = { 'Content-Type': 'application/json' };
   if (codingplanKey) headers['X-Codingplan-Key'] = codingplanKey;
   if (baseURL) headers['X-Codingplan-Base'] = baseURL;
@@ -168,7 +181,11 @@ async function callViaCFProxy(sendMessages, onDelta, options) {
   const resp = await fetch('/api/chat', {
     method: 'POST',
     headers,
-    body: JSON.stringify({ messages: sendMessages, stream: true }),
+    body: JSON.stringify({
+      messages: sendMessages,
+      stream: true,
+      model: modelId,  // 后端拿到 model 后做白名单校验并覆盖默认 ark-code-latest
+    }),
     signal: options.signal,
   });
   return await readSSE(resp, onDelta);
@@ -416,15 +433,96 @@ function saveProviderDialog() {
 }
 
 // 顶栏显示当前模型徽章
+// 当 active provider=codingplan：只显示当前用的 CodingPlan 内部模型（auto / doubao-... 等）
+// 当用了其他 provider：显示 provider · model
 function updateModelBadge() {
   const badge = document.getElementById('modelBadge');
   if (!badge) return;
   const pid = getActiveProvider();
   const provider = PROVIDERS[pid];
   const modelId = getActiveModel();
-  const model = provider?.models.find(m => m.id === modelId);
-  badge.textContent = (provider?.label || '?').replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]\s*/u, '') + ' · ' + (model?.label || modelId || '?');
+
+  if (pid === 'codingplan') {
+    // 用 short label：去掉括号说明，留主名
+    const model = provider.models.find(m => m.id === modelId);
+    let shortLabel;
+    if (modelId === 'auto') shortLabel = 'Auto';
+    else if (model?.label) shortLabel = model.label.split('（')[0].trim();
+    else shortLabel = modelId || 'auto';
+    badge.textContent = '🔥 CodingPlan · ' + shortLabel;
+    badge.title = '当前使用火山 CodingPlan 的 ' + shortLabel + ' 模型，点击切换内部模型';
+  } else {
+    const model = provider?.models.find(m => m.id === modelId);
+    const cleanLabel = (provider?.label || '?').replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]\s*/u, '');
+    badge.textContent = cleanLabel + ' · ' + (model?.label || modelId || '?');
+    badge.title = '当前用第三方 provider，点击切换 CodingPlan 内部模型；如需换 provider 请到「设置 API Key」';
+  }
 }
+
+// ========== 顶栏徽章点击：只切 CodingPlan 内部模型 ==========
+// （想换其他 provider 请去「设置 API Key」面板）
+function showCodingplanModelDialog() {
+  const codingplan = PROVIDERS.codingplan;
+  // 永远展现切回 codingplan provider 的语义（即使当前 active 是别的 provider）
+  const activeModelId = (getActiveProvider() === 'codingplan')
+    ? getActiveModel()
+    : (getProviderConfig('codingplan').model || 'auto');
+
+  let html = '<div style="padding:0">';
+  html += '<h3 style="margin:0 0 6px 0;font-size:15px;color:var(--text-main)">🔥 CodingPlan 模型</h3>';
+  html += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:14px;line-height:1.5">';
+  html += '默认 <b>Auto</b> 模式 = 用你在 <a href="https://www.volcengine.com/product/coding-copilot" target="_blank" style="color:#7c66dc">火山控制台</a>「开通管理」里选的那个模型（切换后 3-5 分钟生效）。';
+  html += '<br>也可以下面直接选具体 Model Name 实时切换，不消耗控制台切换次数。';
+  html += '</div>';
+
+  html += '<div style="margin-bottom:14px">';
+  html += '<div style="font-size:12px;color:var(--sidebar-text);margin-bottom:6px">选择模型</div>';
+  html += '<select id="cpm-model" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--sidebar-divider);background:var(--input-bg);color:var(--input-color);font-size:13px">';
+  for (const m of codingplan.models) {
+    html += '<option value="' + m.id + '"' + (m.id === activeModelId ? ' selected' : '') + '>' + m.label + '</option>';
+  }
+  html += '</select>';
+  html += '</div>';
+
+  html += '<div style="font-size:10px;color:var(--text-dim);margin-bottom:12px;padding:8px;background:var(--input-bg);border-radius:6px;line-height:1.6">';
+  html += '💡 想接入<b>智谱 / DeepSeek / Kimi / OpenAI 兼容 / Claude</b> 等第三方 provider？请去侧边栏 → 更多工具 → <b>设置 API Key</b>，里面有完整 provider 配置入口。';
+  html += '</div>';
+
+  html += '<div style="display:flex;gap:8px;margin-top:12px">';
+  html += '<button onclick="closeCodingplanModelDialog()" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--sidebar-divider);background:transparent;color:var(--text-main);font-size:13px;cursor:pointer">取消</button>';
+  html += '<button onclick="saveCodingplanModelDialog()" style="flex:1;padding:10px;border-radius:8px;border:none;background:linear-gradient(135deg,#ff6b35,#ff3d00);color:white;font-size:13px;cursor:pointer">保存并切换</button>';
+  html += '</div>';
+  html += '</div>';
+
+  const old = document.getElementById('cpm-modal');
+  if (old) old.remove();
+  const modal = document.createElement('div');
+  modal.id = 'cpm-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML = '<div style="background:var(--sidebar-bg);border-radius:14px;padding:20px;max-width:380px;width:100%;backdrop-filter:blur(20px);border:1px solid var(--sidebar-divider);color:var(--text-main)">' + html + '</div>';
+  modal.onclick = (e) => { if (e.target === modal) closeCodingplanModelDialog(); };
+  document.body.appendChild(modal);
+}
+
+function closeCodingplanModelDialog() {
+  const m = document.getElementById('cpm-modal');
+  if (m) m.remove();
+}
+
+function saveCodingplanModelDialog() {
+  const modelId = document.getElementById('cpm-model').value;
+  // 强制切回 codingplan provider + 设置内部模型
+  setActiveProvider('codingplan');
+  saveProviderConfig('codingplan', { model: modelId });
+  closeCodingplanModelDialog();
+  updateModelBadge();
+  const m = PROVIDERS.codingplan.models.find(x => x.id === modelId);
+  if (typeof toast === 'function') toast('✅ 已切换到 ' + (m?.label || modelId).split('（')[0].trim());
+}
+
+// 保留旧 showProviderDialog 别名给设置面板用（在 09-settings.js 里调）
+// 它打开的是完整 provider 选择 + key 配置面板
+// showProviderDialog 已在上方定义，不动
 
 // 简单 toast
 function toast(msg, duration = 2000) {
@@ -434,6 +532,17 @@ function toast(msg, duration = 2000) {
   document.body.appendChild(t);
   setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; }, duration - 300);
   setTimeout(() => t.remove(), duration);
+}
+
+// 暴露关键函数到 window，给 inline onclick 用
+if (typeof window !== 'undefined') {
+  window.showCodingplanModelDialog = showCodingplanModelDialog;
+  window.closeCodingplanModelDialog = closeCodingplanModelDialog;
+  window.saveCodingplanModelDialog = saveCodingplanModelDialog;
+  window.showProviderDialog = showProviderDialog;
+  window.closeProviderDialog = closeProviderDialog;
+  window.saveProviderDialog = saveProviderDialog;
+  window.updateModelBadge = updateModelBadge;
 }
 
 // 自启动徽章

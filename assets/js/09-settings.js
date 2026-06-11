@@ -31,6 +31,15 @@ function showApiKeyDialog() {
 
   let html = '<div style="text-align:center;margin-bottom:16px;font-size:16px;font-weight:700;color:var(--text-main)">🔑 API Key 设置</div>';
 
+  // ===== 多模型 Provider 入口（v0.9.0+ 改造：从顶栏徽章迁来）=====
+  html += '<div style="margin-bottom:16px;padding:12px;background:var(--input-bg);border-radius:10px;border:1px dashed var(--sidebar-divider)">';
+  html += '<div style="font-size:13px;font-weight:600;color:var(--text-main);margin-bottom:6px">🤖 模型 Provider 切换</div>';
+  html += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;line-height:1.5">';
+  html += '默认走火山 CodingPlan（免费共享 key）。如需切到 <b>智谱 GLM / DeepSeek / Kimi / OpenAI 兼容 / Claude</b> 等第三方 provider 并填自己的 Key，请打开下方面板。';
+  html += '</div>';
+  html += '<button id="open-provider-dialog-btn" style="width:100%;padding:8px 14px;border-radius:8px;border:1px solid var(--btn-border);background:var(--btn-bg);color:var(--btn-color);cursor:pointer;font-size:12px;font-family:inherit">⚙️ 打开「多 Provider 配置」面板</button>';
+  html += '</div>';
+
   html += '<div style="margin-bottom:12px">';
   html += '<div style="font-size:12px;color:var(--sidebar-text);margin-bottom:4px">CodingPlan API Key</div>';
   html += `<input id="apikey-codingplan" type="password" placeholder="${hasCustomCodingplan ? '已设置自定义 Key' : '使用默认 Key'}" value="${codingplanKey}" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--sidebar-divider);background:var(--input-bg);color:var(--input-color);font-size:12px;font-family:inherit">`;
@@ -187,6 +196,16 @@ function showApiKeyDialog() {
   }
   refreshVoiceOptions();
   providerSel.addEventListener('change', refreshVoiceOptions);
+
+  // ===== Provider 配置按钮：关闭当前面板 + 打开 Provider Dialog =====
+  const openProviderBtn = document.getElementById('open-provider-dialog-btn');
+  if (openProviderBtn) {
+    openProviderBtn.addEventListener('click', () => {
+      overlay.remove();
+      if (typeof showProviderDialog === 'function') showProviderDialog();
+      else alert('Provider 配置模块未加载，请刷新页面');
+    });
+  }
 
   testBtn.addEventListener('click', async () => {
     testBtn.disabled = true;
