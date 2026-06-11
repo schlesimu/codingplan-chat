@@ -167,7 +167,7 @@ cloudDownload = async function enhancedCloudDownload() {
       alert(msg);
     }
   } catch (e) {
-    alert('恢复失败：' + e.message);
+    alert('🌊 小纸船在风暴里迷路了：' + e.message);
   }
 };
 
@@ -540,7 +540,7 @@ async function handleQRDecoded(qrData) {
   const resultDiv = document.getElementById('qr-scan-result');
   if (resultDiv) {
     resultDiv.style.display = 'block';
-    resultDiv.innerHTML = '<div style="color:#4ade80"> 已识别到二维码，正在解密配置...</div>';
+    resultDiv.innerHTML = '<div style="color:#4ade80"> ✨ 已识别到二维码，小纸船在拆密信…</div>';
   }
 
   try {
