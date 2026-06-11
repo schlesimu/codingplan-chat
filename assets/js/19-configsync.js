@@ -654,7 +654,7 @@ async function validateApiKey(providerId, apiKey) {
     const resp = await fetch(valiCfg.url, {
       method: valiCfg.method || 'GET',
       headers: {
-        'Authorization': 'Bearer' + apiKey,
+        'Authorization': 'Bearer ' + apiKey,
         'Content-Type': 'application/json',
         ...(valiCfg.headers || {}),
       },
@@ -670,7 +670,7 @@ async function validateApiKey(providerId, apiKey) {
       return { valid: false, error: 'API Key 无效（' + resp.status + '）' };
     }
     // 其他 4xx / 5xx — 可能是网络问题
-    return { valid: false, error: '校验失败（HTTP' + resp.status + '）' };
+    return { valid: false, error: '校验失败（HTTP ' + resp.status + '）' };
   } catch (e) {
     return { valid: false, error: '网络错误：' + e.message };
   }
@@ -705,6 +705,11 @@ const VALIDATION_ENDPOINTS = {
     method: 'GET',
     successLabel: 'Key 有效（自定义 OpenAI 兼容）',
   },
+  openai: {
+    url: 'https://api.openai.com/v1/models',
+    method: 'GET',
+    successLabel: 'Key 有效',
+  },
 };
 
 /**
@@ -723,7 +728,7 @@ async function checkBalance(providerId, apiKey) {
     const resp = await fetch(balCfg.url, {
       method: balCfg.method || 'GET',
       headers: {
-        'Authorization': 'Bearer' + apiKey,
+        'Authorization': 'Bearer ' + apiKey,
         'Content-Type': 'application/json',
         ...(balCfg.headers || {}),
       },
@@ -733,7 +738,7 @@ async function checkBalance(providerId, apiKey) {
       if (resp.status === 401 || resp.status === 403) {
         return { supported: true, error: 'API Key 无效，无法查询余额' };
       }
-      return { supported: true, error: '查询失败（HTTP' + resp.status + '）' };
+      return { supported: true, error: '查询失败（HTTP ' + resp.status + '）' };
     }
 
     const data = await resp.json();
