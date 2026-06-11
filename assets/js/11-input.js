@@ -124,12 +124,22 @@ function formatContent(text) {
     return `<div class="code-block-wrap${foldable ? ' code-foldable' : ''}" data-lang="${langLabel}">
       <div class="code-block-header">
         <span class="code-block-lang">${langLabel}</span>
-        <button class="code-block-copy" onclick="copyCodeBlock('${codeId}', this)" title="复制代码">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          <span>复制</span>
-        </button>
+        <div class="code-block-actions">
+          <button class="code-block-btn code-block-linenums" onclick="toggleLineNumbers(this)" title="显示行号">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            <span>行号</span>
+          </button>
+          <button class="code-block-btn code-block-download" onclick="downloadCodeBlock('${codeId}', this)" title="下载为文件">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>下载</span>
+          </button>
+          <button class="code-block-btn code-block-copy" onclick="copyCodeBlock('${codeId}', this)" title="复制代码">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span>复制</span>
+          </button>
+        </div>
       </div>
-      <pre class="code-block-body${foldable ? ' code-folded' : ''}"><code id="${codeId}" class="${langClass}">${codeStr}</code></pre>
+      <pre class="code-block-body${foldable ? ' code-folded' : ''}" data-lang="${language || ''}"><code id="${codeId}" class="${langClass}">${codeStr}</code></pre>
       ${foldable ? `<button class="code-block-fold-toggle" onclick="toggleCodeFold(this)" data-folded-text="展开全部 ${lineCount} 行" data-unfolded-text="收起代码">展开全部 ${lineCount} 行</button>` : ''}
     </div>`;
   });
@@ -192,12 +202,112 @@ function loadHighlightJS() {
   return __hljsLoading;
 }
 function highlightCodeBlocks(root) {
-  if (!window.hljs) return;
   const scope = root || document;
-  const blocks = scope.querySelectorAll('pre.code-block-body code:not([data-highlighted])');
-  blocks.forEach(b => {
-    try { window.hljs.highlightElement(b); b.dataset.highlighted = '1'; } catch (e) {}
+  // 高亮
+  if (window.hljs) {
+    const blocks = scope.querySelectorAll('pre.code-block-body code:not([data-highlighted])');
+    blocks.forEach(b => {
+      try { window.hljs.highlightElement(b); b.dataset.highlighted = '1'; } catch (e) {}
+    });
+  }
+  // v0.9.8.1 F3: 检测代码块 overflow + 滚动位置（左右淡出渐变）
+  const wraps = scope.querySelectorAll('.code-block-wrap:not([data-overflow-bound])');
+  wraps.forEach(wrap => {
+    const body = wrap.querySelector('.code-block-body');
+    if (!body) return;
+    wrap.dataset.overflowBound = '1';
+    const update = () => {
+      const overflow = body.scrollWidth > body.clientWidth + 1;
+      wrap.classList.toggle('has-overflow', overflow);
+      if (!overflow) return;
+      const atLeft = body.scrollLeft <= 1;
+      const atRight = body.scrollLeft + body.clientWidth >= body.scrollWidth - 1;
+      wrap.classList.toggle('scrolled-left', atLeft);
+      wrap.classList.toggle('scrolled-right', atRight);
+    };
+    // 首次检测延迟一帧（等高亮完成 layout）
+    requestAnimationFrame(update);
+    body.addEventListener('scroll', update, { passive: true });
+    // 窗口 resize 时重新检测
+    if (!window.__codeOverflowResizeBound) {
+      window.__codeOverflowResizeBound = true;
+      window.addEventListener('resize', () => {
+        document.querySelectorAll('.code-block-wrap').forEach(w => {
+          const b = w.querySelector('.code-block-body');
+          if (!b) return;
+          const ov = b.scrollWidth > b.clientWidth + 1;
+          w.classList.toggle('has-overflow', ov);
+        });
+      });
+    }
   });
+}
+
+// v0.9.8.1 B1+: 切换行号显示
+function toggleLineNumbers(btn) {
+  const wrap = btn.closest('.code-block-wrap');
+  if (!wrap) return;
+  const body = wrap.querySelector('.code-block-body');
+  const code = body && body.querySelector('code');
+  if (!body || !code) return;
+
+  const isOn = body.classList.toggle('with-linenums');
+  btn.classList.toggle('active', isOn);
+
+  if (isOn) {
+    // 缓存原文，避免高亮被破坏后还原失败
+    if (!code.dataset.origHtml) code.dataset.origHtml = code.innerHTML;
+    // 按行号包裹
+    const html = code.dataset.origHtml;
+    const lines = html.split('\n');
+    const wrapped = lines.map((ln, i) =>
+      `<span class="code-line"><span class="code-linenum">${i + 1}</span>${ln || ' '}</span>`
+    ).join('\n');
+    code.innerHTML = wrapped;
+  } else {
+    // 还原
+    if (code.dataset.origHtml) code.innerHTML = code.dataset.origHtml;
+  }
+}
+
+// v0.9.8.1 B1+: 下载代码块为文件
+function downloadCodeBlock(codeId, btn) {
+  const code = document.getElementById(codeId);
+  if (!code) return;
+  // 取原文（如果开了行号要拿缓存）
+  const text = code.dataset.origHtml
+    ? code.dataset.origHtml.replace(/<[^>]+>/g, '').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&quot;/g,'"')
+    : code.textContent;
+  const wrap = btn.closest('.code-block-wrap');
+  const body = wrap && wrap.querySelector('.code-block-body');
+  const lang = (body && body.dataset.lang) || '';
+  // 语言 → 扩展名映射
+  const extMap = {
+    javascript: 'js', typescript: 'ts', jsx: 'jsx', tsx: 'tsx',
+    python: 'py', ruby: 'rb', java: 'java', kotlin: 'kt', swift: 'swift',
+    cpp: 'cpp', c: 'c', csharp: 'cs', go: 'go', rust: 'rs', php: 'php',
+    html: 'html', css: 'css', scss: 'scss', less: 'less',
+    json: 'json', yaml: 'yml', toml: 'toml', xml: 'xml',
+    bash: 'sh', shell: 'sh', sh: 'sh', zsh: 'sh', powershell: 'ps1',
+    sql: 'sql', markdown: 'md', md: 'md',
+    dockerfile: 'Dockerfile', makefile: 'Makefile',
+    vue: 'vue', svelte: 'svelte', dart: 'dart',
+  };
+  const ext = extMap[lang.toLowerCase()] || 'txt';
+  const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  const filename = `code-${ts}.${ext}`;
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 100);
+  // 视觉反馈
+  const span = btn.querySelector('span');
+  const old = span ? span.textContent : '';
+  if (span) span.textContent = '已下载';
+  btn.classList.add('code-copied');
+  setTimeout(() => { if (span) span.textContent = old || '下载'; btn.classList.remove('code-copied'); }, 1500);
 }
 
 if (typeof window !== 'undefined') {
@@ -205,6 +315,9 @@ if (typeof window !== 'undefined') {
   window.toggleCodeFold = toggleCodeFold;
   window.loadHighlightJS = loadHighlightJS;
   window.highlightCodeBlocks = highlightCodeBlocks;
+  // v0.9.8.1 B1+
+  window.toggleLineNumbers = toggleLineNumbers;
+  window.downloadCodeBlock = downloadCodeBlock;
 }
 
 // ========== 消息操作：复制 / 引用 / 右键菜单 / 重新生成 ==========

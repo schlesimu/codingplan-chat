@@ -3,6 +3,43 @@
 
 function showChangelog() {
   const changelog = [
+    { v: 'v0.9.8.1', date: '2026-06-11', items: [
+      '✨ 修补 + 打磨小版本（P0 修复 3 项 + P1 体验升级 4 项 + Liquid 玻璃穿透）',
+      '',
+      '【🌊 F4 — Liquid 玻璃穿透感（终于做对了）】',
+      '· 之前：聊天内容到顶栏 / 输入栏边缘就硬切，玻璃后面是空的，看着像普通不透明栏',
+      '· 现在：顶栏 / 输入栏改成真悬浮（position:absolute），聊天内容能滚到它们身后',
+      '· 被模糊 + 折射 = Liquid 该有的"下一层穿透"层次感',
+      '· 聊天区加 padding + scroll-padding 安全区，最上 / 最下气泡不会被遮丢',
+      '',
+      '【P0 修复】',
+      '🧹 F1：CSS 历史包袱清理 —— 给气泡宽度系统加顶级横幅注释，未来回来改不会再迷路',
+      '⚡ F2：AI 流式回复气泡宽度跳动修复 —— 流式中锁 min-width，结束才释放，长回复看着稳',
+      '🎨 F3：代码块横向滚动美化 —— 自定义滚动条 + 左右淡出渐变蒙版，溢出时一眼能看出',
+      '',
+      '【P1 体验升级】',
+      '🔍 A1+：搜索框快捷键全套',
+      '· ⌘K / Ctrl+K 全局聚焦搜索（手机端自动展开侧栏）',
+      '· ↑↓ 在搜索结果间切换，Enter 直接打开命中对话',
+      '· Esc 清空搜索或失焦',
+      '',
+      '📌 A2：对话右键 / 长按菜单',
+      '· 右键（手机端长按 500ms + 震动反馈）调出菜单',
+      '· 置顶 / 取消置顶 —— 置顶对话排在列表最前，图标变橙色图钉',
+      '· 重命名 —— 给对话起更顺手的名字',
+      '· 删除 —— 老功能整合进菜单',
+      '',
+      '💻 B1+：代码块再升级',
+      '· 行号开关 —— 每个代码块右上角"行号"按钮，点开显示行号（localStorage 不持久）',
+      '· 下载按钮 —— 直接下载为文件，按语言自动推扩展名（.py/.js/.html/.sh/.json...）',
+      '· 复制按钮整合到操作按钮组',
+      '· 手机端按钮自动隐藏文字保留图标，省空间',
+      '',
+      '🔗 B3+：分享查看页"复制到我的 codingplan"',
+      '· 别人分享的对话页面顶部新增大按钮',
+      '· 点一下通过 sessionStorage 桥接回主站，自动创建新对话导入完整消息',
+      '· 标题会标记"从分享导入"，可以接着聊',
+    ]},
     { v: 'v0.9.8', date: '2026-06-11', items: [
       '🎯 气泡宽度真正自适应（修 v0.9.7 强制撑满的问题）',
       '· 核心改成：fit-content + 视口分档 max-width',
@@ -553,9 +590,38 @@ function showChangelog() {
   updateThemeSwitcherUI();
 
   loadConversations();
+
+  // v0.9.8.1 B3+: 检测分享导入桥接
+  try {
+    const importRaw = sessionStorage.getItem('__codingplan_import_shared');
+    if (importRaw) {
+      sessionStorage.removeItem('__codingplan_import_shared');
+      const payload = JSON.parse(importRaw);
+      if (payload && Array.isArray(payload.messages) && payload.messages.length) {
+        const newId = createNewConversation();
+        const c = conversations[newId];
+        if (c) {
+          c.title = (payload.title || '从分享导入').slice(0, 80);
+          c.messages = payload.messages.map(m => ({
+            role: m.role === 'user' ? 'user' : 'assistant',
+            content: typeof m.content === 'string' ? m.content : String(m.content || ''),
+          }));
+          c.updatedAt = Date.now();
+          c.sharedFrom = payload.sharedFrom || null;
+          saveConversations();
+          currentConversationId = newId;
+          switchToConversation(newId);
+          setTimeout(() => {
+            if (typeof showToast === 'function') showToast(`已导入「${c.title}」（${c.messages.length} 条消息）`);
+          }, 200);
+        }
+      }
+    }
+  } catch (e) { console.warn('[share-import] 失败：', e); }
+
   const list = Object.values(conversations).sort((a, b) => b.updatedAt - a.updatedAt);
-  if (list.length > 0) switchToConversation(list[0].id);
-  else currentConversationId = createNewConversation();
+  if (list.length > 0 && !currentConversationId) switchToConversation(list[0].id);
+  else if (!currentConversationId) currentConversationId = createNewConversation();
   renderChatHistory();
 
   // 横屏/电脑模式自动展开侧边栏

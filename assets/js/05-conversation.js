@@ -31,6 +31,32 @@ function deleteConversation(id) {
   }
   renderChatHistory();
 }
+
+// v0.9.8.1 A2: 置顶 / 重命名
+function pinConversation(id) {
+  const c = conversations[id];
+  if (!c) return;
+  c.pinned = !c.pinned;
+  saveConversations();
+  renderChatHistory();
+}
+function renameConversation(id) {
+  const c = conversations[id];
+  if (!c) return;
+  const next = prompt('重命名对话', c.title || '新对话');
+  if (next === null) return;
+  const trimmed = next.trim();
+  if (!trimmed) return;
+  c.title = trimmed.slice(0, 80);
+  c.updatedAt = Date.now();
+  saveConversations();
+  if (currentConversationId === id) headerTitle.textContent = c.title;
+  renderChatHistory();
+}
+if (typeof window !== 'undefined') {
+  window.pinConversation = pinConversation;
+  window.renameConversation = renameConversation;
+}
 function clearCurrentChat() {
   messages = [];
   if (currentConversationId && conversations[currentConversationId]) {
