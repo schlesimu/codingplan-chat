@@ -594,7 +594,7 @@ async function testProviderKey(pid) {
     resultDiv.innerHTML = '<span style="color:#ff8a5e">请先填入 API Key</span>';
     return;
   }
-  resultDiv.innerHTML = '<span style="color:#7c66dc">正在校验...</span>';
+  resultDiv.innerHTML = '<span style="color:#7c66dc">🌫️ 小纸船在测水深…</span>';
   try {
     const r = await validateApiKey(pid, key);
     if (r.valid) {
@@ -617,7 +617,7 @@ async function queryProviderBalance(pid) {
     resultDiv.innerHTML = '<span style="color:#ff8a5e">请先填入 API Key</span>';
     return;
   }
-  resultDiv.innerHTML = '<span style="color:#7c66dc">正在查询余额...</span>';
+  resultDiv.innerHTML = '<span style="color:#7c66dc">⛽ 小纸船在数灯油…</span>';
   try {
     const r = await checkBalance(pid, key);
     if (!r.supported) {
