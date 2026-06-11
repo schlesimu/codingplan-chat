@@ -27,7 +27,7 @@ export async function onRequest(context) {
 
   try {
     const data = await request.json();
-    const { token, conversations, updatedAt } = data;
+    const { token, conversations, apiKeys, preferences, updatedAt } = data;
 
     if (!token) {
       return new Response(JSON.stringify({ ok: false, error: '缺少用户标识' }), { status: 400, headers });
@@ -37,6 +37,8 @@ export async function onRequest(context) {
     const key = `backup_${token}`;
     await env.CODINGPLAN_KV.put(key, JSON.stringify({
       conversations,
+      apiKeys: apiKeys || null,
+      preferences: preferences || null,
       updatedAt: updatedAt || Date.now(),
       count: Object.keys(conversations || {}).length
     }));

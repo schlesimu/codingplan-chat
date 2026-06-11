@@ -3,6 +3,15 @@
 
 function showChangelog() {
   const changelog = [
+    { v: 'v0.9.5', date: '2026-06-11', items: [
+      '☁️ 多设备配置同步（应急移动场景专属）',
+      '📲 扫码同步：电脑端生成二维码（含同步码+API Key+主题），手机扫码秒级导入',
+      '🔐 PIN 码 XOR 加密：扫码同步链接需 PIN 解密，路边截图泄露也用不了',
+      '📤 导出/导入 配置 JSON：一键备份所有 provider 配置到本地文件',
+      '☁️ KV 云同步扩展：现在同时同步对话 + API Key + 主题（不止对话）',
+      '💰 API Key 余额查询：DeepSeek / Moonshot / 智谱 GLM 一键查余额',
+      '✅ Token 有效性校验：CodingPlan / DeepSeek / Moonshot / 智谱 / 自定义 5 家',
+    ]},
     { v: 'v0.9.4', date: '2026-06-11', items: [
       '📱 **移动端键盘弹起补偿**',
       '   - visualViewport API 监听键盘，输入框自动上浮避免被遮挡',

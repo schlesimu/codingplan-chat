@@ -1953,3 +1953,81 @@ body {
     padding-bottom: var(--kb-inset);
   }
 }
+
+
+/* ========== v0.9.5: QR 扫码同步弹窗 ========== */
+.qrcode-dialog {
+  width: min(90vw, 420px);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--input-area-bg, rgba(15,15,40,0.95));
+  border: 1px solid var(--input-area-border, rgba(255,255,255,0.1));
+  border-radius: 20px;
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  box-shadow: 0 16px 60px rgba(0,0,0,0.5);
+  animation: dockFloat 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.qrcode-dialog-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.06);
+  font-size: 16px; font-weight: 600;
+}
+.qrcode-close-btn {
+  background: transparent; border: none; color: var(--text-main, #fff);
+  font-size: 24px; cursor: pointer; opacity: 0.5; line-height: 1;
+  padding: 0; width: 28px; height: 28px;
+}
+.qrcode-close-btn:hover { opacity: 1; }
+.qrcode-dialog-body { padding: 16px 20px; }
+.qrcode-tabs {
+  display: flex; gap: 8px; margin-bottom: 16px;
+  background: rgba(0,0,0,0.2); padding: 4px; border-radius: 12px;
+}
+.qrcode-tab {
+  flex: 1; padding: 8px 12px; border: none; cursor: pointer;
+  background: transparent; color: var(--text-main, #fff);
+  border-radius: 8px; font-size: 13px; opacity: 0.6;
+  transition: all 0.2s;
+}
+.qrcode-tab.active {
+  background: var(--input-area-border, rgba(255,255,255,0.15));
+  opacity: 1; font-weight: 600;
+}
+.qrcode-scan-area {
+  border: 2px dashed rgba(255,255,255,0.2); border-radius: 14px;
+  padding: 30px 20px; text-align: center; cursor: pointer;
+  transition: all 0.2s; color: var(--text-main, #fff);
+}
+.qrcode-scan-area:hover { border-color: #ff6b35; background: rgba(255,107,53,0.05); }
+.qrcode-container {
+  background: rgba(0,0,0,0.4); border-radius: 14px;
+  padding: 16px; margin: 12px 0; min-height: 240px;
+  display: flex; align-items: center; justify-content: center;
+}
+.qrcode-container img { display: block; }
+.qrcode-output-row {
+  display: flex; gap: 8px; align-items: center; margin-top: 8px;
+}
+.qrcode-copy-btn {
+  background: #ff6b35; color: #fff; border: none;
+  padding: 8px 12px; border-radius: 10px; cursor: pointer; font-size: 14px;
+}
+.qrcode-pin-row { margin-bottom: 12px; }
+.qrcode-pin-input {
+  flex: 1; padding: 8px 12px; border-radius: 10px;
+  border: 1px solid var(--input-border, rgba(255,255,255,0.1));
+  background: var(--input-bg, rgba(255,255,255,0.05));
+  color: var(--input-color, #fff);
+  font-size: 14px; font-family: monospace; letter-spacing: 4px;
+}
+.qrcode-pin-toggle {
+  background: transparent; border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-main, #fff); width: 36px; border-radius: 10px;
+  cursor: pointer; font-size: 14px;
+}
+
+[data-theme="light"] .qrcode-dialog { background: rgba(255,255,255,0.95); border-color: rgba(0,0,0,0.06); }
+[data-theme="light"] .qrcode-dialog-header { border-color: rgba(0,0,0,0.06); }
+[data-theme="light"] .qrcode-container { background: rgba(0,0,0,0.05); }
+[data-theme="light"] .qrcode-scan-area { border-color: rgba(0,0,0,0.15); color: var(--text-main); }

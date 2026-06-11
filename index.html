@@ -7,13 +7,13 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <!-- v0.9.4: PWA 支持 添加到主屏后像原生应用 -->
-<link rel="manifest" href="manifest.json?v=0.9.4">
+<link rel="manifest" href="manifest.json?v=0.9.5">
 <meta name="theme-color" content="#0a0a1f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="小纸船">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="stylesheet" href="assets/css/main.css?v=0.9.4">
+<link rel="stylesheet" href="assets/css/main.css?v=0.9.5">
 </head>
 <body>
 
@@ -152,7 +152,7 @@
         <img src="logo.png" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.9.4</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.9.5</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -192,6 +192,10 @@
       </span>
       <span>从云端恢复</span>
     </button>
+    <button class="sidebar-footer-item" onclick="showQRSyncDialog()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      <span>扫码同步配置</span>
+    </button>
     <button class="sidebar-footer-item" onclick="showSyncCodeDialog()">
       <span class="footer-icon">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -220,7 +224,15 @@
         </span>
         <span>导出当前对话 .md</span>
       </button>
-      <button class="sidebar-footer-item" onclick="exportAllChats()">
+      <button class="sidebar-footer-item" onclick="exportConfigAsJSON()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span>导出配置 JSON</span>
+    </button>
+    <button class="sidebar-footer-item" onclick="importConfigFromJSON()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <span>导入配置 JSON</span>
+    </button>
+    <button class="sidebar-footer-item" onclick="exportAllChats()">
         <span class="footer-icon">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
         </span>
@@ -349,23 +361,25 @@
     </filter>
   </defs>
 </svg>
-<script src="assets/js/01-state.js?v=0.9.4"></script>
-<script src="assets/js/02-onboarding.js?v=0.9.4"></script>
-<script src="assets/js/03-storage.js?v=0.9.4"></script>
-<script src="assets/js/04-sidebar.js?v=0.9.4"></script>
-<script src="assets/js/05-conversation.js?v=0.9.4"></script>
-<script src="assets/js/06-render.js?v=0.9.4"></script>
-<script src="assets/js/07-theme.js?v=0.9.4"></script>
-<script src="assets/js/08-cloudsync.js?v=0.9.4"></script>
-<script src="assets/js/09-settings.js?v=0.9.4"></script>
-<script src="assets/js/10-changelog.js?v=0.9.4"></script>
-<script src="assets/js/11-input.js?v=0.9.4"></script>
-<script src="assets/js/12-msgops.js?v=0.9.4"></script>
-<script src="assets/js/13-image.js?v=0.9.4"></script>
-<script src="assets/js/14-websearch.js?v=0.9.4"></script>
-<script src="assets/js/15-tts.js?v=0.9.4"></script>
-<script src="assets/js/16-providers.js?v=0.9.4"></script>
-<script src="assets/js/17-fileupload.js?v=0.9.4"></script>
-<script src="assets/js/18-mobile.js?v=0.9.4"></script>
+<script src="assets/js/01-state.js?v=0.9.5"></script>
+<script src="assets/js/02-onboarding.js?v=0.9.5"></script>
+<script src="assets/js/03-storage.js?v=0.9.5"></script>
+<script src="assets/js/04-sidebar.js?v=0.9.5"></script>
+<script src="assets/js/05-conversation.js?v=0.9.5"></script>
+<script src="assets/js/06-render.js?v=0.9.5"></script>
+<script src="assets/js/07-theme.js?v=0.9.5"></script>
+<script src="assets/js/08-cloudsync.js?v=0.9.5"></script>
+<script src="assets/js/09-settings.js?v=0.9.5"></script>
+<script src="assets/js/10-changelog.js?v=0.9.5"></script>
+<script src="assets/js/11-input.js?v=0.9.5"></script>
+<script src="assets/js/12-msgops.js?v=0.9.5"></script>
+<script src="assets/js/13-image.js?v=0.9.5"></script>
+<script src="assets/js/14-websearch.js?v=0.9.5"></script>
+<script src="assets/js/15-tts.js?v=0.9.5"></script>
+<script src="assets/js/16-providers.js?v=0.9.5"></script>
+<script src="assets/js/17-fileupload.js?v=0.9.5"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="assets/js/18-mobile.js?v=0.9.5"></script>
+<script src="assets/js/19-configsync.js?v=0.9.5"></script>
 </body>
 </html>
