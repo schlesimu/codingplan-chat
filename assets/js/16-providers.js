@@ -402,6 +402,22 @@ function refreshProviderConfigUI(pid) {
     html += '<div style="font-size:12px;color:var(--sidebar-text);margin-bottom:6px">API Key</div>';
     html += `<input id="prov-key" type="password" value="${cfg.key || ''}" placeholder="sk-..." style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--sidebar-divider);background:var(--input-bg);color:var(--input-color);font-size:12px;font-family:monospace">`;
     if (provider.keyHelp) html += `<div style="font-size:10px;color:var(--text-dim);margin-top:3px">${provider.keyHelp}</div>`;
+    // v0.9.5.6: 测试 + 查余额按钮
+    // anthropic 浏览器 CORS 直连不通，跳过；openai 走 /v1/models 校验但无余额 API
+    const supportsTest = ['deepseek', 'moonshot', 'zhipu', 'openai'].includes(pid);
+    const supportsBalance = ['deepseek', 'moonshot', 'zhipu'].includes(pid);
+    if (supportsTest) {
+      html += '<div style="display:flex;gap:6px;margin-top:8px">';
+      html += `<button type="button" onclick="testProviderKey('${pid}')" style="flex:1;padding:6px 10px;border-radius:6px;border:1px solid var(--sidebar-divider);background:transparent;color:var(--text-main);font-size:11px;cursor:pointer;font-family:inherit">测试 Key 有效性</button>`;
+      if (supportsBalance) {
+        html += `<button type="button" onclick="queryProviderBalance('${pid}')" style="flex:1;padding:6px 10px;border-radius:6px;border:1px solid var(--sidebar-divider);background:transparent;color:var(--text-main);font-size:11px;cursor:pointer;font-family:inherit">查询余额</button>`;
+      }
+      html += '</div>';
+      // 结果显示区
+      html += '<div id="prov-key-result" style="margin-top:6px;font-size:11px;color:var(--text-dim);min-height:14px;line-height:1.5"></div>';
+    } else if (pid === 'anthropic') {
+      html += '<div style="margin-top:8px;font-size:11px;color:var(--text-dim);font-style:italic">Anthropic 端点不支持浏览器直连测试（CORS），请通过代理使用</div>';
+    }
     html += '</div>';
   }
   if (provider.needsCustomEndpoint) {
@@ -564,6 +580,58 @@ if (typeof window !== 'undefined') {
   window.closeProviderDialog = closeProviderDialog;
   window.saveProviderDialog = saveProviderDialog;
   window.updateModelBadge = updateModelBadge;
+  window.testProviderKey = testProviderKey;
+  window.queryProviderBalance = queryProviderBalance;
+}
+
+// v0.9.5.6: 测试 API Key 有效性
+async function testProviderKey(pid) {
+  const keyInput = document.getElementById('prov-key');
+  const resultDiv = document.getElementById('prov-key-result');
+  if (!keyInput || !resultDiv) return;
+  const key = keyInput.value.trim();
+  if (!key) {
+    resultDiv.innerHTML = '<span style="color:#ff8a5e">请先填入 API Key</span>';
+    return;
+  }
+  resultDiv.innerHTML = '<span style="color:#7c66dc">正在校验...</span>';
+  try {
+    const r = await validateApiKey(pid, key);
+    if (r.valid) {
+      resultDiv.innerHTML = '<span style="color:#22c55e">✓ ' + (r.model || 'Key 有效') + '</span>';
+    } else {
+      resultDiv.innerHTML = '<span style="color:#ef4444">✗ ' + (r.error || '校验失败') + '</span>';
+    }
+  } catch (e) {
+    resultDiv.innerHTML = '<span style="color:#ef4444">✗ ' + e.message + '</span>';
+  }
+}
+
+// v0.9.5.6: 查询余额
+async function queryProviderBalance(pid) {
+  const keyInput = document.getElementById('prov-key');
+  const resultDiv = document.getElementById('prov-key-result');
+  if (!keyInput || !resultDiv) return;
+  const key = keyInput.value.trim();
+  if (!key) {
+    resultDiv.innerHTML = '<span style="color:#ff8a5e">请先填入 API Key</span>';
+    return;
+  }
+  resultDiv.innerHTML = '<span style="color:#7c66dc">正在查询余额...</span>';
+  try {
+    const r = await checkBalance(pid, key);
+    if (!r.supported) {
+      resultDiv.innerHTML = '<span style="color:#ff8a5e">' + (r.error || '不支持余额查询') + '</span>';
+      return;
+    }
+    if (r.error) {
+      resultDiv.innerHTML = '<span style="color:#ef4444">' + r.error + '</span>';
+      return;
+    }
+    resultDiv.innerHTML = '<span style="color:#22c55e">余额：' + (r.balance || '未知') + '</span>';
+  } catch (e) {
+    resultDiv.innerHTML = '<span style="color:#ef4444">查询出错：' + e.message + '</span>';
+  }
 }
 
 // 自启动徽章
