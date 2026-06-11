@@ -1985,7 +1985,23 @@ body.fx-simple .msg.assistant.streaming .bubble { animation: none !important; }
 }
 
 /* ========== 思考动画 ========== */
-.typing-indicator { display: inline-flex; gap: 5px; padding: 6px 0 2px; }
+.typing-indicator { display: inline-flex; gap: 5px; padding: 6px 0 2px; align-items: center; }
+/* v0.9.8.3 D2-a: 划水文案样式 */
+.typing-indicator .typing-label {
+  margin-left: 8px;
+  font-size: 13px;
+  color: var(--text-tertiary, rgba(255,255,255,0.55));
+  font-style: italic;
+  animation: typingLabelFade 2s ease-in-out infinite;
+  background: none !important;
+  width: auto !important;
+  height: auto !important;
+  border-radius: 0 !important;
+}
+@keyframes typingLabelFade {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 0.95; }
+}
 .typing-indicator span {
   width: 7px; height: 7px;
   background: var(--typing-dot); border-radius: 50%;
@@ -3405,3 +3421,273 @@ body.share-view-mode { background: #0a0a14; color: #e8e8ee; margin: 0; }
   box-shadow: none;
 }
 
+
+/* ========== v0.9.8.3 E1: 提示词模板 sheet ========== */
+.prompts-sheet-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 998;
+}
+.prompts-sheet-overlay.open { opacity: 1; pointer-events: auto; }
+
+.prompts-sheet {
+  position: fixed;
+  left: 50%; bottom: 0;
+  transform: translate(-50%, 100%);
+  width: min(560px, calc(100vw - 24px));
+  max-height: 75vh;
+  background: var(--modal-bg, #1a1a24);
+  border: 1px solid var(--input-area-border, rgba(255,255,255,0.1));
+  border-bottom: none;
+  border-radius: 22px 22px 0 0;
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.5);
+  display: flex; flex-direction: column;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 999;
+  overflow: hidden;
+}
+.prompts-sheet.open { transform: translate(-50%, 0); }
+
+.prompts-sheet-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--input-area-border, rgba(255,255,255,0.08));
+}
+.prompts-sheet-title { font-size: 15px; font-weight: 600; color: var(--text-primary, #fff); }
+.prompts-sheet-close {
+  width: 28px; height: 28px;
+  background: transparent; border: none; cursor: pointer;
+  color: var(--text-secondary, rgba(255,255,255,0.6));
+  font-size: 18px; line-height: 1;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+.prompts-sheet-close:hover { background: rgba(255,255,255,0.08); color: var(--text-primary, #fff); }
+
+.prompts-sheet-body {
+  flex: 1; overflow-y: auto;
+  padding: 8px 12px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
+  align-content: start;
+}
+
+.prompt-item {
+  position: relative;
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px;
+  background: var(--bubble-bg, rgba(255,255,255,0.05));
+  border: 1px solid var(--input-area-border, rgba(255,255,255,0.08));
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  color: var(--text-primary, #fff);
+  font-size: 13px;
+  min-height: 44px;
+}
+.prompt-item:hover {
+  background: rgba(255, 107, 53, 0.12);
+  border-color: rgba(255, 107, 53, 0.3);
+  transform: translateY(-1px);
+}
+.prompt-icon { font-size: 18px; flex-shrink: 0; }
+.prompt-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prompt-delete {
+  width: 22px; height: 22px;
+  background: transparent; border: none; cursor: pointer;
+  color: var(--text-tertiary, rgba(255,255,255,0.4));
+  font-size: 12px; line-height: 1;
+  border-radius: 6px;
+  opacity: 0;
+  transition: opacity 0.2s ease, background 0.2s ease;
+  flex-shrink: 0;
+}
+.prompt-item:hover .prompt-delete { opacity: 1; }
+.prompt-delete:hover { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+
+.prompts-sheet-footer {
+  position: sticky; bottom: 0;
+  padding: 12px 20px max(12px, env(safe-area-inset-bottom));
+  background: inherit;
+  border-top: 1px solid var(--input-area-border, rgba(255,255,255,0.08));
+  display: flex; gap: 10px; justify-content: space-between;
+}
+.prompts-add-btn, .prompts-reset-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px;
+  background: rgba(255, 107, 53, 0.15);
+  border: 1px solid rgba(255, 107, 53, 0.35);
+  border-radius: 10px;
+  color: #ff8a5e;
+  font-size: 13px; font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.prompts-reset-btn {
+  background: transparent;
+  border-color: var(--input-area-border, rgba(255,255,255,0.1));
+  color: var(--text-secondary, rgba(255,255,255,0.6));
+}
+.prompts-add-btn:hover { background: rgba(255, 107, 53, 0.25); transform: translateY(-1px); }
+.prompts-reset-btn:hover { background: rgba(255,255,255,0.06); color: var(--text-primary, #fff); }
+
+/* 提示词编辑器 modal */
+.prompt-editor-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 1000;
+}
+.prompt-editor-overlay.open { opacity: 1; pointer-events: auto; }
+
+.prompt-editor {
+  position: fixed;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  width: min(440px, calc(100vw - 32px));
+  background: var(--modal-bg, #1a1a24);
+  border: 1px solid var(--input-area-border, rgba(255,255,255,0.12));
+  border-radius: 18px;
+  opacity: 0; pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 1001;
+  display: flex; flex-direction: column;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+.prompt-editor.open {
+  opacity: 1; pointer-events: auto;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.prompt-editor-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--input-area-border, rgba(255,255,255,0.08));
+  font-weight: 600; color: var(--text-primary, #fff);
+}
+.prompt-editor-body {
+  flex: 1; overflow-y: auto;
+  padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.prompt-editor-body label {
+  display: flex; flex-direction: column; gap: 6px;
+  font-size: 12px; color: var(--text-secondary, rgba(255,255,255,0.7));
+}
+.prompt-editor-body input,
+.prompt-editor-body textarea {
+  background: var(--bubble-bg, rgba(255,255,255,0.05));
+  border: 1px solid var(--input-area-border, rgba(255,255,255,0.12));
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--text-primary, #fff);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s ease;
+  resize: vertical;
+}
+.prompt-editor-body input:focus,
+.prompt-editor-body textarea:focus { border-color: rgba(255, 107, 53, 0.5); }
+
+.prompt-editor-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--input-area-border, rgba(255,255,255,0.08));
+  display: flex; justify-content: flex-end;
+}
+
+/* 移动端：sheet 全宽 */
+@media (max-width: 600px) {
+  .prompts-sheet { width: 100vw; left: 0; transform: translateY(100%); border-radius: 18px 18px 0 0; }
+  .prompts-sheet.open { transform: translateY(0); }
+  .prompts-sheet-body { grid-template-columns: 1fr 1fr; }
+  .prompt-delete { opacity: 1; } /* 触屏没 hover，常显 */
+}
+
+/* ========== v0.9.8.3 E3: 代码块实时预览 ========== */
+.code-block-preview {
+  /* 预览按钮：橙色强调 */
+  color: #ff8a5e !important;
+  border-color: rgba(255, 107, 53, 0.35) !important;
+}
+.code-block-preview:hover {
+  background: rgba(255, 107, 53, 0.15) !important;
+}
+.code-block-preview.active {
+  background: rgba(255, 107, 53, 0.25) !important;
+  border-color: rgba(255, 107, 53, 0.5) !important;
+}
+
+.code-block-preview-area {
+  margin-top: 8px;
+  border: 1px solid var(--input-area-border, rgba(255,255,255,0.1));
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+  animation: previewSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes previewSlideIn {
+  from { opacity: 0; transform: translateY(-8px); max-height: 0; }
+  to   { opacity: 1; transform: translateY(0); max-height: 500px; }
+}
+
+.preview-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(255, 107, 53, 0.08);
+  border-bottom: 1px solid var(--input-area-border, rgba(255,255,255,0.08));
+}
+.preview-title {
+  font-size: 12px; font-weight: 500;
+  color: #ff8a5e;
+  letter-spacing: 0.3px;
+}
+.preview-actions { display: flex; gap: 6px; }
+.preview-btn {
+  width: 26px; height: 26px;
+  background: transparent;
+  border: 1px solid var(--input-area-border, rgba(255,255,255,0.1));
+  border-radius: 6px;
+  color: var(--text-secondary, rgba(255,255,255,0.7));
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.preview-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary, #fff);
+}
+.preview-close:hover {
+  background: rgba(239, 68, 68, 0.2) !important;
+  color: #ef4444 !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+}
+
+.preview-iframe {
+  width: 100%;
+  height: 280px;
+  border: none;
+  background: #fff; /* iframe 内部页面默认白底 */
+  display: block;
+  resize: vertical; /* 允许用户拖动调整高度 */
+  min-height: 100px;
+  max-height: 600px;
+}
+
+/* 移动端：iframe 高度小些 */
+@media (max-width: 600px) {
+  .preview-iframe { height: 220px; }
+}
