@@ -4201,3 +4201,881 @@ body.call-active { overflow: hidden; }
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================================
+   v0.9.9.0「礼物三件套」: 纸质感设计语言
+   底色暖米白 #F5EFE0 / 墨色 #2B2118 / 浅棕 #8B6F47 / 暖金印章 #C4A574
+   serif 衬线字体保证非电子味
+   ============================================================ */
+
+:root {
+  --paper-bg: #F5EFE0;
+  --paper-bg-deep: #EDE4D0;
+  --paper-ink: #2B2118;
+  --paper-ink-soft: #5B4E3F;
+  --paper-ink-dim: rgba(43, 33, 24, 0.55);
+  --paper-amber: #8B6F47;
+  --paper-gold: #C4A574;
+  --paper-stamp: #B33A28;
+  --paper-divider: rgba(43, 33, 24, 0.18);
+  --paper-shadow: 0 2px 12px rgba(43, 33, 24, 0.08), 0 8px 32px rgba(43, 33, 24, 0.06);
+  --paper-serif: "Songti SC", "STSong", "SimSun", "Noto Serif SC", "Source Han Serif SC", Georgia, serif;
+}
+
+/* 纸纹理：极细 noise + 一道折痕 - 内联 SVG，不增请求 */
+.paper-surface {
+  background-color: var(--paper-bg);
+  background-image:
+    /* 折痕，从顶部稍偏左斜下，几乎看不见 */
+    linear-gradient(105deg,
+      transparent 0%,
+      transparent 38%,
+      rgba(43, 33, 24, 0.025) 38.2%,
+      rgba(43, 33, 24, 0.045) 38.5%,
+      rgba(43, 33, 24, 0.018) 38.8%,
+      transparent 39%,
+      transparent 100%),
+    /* 纸纤维 noise */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.17  0 0 0 0 0.13  0 0 0 0 0.09  0 0 0 0.08 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size: 100% 100%, 180px 180px;
+  background-blend-mode: normal, multiply;
+}
+
+/* 朱印（圆形红章） */
+.paper-stamp {
+  display: inline-block;
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  border: 2.5px solid var(--paper-stamp);
+  color: var(--paper-stamp);
+  background: rgba(179, 58, 40, 0.04);
+  font-family: "STKaiti", "KaiTi", "Songti SC", serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 1px;
+  line-height: 1.15;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-6deg);
+  opacity: 0.78;
+  position: relative;
+}
+.paper-stamp::after {
+  /* 印泥不均的颗粒感 */
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><filter id='s'><feTurbulence type='fractalNoise' baseFrequency='1.6' numOctaves='2'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.5 0'/></filter><rect width='100%25' height='100%25' filter='url(%23s)'/></svg>");
+  mix-blend-mode: lighten;
+  opacity: 0.35;
+  pointer-events: none;
+}
+.paper-stamp .stamp-line-1 { font-size: 16px; margin-bottom: 2px; }
+.paper-stamp .stamp-line-2 { font-size: 9px; opacity: 0.85; letter-spacing: 0.5px; }
+
+/* 居中三点分隔（替代直线） */
+.paper-divider {
+  text-align: center;
+  color: var(--paper-divider);
+  letter-spacing: 8px;
+  font-size: 14px;
+  margin: 28px 0;
+  user-select: none;
+}
+.paper-divider::before { content: "·  ·  ·"; }
+
+/* ============================================================
+   关于页 - 全屏覆盖
+   ============================================================ */
+
+.about-page {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  /* 默认 dark 主题下打开：先暖色 fade，露出纸 */
+  background: rgba(15, 12, 8, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: aboutFadeIn 0.4s ease-out;
+}
+.about-page.visible { display: block; }
+
+@keyframes aboutFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes aboutPaperRise {
+  from { opacity: 0; transform: translateY(24px) rotate(-0.4deg); }
+  to { opacity: 1; transform: translateY(0) rotate(0); }
+}
+
+.about-paper {
+  max-width: 640px;
+  margin: 40px auto;
+  padding: 56px 48px 48px;
+  border-radius: 6px;
+  box-shadow: var(--paper-shadow);
+  font-family: var(--paper-serif);
+  color: var(--paper-ink);
+  line-height: 1.95;
+  font-size: 16px;
+  position: relative;
+  animation: aboutPaperRise 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.about-back {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 1;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(245, 239, 224, 0.92);
+  color: var(--paper-ink);
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.18s, background 0.18s;
+}
+.about-back:hover { background: var(--paper-bg); transform: scale(1.05); }
+.about-back:active { transform: scale(0.92); }
+
+.about-title {
+  font-family: var(--paper-serif);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-align: center;
+  margin-bottom: 8px;
+  color: var(--paper-ink);
+}
+.about-subtitle {
+  text-align: center;
+  font-size: 13px;
+  letter-spacing: 6px;
+  color: var(--paper-amber);
+  margin-bottom: 28px;
+  font-family: var(--paper-serif);
+}
+
+.about-paper p {
+  margin: 0 0 18px;
+  text-indent: 2em;
+}
+.about-paper p.no-indent { text-indent: 0; }
+.about-paper .paper-quote {
+  text-indent: 0;
+  padding: 16px 22px;
+  border-left: 3px solid var(--paper-gold);
+  background: rgba(196, 165, 116, 0.08);
+  margin: 22px 0;
+  font-size: 15px;
+  color: var(--paper-ink-soft);
+}
+.about-paper .paper-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 24px;
+}
+.about-paper .paper-list li {
+  padding: 6px 0 6px 24px;
+  position: relative;
+  font-size: 15px;
+  color: var(--paper-ink-soft);
+}
+.about-paper .paper-list li::before {
+  content: "·";
+  position: absolute;
+  left: 8px;
+  color: var(--paper-amber);
+  font-weight: 700;
+}
+.about-paper .paper-list .li-strong { color: var(--paper-ink); }
+
+/* 时间胶囊段落 */
+.about-capsule {
+  margin: 32px 0;
+  padding: 20px 24px;
+  background: rgba(196, 165, 116, 0.07);
+  border: 1px dashed rgba(196, 165, 116, 0.4);
+  border-radius: 4px;
+  font-size: 14.5px;
+}
+.about-capsule-title {
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: var(--paper-amber);
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+/* 署名区 */
+.about-signature {
+  margin-top: 36px;
+  text-align: right;
+  font-family: "STKaiti", "KaiTi", var(--paper-serif);
+  font-size: 18px;
+  color: var(--paper-ink);
+  position: relative;
+  padding-right: 8px;
+}
+.about-signature .sig-name {
+  font-size: 22px;
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+.about-signature .sig-meta {
+  font-size: 13px;
+  color: var(--paper-ink-dim);
+  letter-spacing: 1px;
+}
+.about-signature .stamp-wrap {
+  position: absolute;
+  right: -8px;
+  top: -34px;
+}
+
+/* 链接区 */
+.about-links {
+  margin-top: 40px;
+  text-align: center;
+  font-size: 14px;
+}
+.about-links a {
+  color: var(--paper-amber);
+  text-decoration: none;
+  margin: 0 14px;
+  border-bottom: 1px solid rgba(139, 111, 71, 0.4);
+  padding-bottom: 2px;
+  transition: color 0.18s, border-color 0.18s;
+}
+.about-links a:hover {
+  color: var(--paper-stamp);
+  border-color: var(--paper-stamp);
+}
+
+/* 三主题对关于页背景的不同处理 */
+[data-theme="light"] .about-page {
+  background: rgba(255, 250, 240, 0.85);
+}
+[data-theme="liquid"] .about-page {
+  background: rgba(220, 210, 190, 0.45);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+}
+[data-theme="liquid"] .about-paper {
+  box-shadow:
+    0 2px 12px rgba(43, 33, 24, 0.1),
+    0 12px 48px rgba(43, 33, 24, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* 移动端适配 */
+@media (max-width: 640px) {
+  .about-paper {
+    margin: 16px 12px;
+    padding: 44px 24px 36px;
+    font-size: 15px;
+  }
+  .about-title { font-size: 24px; letter-spacing: 3px; }
+  .about-subtitle { font-size: 12px; letter-spacing: 4px; }
+  .about-back { top: 12px; left: 12px; width: 38px; height: 38px; }
+}
+
+/* ============================================================
+   欢迎流程 v2 - 3 屏滑动，第 3 屏纸质感
+   ============================================================ */
+
+.onb-v2 {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: linear-gradient(160deg, #0a0a1f 0%, #16162e 50%, #1f1a3e 100%);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: opacity 0.4s ease;
+}
+.onb-v2.fading-out { opacity: 0; pointer-events: none; }
+
+.onb-v2-track {
+  flex: 1;
+  display: flex;
+  width: 300%;
+  height: 100%;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+.onb-v2-track[data-step="0"] { transform: translateX(0); }
+.onb-v2-track[data-step="1"] { transform: translateX(-33.333%); }
+.onb-v2-track[data-step="2"] { transform: translateX(-66.666%); }
+
+.onb-v2-slide {
+  width: 33.333%;
+  height: 100%;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 32px;
+  text-align: center;
+  color: #fff;
+  position: relative;
+}
+
+/* 屏 1 - 自我介绍 */
+.onb-v2-logo {
+  width: 96px;
+  height: 96px;
+  margin-bottom: 28px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(120, 130, 220, 0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+  animation: onbLogoBreath 3.5s ease-in-out infinite;
+}
+.onb-v2-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+@keyframes onbLogoBreath {
+  0%, 100% { transform: scale(1); box-shadow: 0 8px 40px rgba(120, 130, 220, 0.4), inset 0 1px 0 rgba(255,255,255,0.2); }
+  50% { transform: scale(1.04); box-shadow: 0 12px 56px rgba(120, 130, 220, 0.55), inset 0 1px 0 rgba(255,255,255,0.3); }
+}
+
+.onb-v2-h1 {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-bottom: 22px;
+  color: #fff;
+}
+.onb-v2-text {
+  font-size: 16px;
+  line-height: 1.85;
+  color: rgba(255, 255, 255, 0.82);
+  max-width: 320px;
+  margin-bottom: 8px;
+}
+.onb-v2-text-small {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 12px;
+}
+
+/* 屏 2 - 三大顾虑消除 */
+.onb-v2-promises {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 340px;
+  width: 100%;
+  margin-top: 8px;
+}
+.onb-v2-promise {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  text-align: left;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.onb-v2-promise-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.06);
+  border-radius: 10px;
+}
+.onb-v2-promise-text { flex: 1; }
+.onb-v2-promise-title { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+.onb-v2-promise-desc { font-size: 13px; color: rgba(255, 255, 255, 0.6); line-height: 1.55; }
+
+/* 屏 3 - 纸质感「拿好这艘船」 */
+.onb-v2-slide-paper {
+  background: linear-gradient(165deg, #0a0a1f 0%, #1a1a35 100%);
+}
+.onb-v2-paper-card {
+  max-width: 380px;
+  width: 100%;
+  padding: 40px 32px 32px;
+  border-radius: 6px;
+  font-family: var(--paper-serif);
+  color: var(--paper-ink);
+  text-align: center;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    0 16px 48px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  position: relative;
+  animation: paperFloatUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+}
+@keyframes paperFloatUp {
+  from { opacity: 0; transform: translateY(60px) rotate(-1.5deg); }
+  to { opacity: 1; transform: translateY(0) rotate(-0.5deg); }
+}
+.onb-v2-paper-card .paper-icon {
+  font-size: 36px;
+  margin-bottom: 16px;
+  display: block;
+}
+.onb-v2-paper-title {
+  font-family: var(--paper-serif);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  margin-bottom: 18px;
+  color: var(--paper-ink);
+}
+.onb-v2-paper-line {
+  font-family: var(--paper-serif);
+  font-size: 16px;
+  line-height: 2;
+  color: var(--paper-ink-soft);
+  margin-bottom: 24px;
+}
+.onb-v2-paper-sig {
+  font-family: "STKaiti", "KaiTi", var(--paper-serif);
+  font-size: 14px;
+  color: var(--paper-ink-dim);
+  margin-top: 24px;
+  text-align: right;
+  padding-right: 4px;
+}
+
+/* 进度点 + 按钮 */
+.onb-v2-foot {
+  padding: 20px 32px 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  background: linear-gradient(0deg, rgba(0,0,0,0.3) 0%, transparent 100%);
+}
+.onb-v2-dots {
+  display: flex;
+  gap: 8px;
+}
+.onb-v2-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  transition: all 0.3s;
+}
+.onb-v2-dot.active {
+  background: rgba(255, 255, 255, 0.95);
+  width: 24px;
+  border-radius: 4px;
+}
+.onb-v2-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  max-width: 320px;
+}
+.onb-v2-btn {
+  flex: 1;
+  padding: 13px 24px;
+  border-radius: 12px;
+  border: none;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  font-family: inherit;
+}
+.onb-v2-btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.onb-v2-btn-primary {
+  background: #fff;
+  color: #1a1a2e;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.18);
+}
+.onb-v2-btn:active { transform: scale(0.97); }
+.onb-v2-btn-skip {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.4);
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 8px 12px;
+  -webkit-tap-highlight-color: transparent;
+  z-index: 2;
+}
+.onb-v2-btn-skip:hover { color: rgba(255, 255, 255, 0.7); }
+
+/* 隐私法务小字（合并到第 2 屏底部） */
+.onb-v2-privacy-note {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  margin-top: 16px;
+  line-height: 1.6;
+  max-width: 320px;
+}
+.onb-v2-privacy-note a { color: rgba(255, 255, 255, 0.55); text-decoration: underline; }
+
+/* 移动端微调 */
+@media (max-height: 700px) {
+  .onb-v2-slide { padding: 32px 24px; }
+  .onb-v2-logo { width: 80px; height: 80px; margin-bottom: 18px; }
+  .onb-v2-h1 { font-size: 22px; margin-bottom: 16px; }
+  .onb-v2-text { font-size: 15px; line-height: 1.7; }
+  .onb-v2-promise { padding: 12px 14px; }
+  .onb-v2-paper-card { padding: 28px 24px 24px; }
+  .onb-v2-paper-title { font-size: 19px; margin-bottom: 14px; }
+  .onb-v2-paper-line { font-size: 14.5px; line-height: 1.85; }
+  .onb-v2-foot { padding: 16px 24px 24px; gap: 14px; }
+}
+
+/* ============================================================
+   首屏角落世界观短诗（footer 极小字）
+   ============================================================ */
+
+.world-footer-poem {
+  position: fixed;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--paper-serif);
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.18);
+  letter-spacing: 1.5px;
+  z-index: 1;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+}
+[data-theme="light"] .world-footer-poem {
+  color: rgba(43, 33, 24, 0.25);
+}
+[data-theme="liquid"] .world-footer-poem {
+  color: rgba(43, 33, 24, 0.3);
+  text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+}
+@media (max-width: 480px) {
+  .world-footer-poem { font-size: 9px; letter-spacing: 1px; }
+}
+
+/* ============================================================
+   彩蛋: 版本号长按弹寄语
+   ============================================================ */
+
+.version-toast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  max-width: 300px;
+  padding: 18px 22px;
+  background: var(--paper-bg);
+  border-radius: 6px;
+  font-family: var(--paper-serif);
+  color: var(--paper-ink);
+  font-size: 14.5px;
+  line-height: 1.7;
+  box-shadow: var(--paper-shadow), 0 16px 48px rgba(0,0,0,0.4);
+  z-index: 10001;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  text-align: center;
+}
+.version-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.version-toast::before {
+  content: "";
+  display: block;
+  width: 24px;
+  height: 1px;
+  background: var(--paper-gold);
+  margin: 0 auto 10px;
+}
+.version-toast .toast-version {
+  font-size: 12px;
+  color: var(--paper-amber);
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+.version-toast .toast-quote {
+  font-style: italic;
+}
+
+/* ============================================================
+   v0.9.9.0 电子书翻页：关于页 ↔ 更新日志页
+   ============================================================ */
+
+.book-stage {
+  max-width: 680px;
+  margin: 40px auto;
+  padding: 0 20px;
+  perspective: 2400px;
+  -webkit-perspective: 2400px;
+}
+
+.book-pages {
+  position: relative;
+  width: 100%;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  transition: transform 0.95s cubic-bezier(0.55, 0.05, 0.25, 1);
+  will-change: transform;
+}
+
+/* 默认显示关于页 */
+.book-pages[data-page="about"] {
+  transform: rotateY(0deg);
+}
+/* 翻到更新日志：整张纸 rotate -180deg，看到背面 */
+.book-pages[data-page="changelog"] {
+  transform: rotateY(-180deg);
+}
+
+.book-page {
+  width: 100%;
+  padding: 56px 48px 48px;
+  border-radius: 6px;
+  box-shadow: var(--paper-shadow);
+  font-family: var(--paper-serif);
+  color: var(--paper-ink);
+  line-height: 1.95;
+  font-size: 16px;
+  position: relative;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.book-page-front {
+  position: relative;
+  z-index: 2;
+}
+.book-page-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
+}
+/* 翻页时，让页面正在翻的那个 always 显示 */
+.book-pages[data-page="about"] .book-page-back { pointer-events: none; }
+.book-pages[data-page="changelog"] .book-page-front { pointer-events: none; }
+
+/* 翻页提示按钮 */
+.about-page-flip-hint {
+  margin-top: 36px;
+  padding-top: 22px;
+  border-top: 1px dashed var(--paper-divider);
+  text-align: center;
+  font-family: var(--paper-serif);
+  font-size: 15px;
+  color: var(--paper-amber);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  letter-spacing: 2px;
+  transition: color 0.2s, gap 0.3s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  padding-bottom: 6px;
+}
+.about-page-flip-hint:hover {
+  color: var(--paper-stamp);
+  gap: 18px;
+}
+.about-page-flip-hint .flip-arrow {
+  font-size: 18px;
+  transition: transform 0.3s;
+}
+.about-page-flip-hint:hover .flip-arrow {
+  transform: translateX(4px);
+}
+
+/* 更新日志页：返回按钮 */
+.changelog-back-to-about {
+  position: absolute;
+  top: 18px;
+  left: 22px;
+  background: transparent;
+  border: none;
+  font-family: var(--paper-serif);
+  font-size: 14px;
+  color: var(--paper-amber);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 4px;
+  letter-spacing: 1px;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.2s, gap 0.3s;
+}
+.changelog-back-to-about:hover {
+  color: var(--paper-stamp);
+  gap: 10px;
+}
+.flip-arrow-left {
+  font-size: 16px;
+  transition: transform 0.3s;
+}
+.changelog-back-to-about:hover .flip-arrow-left {
+  transform: translateX(-3px);
+}
+
+/* changelog 内容样式 */
+.changelog-paper {
+  font-size: 15px;
+  line-height: 1.85;
+}
+.cl-entry {
+  margin: 0 0 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px dashed var(--paper-divider);
+}
+.cl-entry:last-of-type {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+/* 寄语：大字标题 */
+.cl-quote {
+  font-family: "STKaiti", "KaiTi", var(--paper-serif);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.6;
+  color: var(--paper-ink);
+  text-align: center;
+  margin: 0 0 6px;
+  letter-spacing: 2px;
+  position: relative;
+  padding: 8px 0;
+}
+.cl-quote::before {
+  content: """;
+  font-family: var(--paper-serif);
+  color: var(--paper-amber);
+  margin-right: 4px;
+  font-size: 24px;
+  vertical-align: -2px;
+}
+.cl-quote::after {
+  content: """;
+  font-family: var(--paper-serif);
+  color: var(--paper-amber);
+  margin-left: 4px;
+  font-size: 24px;
+  vertical-align: -2px;
+}
+
+.cl-meta-quote {
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: 4px;
+  color: var(--paper-amber);
+  margin-bottom: 18px;
+  font-family: var(--paper-serif);
+}
+
+/* 普通版本：小字版本号 */
+.cl-meta {
+  font-size: 13px;
+  letter-spacing: 3px;
+  color: var(--paper-amber);
+  margin-bottom: 12px;
+  font-family: var(--paper-serif);
+}
+
+.cl-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.cl-list li {
+  padding: 5px 0 5px 22px;
+  position: relative;
+  font-size: 14.5px;
+  color: var(--paper-ink-soft);
+  line-height: 1.85;
+}
+.cl-list li::before {
+  content: "·";
+  position: absolute;
+  left: 8px;
+  top: 0;
+  color: var(--paper-amber);
+  font-weight: 700;
+  font-size: 17px;
+}
+
+.changelog-footer-sig {
+  margin-top: 36px;
+  padding-top: 22px;
+  border-top: 1px solid var(--paper-divider);
+  text-align: center;
+  font-family: "STKaiti", "KaiTi", var(--paper-serif);
+  font-size: 16px;
+  color: var(--paper-ink);
+  letter-spacing: 2px;
+}
+.changelog-footer-sig .sig-meta {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--paper-ink-dim);
+  letter-spacing: 3px;
+}
+
+/* 关于页旧的 about-paper 样式还存在（base 已加），不需要重复 */
+/* 但 .about-paper 改造为 book-page 后不需要外 margin */
+.book-page.about-paper { margin: 0 !important; }
+
+/* 移动端翻页（弱化 perspective，不破坏） */
+@media (max-width: 640px) {
+  .book-stage { padding: 0 12px; margin: 16px auto; }
+  .book-page { padding: 44px 24px 36px; font-size: 15px; }
+  .changelog-paper { font-size: 14.5px; }
+  .cl-quote { font-size: 20px; letter-spacing: 1.5px; }
+  .changelog-back-to-about { top: 14px; left: 16px; font-size: 13px; }
+  .about-page-flip-hint { font-size: 14px; letter-spacing: 1.5px; }
+}
+
+/* 翻页正在进行时的物理感：阴影动 */
+@keyframes bookFlipShadow {
+  0% { box-shadow: var(--paper-shadow); }
+  50% { box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 16px 60px rgba(0,0,0,0.25); }
+  100% { box-shadow: var(--paper-shadow); }
+}
+.book-pages.flipping .book-page {
+  animation: bookFlipShadow 0.95s ease-in-out;
+}

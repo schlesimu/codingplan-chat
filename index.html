@@ -7,13 +7,13 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <!-- v0.9.4: PWA 支持 添加到主屏后像原生应用 -->
-<link rel="manifest" href="manifest.json?v=0.9.8.5">
+<link rel="manifest" href="manifest.json?v=0.9.9.1">
 <meta name="theme-color" content="#0a0a1f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="小纸船">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="stylesheet" href="assets/css/main.css?v=0.9.8.5">
+<link rel="stylesheet" href="assets/css/main.css?v=0.9.9.1">
 </head>
 <body>
 
@@ -108,32 +108,166 @@
   <div class="bg-orb bg-orb-3"></div>
 </div>
 
-<!-- ========== 首次欢迎页（鸿蒙风格）========== -->
-<div class="onboarding" id="onboarding">
-  <div class="onb-top">
-    <div class="onb-icon-wrap">
-      <img src="logo.png" alt="小纸船">
-    </div>
-    <div class="onb-title">小纸船 - codingplan-chat</div>
-    <div class="onb-subtitle">基于火山引擎 CodingPlan</div>
-  </div>
+<!-- ========== 首次欢迎页 v2（3 屏拆礼物式滑动）========== -->
+<div class="onb-v2" id="onbV2">
+  <button type="button" class="onb-v2-btn-skip" id="onbV2Skip" onclick="onbV2Skip()">跳过</button>
+  <div class="onb-v2-track" id="onbV2Track" data-step="0">
 
-  <div class="onb-bottom">
-    <div class="onb-privacy">
-      <span class="onb-privacy-icon">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
-      </span>
-      <div class="onb-privacy-text">
-        AI 编程助手 · 基于火山引擎 CodingPlan<br>
-        液态玻璃界面 · iOS 风格设计<br>
-        云端备份 · 数据永不丢失<br>
-        深色/浅色 · 日夜模式切换<br>
-        手机优化 · 随时随地使用
+    <!-- 屏 1: 自我介绍 -->
+    <div class="onb-v2-slide">
+      <div class="onb-v2-logo"><img src="logo.png" alt="小纸船"></div>
+      <div class="onb-v2-h1">嗨，我是小纸船 🚢</div>
+      <div class="onb-v2-text">
+        我把豆包、Kimi、DeepSeek、<br>
+        GLM、Claude 都装进了同一艘船。
+      </div>
+      <div class="onb-v2-text-small">
+        你说什么，我就用最合适的那位 AI 来回。
       </div>
     </div>
-    <div class="onb-buttons">
-      <button type="button" class="onb-btn onb-btn-secondary" id="onbCancel" onclick="cancelOnboarding()">取消</button>
-      <button type="button" class="onb-btn onb-btn-primary" id="onbAgree" onclick="finishOnboarding()">同意</button>
+
+    <!-- 屏 2: 三大顾虑消除 -->
+    <div class="onb-v2-slide">
+      <div class="onb-v2-h1" style="margin-bottom:24px;">你不需要担心</div>
+      <div class="onb-v2-promises">
+        <div class="onb-v2-promise">
+          <div class="onb-v2-promise-icon">🆓</div>
+          <div class="onb-v2-promise-text">
+            <div class="onb-v2-promise-title">完全免费</div>
+            <div class="onb-v2-promise-desc">不卖会员、不弹广告、不收订阅费</div>
+          </div>
+        </div>
+        <div class="onb-v2-promise">
+          <div class="onb-v2-promise-icon">🌫️</div>
+          <div class="onb-v2-promise-text">
+            <div class="onb-v2-promise-title">不留痕</div>
+            <div class="onb-v2-promise-desc">聊天记录只在你的手机里，我连服务器都没有</div>
+          </div>
+        </div>
+        <div class="onb-v2-promise">
+          <div class="onb-v2-promise-icon">🔓</div>
+          <div class="onb-v2-promise-text">
+            <div class="onb-v2-promise-title">不绑定账号</div>
+            <div class="onb-v2-promise-desc">不用注册、不用登录，打开就能聊</div>
+          </div>
+        </div>
+      </div>
+      <div class="onb-v2-privacy-note">
+        本应用基于火山引擎 CodingPlan API，<br>
+        请遵守相关服务条款与法律法规。
+      </div>
+    </div>
+
+    <!-- 屏 3: 纸质感「拿好这艘船」 -->
+    <div class="onb-v2-slide onb-v2-slide-paper">
+      <div class="onb-v2-paper-card paper-surface">
+        <span class="paper-icon">⛵️</span>
+        <div class="onb-v2-paper-title">这是给你的礼物</div>
+        <div class="onb-v2-paper-line">
+          祝你跟 AI 玩得开心。<br>
+          愿这艘小船陪你<br>
+          走过这个时代的开端。
+        </div>
+        <div class="onb-v2-paper-sig">—— 一个 2026 年初的小纸船作者</div>
+      </div>
+    </div>
+
+  </div>
+  <div class="onb-v2-foot">
+    <div class="onb-v2-dots">
+      <div class="onb-v2-dot active"></div>
+      <div class="onb-v2-dot"></div>
+      <div class="onb-v2-dot"></div>
+    </div>
+    <div class="onb-v2-actions">
+      <button type="button" class="onb-v2-btn onb-v2-btn-secondary" id="onbV2Back" onclick="onbV2Prev()" style="visibility:hidden;">上一步</button>
+      <button type="button" class="onb-v2-btn onb-v2-btn-primary" id="onbV2Next" onclick="onbV2Next()">下一步 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 关于小纸船 - 双页（关于 / 更新日志）+ 电子书翻页 ========== -->
+<div class="about-page" id="aboutPage" onclick="closeAbout(event)">
+  <button type="button" class="about-back" onclick="closeAbout(event, true)" aria-label="返回">←</button>
+
+  <!-- 翻页舞台：两张纸做 3D rotateY 翻页 -->
+  <div class="book-stage">
+    <div class="book-pages" id="bookPages" data-page="about">
+
+      <!-- 第 1 页：关于小纸船 -->
+      <article class="book-page book-page-front about-paper paper-surface" onclick="event.stopPropagation()">
+        <h1 class="about-title">关于小纸船</h1>
+        <div class="about-subtitle">A LITTLE PAPER BOAT · 2026</div>
+
+        <p>2026 年初，AI 像潮水一样涨起来。</p>
+        <p>豆包、Kimi、DeepSeek、GLM、Claude……每周都有新模型出来。但我注意到一件事：</p>
+        <p>身边那些刚接触 AI 的朋友——没毕业的大学生、不写代码的普通人——他们买不起 ChatGPT Plus，看不懂 Cursor，下载了扣子和 Trae 却 get 不到点。他们能用的，只有豆包这种官方 App。而最强的那些模型，他们碰不到。</p>
+        <p>所以我做了这艘小船。</p>
+
+        <div class="paper-divider"></div>
+
+        <ul class="paper-list">
+          <li><span class="li-strong">一份火山 Coding Plan</span>（90 元 / 月），几乎能调用国内全部主流模型</li>
+          <li><span class="li-strong">一个写在浏览器里的聊天器</span>，打开就用、不用注册</li>
+          <li><span class="li-strong">一个朴素的愿望</span>，让你也能体验最新最强的 AI</li>
+        </ul>
+
+        <p>我不靠它赚钱。它免费给你用。你也可以分享给身边的朋友。</p>
+
+        <div class="paper-quote">
+          如果有一天它停更了（可能是火山政策变了，也可能是我换了别的事做），也希望它已经在某段时间里，陪你聊过几次有意思的对话。
+        </div>
+
+        <div class="about-capsule">
+          <div class="about-capsule-title">这艘船建造时的世界</div>
+          <div style="text-align:center;line-height:1.95;">
+            豆包 Seed 2.0 · Kimi K2.6 · DeepSeek V4 Pro<br>
+            GLM 5.1 · Claude Sonnet 4.5 · MiniMax M3<br>
+            <span style="color:var(--paper-ink-dim);font-size:13px;">—— 这是我们这一代普通人，第一次能同时摸到这么多 AI ——</span>
+          </div>
+          <div style="margin-top:14px;text-align:center;color:var(--paper-ink-dim);font-size:13px;">
+            如果你是从未来回望这一刻的人——你好。<br>
+            我们当时，是这么用 AI 的。
+          </div>
+        </div>
+
+        <div class="about-signature">
+          <div class="stamp-wrap">
+            <div class="paper-stamp">
+              <div class="stamp-line-1">纸船</div>
+              <div class="stamp-line-2">2026</div>
+            </div>
+          </div>
+          <div class="sig-name">—— schlesimu</div>
+          <div class="sig-meta">2026 年 6 月 · 一个普通的下午</div>
+        </div>
+
+        <div class="about-page-flip-hint" onclick="flipToChangelog()">
+          <span>查看更新日志</span>
+          <span class="flip-arrow">→</span>
+        </div>
+      </article>
+
+      <!-- 第 2 页：更新日志 -->
+      <article class="book-page book-page-back changelog-paper paper-surface" onclick="event.stopPropagation()">
+        <button type="button" class="changelog-back-to-about" onclick="flipToAbout()" aria-label="返回关于">
+          <span class="flip-arrow flip-arrow-left">←</span>
+          <span>关于小纸船</span>
+        </button>
+        <h1 class="about-title">更新日志</h1>
+        <div class="about-subtitle">CHANGELOG · 自 v0.3.2 起</div>
+        <div class="paper-divider"></div>
+
+        <div id="changelogPaperContent">
+          <!-- 由 renderChangelogPaper() 注入 -->
+        </div>
+
+        <div class="changelog-footer-sig">
+          —— 一艘还在更新的小船<br>
+          <span class="sig-meta">每个版本，都是给那一刻的礼物</span>
+        </div>
+      </article>
+
     </div>
   </div>
 </div>
@@ -152,7 +286,7 @@
         <img src="logo.png" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.9.8.5</span>
+      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.9.9.1</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -282,6 +416,9 @@
       </button>
       <button class="sidebar-footer-item sidebar-subitem" onclick="clearCurrentChat()">
         <span>清空当前对话</span>
+      </button>
+      <button class="sidebar-footer-item sidebar-subitem" onclick="closeSidebar(); openAbout();" style="margin-top:8px;border-top:1px solid rgba(255,255,255,0.06);padding-top:14px;">
+        <span>🚢 关于小纸船</span>
       </button>
     </div>
   </div>
@@ -519,31 +656,34 @@
   </div>
 </div>
 
-<script src="assets/js/01-state.js?v=0.9.8.5"></script>
-<script src="assets/js/02-onboarding.js?v=0.9.8.5"></script>
-<script src="assets/js/03-storage.js?v=0.9.8.5"></script>
-<script src="assets/js/04-sidebar.js?v=0.9.8.5"></script>
-<script src="assets/js/05-conversation.js?v=0.9.8.5"></script>
-<script src="assets/js/06-render.js?v=0.9.8.5"></script>
-<script src="assets/js/07-theme.js?v=0.9.8.5"></script>
-<script src="assets/js/08-cloudsync.js?v=0.9.8.5"></script>
-<script src="assets/js/09-settings.js?v=0.9.8.5"></script>
-<script src="assets/js/10-changelog.js?v=0.9.8.5"></script>
-<script src="assets/js/11-input.js?v=0.9.8.5"></script>
-<script src="assets/js/12-msgops.js?v=0.9.8.5"></script>
-<script src="assets/js/13-image.js?v=0.9.8.5"></script>
-<script src="assets/js/14-websearch.js?v=0.9.8.5"></script>
-<script src="assets/js/15-tts.js?v=0.9.8.5"></script>
-<script src="assets/js/16-providers.js?v=0.9.8.5"></script>
-<script src="assets/js/17-fileupload.js?v=0.9.8.5"></script>
+<script src="assets/js/01-state.js?v=0.9.9.1"></script>
+<script src="assets/js/02-onboarding.js?v=0.9.9.1"></script>
+<script src="assets/js/03-storage.js?v=0.9.9.1"></script>
+<script src="assets/js/04-sidebar.js?v=0.9.9.1"></script>
+<script src="assets/js/05-conversation.js?v=0.9.9.1"></script>
+<script src="assets/js/06-render.js?v=0.9.9.1"></script>
+<script src="assets/js/07-theme.js?v=0.9.9.1"></script>
+<script src="assets/js/08-cloudsync.js?v=0.9.9.1"></script>
+<script src="assets/js/09-settings.js?v=0.9.9.1"></script>
+<script src="assets/js/10-changelog.js?v=0.9.9.1"></script>
+<script src="assets/js/11-input.js?v=0.9.9.1"></script>
+<script src="assets/js/12-msgops.js?v=0.9.9.1"></script>
+<script src="assets/js/13-image.js?v=0.9.9.1"></script>
+<script src="assets/js/14-websearch.js?v=0.9.9.1"></script>
+<script src="assets/js/15-tts.js?v=0.9.9.1"></script>
+<script src="assets/js/16-providers.js?v=0.9.9.1"></script>
+<script src="assets/js/17-fileupload.js?v=0.9.9.1"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-<script src="assets/js/18-mobile.js?v=0.9.8.5"></script>
-<script src="assets/js/19-configsync.js?v=0.9.8.5"></script>
-<script src="assets/js/20-share.js?v=0.9.8.5"></script>
-<script src="assets/js/21-glass-fx.js?v=0.9.8.5"></script>
-<script src="assets/js/22-prompts.js?v=0.9.8.5"></script>
-<script src="assets/js/23-preview.js?v=0.9.8.5"></script>
-<script src="assets/js/24-voice.js?v=0.9.8.5"></script>
+<script src="assets/js/18-mobile.js?v=0.9.9.1"></script>
+<script src="assets/js/19-configsync.js?v=0.9.9.1"></script>
+<script src="assets/js/20-share.js?v=0.9.9.1"></script>
+<script src="assets/js/21-glass-fx.js?v=0.9.9.1"></script>
+<script src="assets/js/22-prompts.js?v=0.9.9.1"></script>
+<script src="assets/js/23-preview.js?v=0.9.9.1"></script>
+<script src="assets/js/24-voice.js?v=0.9.9.1"></script>
+
+<!-- v0.9.9.0: 首屏世界观短诗（极小字，pointer-events:none） -->
+<div class="world-footer-poem">一艘小船，载着这个时代最新的几位 AI</div>
 </body>
 </html>
