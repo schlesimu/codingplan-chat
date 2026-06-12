@@ -7,13 +7,22 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <!-- v0.9.4: PWA 支持 添加到主屏后像原生应用 -->
-<link rel="manifest" href="manifest.json?v=0.9.9.3">
+<link rel="manifest" href="manifest.json?v=0.9.9.4">
 <meta name="theme-color" content="#0a0a1f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="小纸船">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="stylesheet" href="assets/css/main.css?v=0.9.9.3">
+
+<!-- v0.9.9.4: 思源宋体 / Noto Serif SC（SIL OFL 商用合规）
+     用于纸感衬线场景：启动页 / 关于页 / 信封 / changelog / 寄语
+     fontsource@5 走 jsDelivr CDN（国内可访问），unicode-range 分包按需加载
+     font-display: swap → 系统字体先显示，思源到达后无缝替换 -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-sc@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-sc@5/600.css">
+
+<link rel="stylesheet" href="assets/css/main.css?v=0.9.9.4">
 </head>
 <body>
 
@@ -109,82 +118,23 @@
 </div>
 
 <!-- ========== 首次欢迎页 v2（3 屏拆礼物式滑动）========== -->
-<div class="onb-v2" id="onbV2">
-  <button type="button" class="onb-v2-btn-skip" id="onbV2Skip" onclick="onbV2Skip()">跳过</button>
-  <div class="onb-v2-track" id="onbV2Track" data-step="0">
-
-    <!-- 屏 1: 自我介绍 -->
-    <div class="onb-v2-slide">
-      <div class="onb-v2-logo"><img src="logo.png" alt="小纸船"></div>
-      <div class="onb-v2-h1">嗨，我是小纸船 🚢</div>
-      <div class="onb-v2-text">
-        我把豆包、Kimi、DeepSeek、<br>
-        GLM、Claude 都装进了同一艘船。
-      </div>
-      <div class="onb-v2-text-small">
-        你说什么，我就用最合适的那位 AI 来回。
-      </div>
+<!-- 启动页 v0.9.9.4：单页隐私同意（iOS/鸿蒙极简风，跟随当前主题） -->
+<div class="onboarding" id="onboarding">
+  <div class="onb-top">
+    <div class="onb-logo-wrap">
+      <img src="logo.png" alt="小纸船">
     </div>
-
-    <!-- 屏 2: 三大顾虑消除 -->
-    <div class="onb-v2-slide">
-      <div class="onb-v2-h1" style="margin-bottom:24px;">你不需要担心</div>
-      <div class="onb-v2-promises">
-        <div class="onb-v2-promise">
-          <div class="onb-v2-promise-icon">🆓</div>
-          <div class="onb-v2-promise-text">
-            <div class="onb-v2-promise-title">完全免费</div>
-            <div class="onb-v2-promise-desc">不卖会员、不弹广告、不收订阅费</div>
-          </div>
-        </div>
-        <div class="onb-v2-promise">
-          <div class="onb-v2-promise-icon">🌫️</div>
-          <div class="onb-v2-promise-text">
-            <div class="onb-v2-promise-title">不留痕</div>
-            <div class="onb-v2-promise-desc">聊天记录只在你的手机里，我连服务器都没有</div>
-          </div>
-        </div>
-        <div class="onb-v2-promise">
-          <div class="onb-v2-promise-icon">🔓</div>
-          <div class="onb-v2-promise-text">
-            <div class="onb-v2-promise-title">不绑定账号</div>
-            <div class="onb-v2-promise-desc">不用注册、不用登录，打开就能聊</div>
-          </div>
-        </div>
-      </div>
-      <div class="onb-v2-privacy-note">
-        本应用基于火山引擎 CodingPlan API，<br>
-        请遵守相关服务条款与法律法规。
-      </div>
-    </div>
-
-    <!-- 屏 3: 纸质感「拿好这艘船」 -->
-    <div class="onb-v2-slide onb-v2-slide-paper">
-      <div class="onb-v2-paper-card paper-surface">
-        <span class="paper-icon">⛵️</span>
-        <div class="onb-v2-paper-title">这是给你的礼物</div>
-        <div class="onb-v2-paper-line">
-          祝你跟 AI 玩得开心。<br>
-          愿这艘小船陪你<br>
-          走过这个时代的开端。
-        </div>
-        <div class="onb-v2-paper-sig">—— 一个 2026 年初的小纸船作者</div>
-      </div>
-    </div>
-
+    <div class="onb-title">小纸船</div>
+    <div class="onb-subtitle">codingplan-chat</div>
+    <div class="onb-tagline">一艘装着这个时代 AI 的船。</div>
   </div>
-  <div class="onb-v2-foot">
-    <div class="onb-v2-dots">
-      <div class="onb-v2-dot active"></div>
-      <div class="onb-v2-dot"></div>
-      <div class="onb-v2-dot"></div>
-    </div>
-    <div class="onb-v2-actions">
-      <button type="button" class="onb-v2-btn onb-v2-btn-secondary" id="onbV2Back" onclick="onbV2Prev()" style="visibility:hidden;">上一步</button>
-      <button type="button" class="onb-v2-btn onb-v2-btn-primary" id="onbV2Next" onclick="onbV2Next()">下一步 →</button>
-    </div>
+
+  <div class="onb-bottom">
+    <div class="onb-note">本应用完全免费，不会收集您的对话内容，所有请求均通过您自行配置的 API Key 直连模型服务商；支持多模型自动路由、主题与视觉切换、语音输入、AI 通话、键盘快捷键、多端适配及更新日志查阅。继续即表示您已知晓并同意上述内容。</div>
+    <button type="button" class="onb-btn-agree" onclick="finishOnboarding()">同 意</button>
   </div>
 </div>
+
 
 <!-- ========== 关于小纸船 - 双页（关于 / 更新日志）+ 电子书翻页 ========== -->
 <div class="about-page" id="aboutPage" onclick="closeAbout(event)">
@@ -234,7 +184,7 @@
         <div class="about-signature">
           <div class="stamp-wrap">
             <div class="paper-stamp">
-              <div class="stamp-line-1">纸船</div>
+              <div class="stamp-line-1">小纸船</div>
               <div class="stamp-line-2">2026</div>
             </div>
           </div>
@@ -286,7 +236,7 @@
         <img src="logo.png" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" title="点击：寄语 ｜ 长按：抓取反馈日志">v0.9.9.3</span>
+      <span class="sidebar-version" title="点击：寄语 ｜ 长按：抓取反馈日志">v0.9.9.4</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -320,6 +270,19 @@
       </button>
       <button class="sidebar-theme-btn" data-mode="liquid" onclick="switchTheme('liquid')" title="通透模式">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z"/></svg>
+      </button>
+    </div>
+
+    <!-- v0.9.9.4: 视觉效果三段胶囊（标准 / 简约 / 极简） -->
+    <div class="sidebar-fx-switcher" id="sidebarFxSwitcher">
+      <button class="sidebar-fx-btn" data-fx="standard" onclick="setFxMode('standard')" title="视觉效果：标准">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>
+      </button>
+      <button class="sidebar-fx-btn" data-fx="simple" onclick="setFxMode('simple')" title="视觉效果：简约">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/></svg>
+      </button>
+      <button class="sidebar-fx-btn" data-fx="minimal" onclick="setFxMode('minimal')" title="视觉效果：极简">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="20" y2="12"/></svg>
       </button>
     </div>
 
@@ -408,9 +371,6 @@
       <button class="sidebar-footer-item sidebar-subitem" onclick="showApiKeyDialog()">
         <span>设置 API Key</span>
       </button>
-      <button class="sidebar-footer-item sidebar-subitem" id="reduceFxToggle" onclick="toggleReduceFx()">
-        <span id="reduceFxLabel">视觉效果：标准</span>
-      </button>
       <button class="sidebar-footer-item sidebar-subitem" onclick="clearCurrentChat()">
         <span>清空当前对话</span>
       </button>
@@ -453,10 +413,9 @@
     </div>
     <div class="bubble">嗨～我是小纸船 🚢
 
-把豆包、Kimi、DeepSeek、GLM、Claude 都装进了一艘小船，
 你说什么、我就用最合适的那位 AI 来回。
 
-聊聊？</div>
+想聊点什么？</div>
   </div>
 </div>
 
@@ -643,34 +602,35 @@
   </div>
 </div>
 
-<script src="assets/js/00-console-capture.js?v=0.9.9.3"></script>
-<script src="assets/js/01-state.js?v=0.9.9.3"></script>
-<script src="assets/js/02-onboarding.js?v=0.9.9.3"></script>
-<script src="assets/js/03-storage.js?v=0.9.9.3"></script>
-<script src="assets/js/04-sidebar.js?v=0.9.9.3"></script>
-<script src="assets/js/05-conversation.js?v=0.9.9.3"></script>
-<script src="assets/js/06-render.js?v=0.9.9.3"></script>
-<script src="assets/js/07-theme.js?v=0.9.9.3"></script>
-<script src="assets/js/08-cloudsync.js?v=0.9.9.3"></script>
-<script src="assets/js/09-settings.js?v=0.9.9.3"></script>
-<script src="assets/js/10-changelog.js?v=0.9.9.3"></script>
-<script src="assets/js/11-input.js?v=0.9.9.3"></script>
-<script src="assets/js/12-msgops.js?v=0.9.9.3"></script>
-<script src="assets/js/13-image.js?v=0.9.9.3"></script>
-<script src="assets/js/14-websearch.js?v=0.9.9.3"></script>
-<script src="assets/js/15-tts.js?v=0.9.9.3"></script>
-<script src="assets/js/16-providers.js?v=0.9.9.3"></script>
-<script src="assets/js/17-fileupload.js?v=0.9.9.3"></script>
+<script src="assets/js/00-console-capture.js?v=0.9.9.4"></script>
+<script src="assets/js/01-state.js?v=0.9.9.4"></script>
+<script src="assets/js/02-onboarding.js?v=0.9.9.4"></script>
+<script src="assets/js/03-storage.js?v=0.9.9.4"></script>
+<script src="assets/js/04-sidebar.js?v=0.9.9.4"></script>
+<script src="assets/js/05-conversation.js?v=0.9.9.4"></script>
+<script src="assets/js/06-render.js?v=0.9.9.4"></script>
+<script src="assets/js/07-theme.js?v=0.9.9.4"></script>
+<script src="assets/js/08-cloudsync.js?v=0.9.9.4"></script>
+<script src="assets/js/09-settings.js?v=0.9.9.4"></script>
+<script src="assets/js/10-changelog.js?v=0.9.9.4"></script>
+<script src="assets/js/11-input.js?v=0.9.9.4"></script>
+<script src="assets/js/12-msgops.js?v=0.9.9.4"></script>
+<script src="assets/js/13-image.js?v=0.9.9.4"></script>
+<script src="assets/js/14-websearch.js?v=0.9.9.4"></script>
+<script src="assets/js/15-tts.js?v=0.9.9.4"></script>
+<script src="assets/js/16-providers.js?v=0.9.9.4"></script>
+<script src="assets/js/17-fileupload.js?v=0.9.9.4"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-<script src="assets/js/18-mobile.js?v=0.9.9.3"></script>
-<script src="assets/js/19-configsync.js?v=0.9.9.3"></script>
-<script src="assets/js/20-share.js?v=0.9.9.3"></script>
-<script src="assets/js/21-glass-fx.js?v=0.9.9.3"></script>
-<script src="assets/js/22-prompts.js?v=0.9.9.3"></script>
-<script src="assets/js/23-preview.js?v=0.9.9.3"></script>
-<script src="assets/js/24-voice.js?v=0.9.9.3"></script>
-<script src="assets/js/25-shortcuts.js?v=0.9.9.3"></script>
+<script src="assets/js/18-mobile.js?v=0.9.9.4"></script>
+<script src="assets/js/19-configsync.js?v=0.9.9.4"></script>
+<script src="assets/js/20-share.js?v=0.9.9.4"></script>
+<script src="assets/js/21-glass-fx.js?v=0.9.9.4"></script>
+<script src="assets/js/22-prompts.js?v=0.9.9.4"></script>
+<script src="assets/js/23-preview.js?v=0.9.9.4"></script>
+<script src="assets/js/24-voice.js?v=0.9.9.4"></script>
+<script src="assets/js/25-shortcuts.js?v=0.9.9.4"></script>
+<script src="assets/js/26-letter.js?v=0.9.9.4"></script>
 
 <!-- v0.9.9.0: 首屏世界观短诗（极小字，pointer-events:none） -->
 <div class="world-footer-poem">一艘小船，载着这个时代最新的几位 AI</div>

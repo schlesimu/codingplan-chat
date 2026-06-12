@@ -1224,6 +1224,28 @@ body {
     inset 1px 1px 2px 0px rgba(255,255,255,0.6),
     0px 0px 4px 1px rgba(140,120,255,0.15);
 }
+
+/* v0.9.9.4 视觉效果胶囊（liquid 玻璃） */
+[data-theme="liquid"] .sidebar-fx-switcher {
+  background: rgba(255,255,255,0.15);
+  border-color: rgba(255,255,255,0.35);
+  box-shadow:
+    inset 1px 1px 2px 0px rgba(255,255,255,0.3),
+    0px 0px 3px 1px rgba(0,0,0,0.08);
+}
+[data-theme="liquid"] .sidebar-fx-btn {
+  color: rgba(45,43,85,0.45);
+}
+[data-theme="liquid"] .sidebar-fx-btn:hover {
+  color: rgba(45,43,85,0.7);
+}
+[data-theme="liquid"] .sidebar-fx-btn.active {
+  background: rgba(255,255,255,0.45);
+  color: #2d2b55;
+  box-shadow:
+    inset 1px 1px 2px 0px rgba(255,255,255,0.6),
+    0px 0px 4px 1px rgba(140,120,255,0.15);
+}
 .sidebar-footer-item .footer-icon { font-size: 14px; width: 20px; text-align: center; flex-shrink: 0; }
 
 /* 折叠栏 */
@@ -2326,6 +2348,44 @@ body.fx-simple .msg.assistant.streaming .bubble { animation: none !important; }
   color: var(--sidebar-text-active);
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
+
+/* ========== v0.9.9.4 视觉效果三段胶囊 ========== */
+.sidebar-fx-switcher {
+  display: flex;
+  gap: 0;
+  align-items: center;
+  padding: 2px;
+  margin-top: 8px;
+  border-radius: 18px;
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-border);
+}
+.sidebar-fx-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  border-radius: 14px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: all 0.25s;
+  color: var(--btn-color);
+  opacity: 0.78;
+  -webkit-tap-highlight-color: transparent;
+}
+.sidebar-fx-btn:hover {
+  color: var(--sidebar-text-active);
+  opacity: 1;
+}
+.sidebar-fx-btn.active {
+  background: var(--btn-active-bg);
+  color: var(--sidebar-text-active);
+  opacity: 1;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
 /* ========== v0.9.0 文件上传 UI ========== */
 .pending-files-bar {
   display: flex;
@@ -2655,6 +2715,27 @@ body.fx-simple .qrsync-generate-btn:hover { transform: none !important; }
 }
 [data-theme="liquid"] body.fx-simple .input-area {
   background-color: rgba(255,255,255,0.65) !important;
+}
+
+/* v0.9.9.4 修：暗色 / 浅色简约档下 header / input-area 太透，提高底色不透明度
+   （sidebar 默认 0.85/0.58 也偏透，一并兜底） */
+[data-theme="dark"] body.fx-simple .sidebar {
+  background-color: rgba(12, 12, 30, 0.92) !important;
+}
+[data-theme="dark"] body.fx-simple .header {
+  background-color: rgba(38, 38, 60, 0.88) !important;
+}
+[data-theme="dark"] body.fx-simple .input-area {
+  background-color: rgba(4, 4, 30, 0.88) !important;
+}
+[data-theme="light"] body.fx-simple .sidebar {
+  background-color: rgba(255, 255, 255, 0.94) !important;
+}
+[data-theme="light"] body.fx-simple .header {
+  background-color: rgba(245, 245, 250, 0.92) !important;
+}
+[data-theme="light"] body.fx-simple .input-area {
+  background-color: rgba(255, 255, 255, 0.92) !important;
 }
 
 /* ====== 极简档：fx-minimal ====== */
@@ -4219,7 +4300,7 @@ body.call-active { overflow: hidden; }
   --paper-stamp: #B33A28;
   --paper-divider: rgba(43, 33, 24, 0.18);
   --paper-shadow: 0 2px 12px rgba(43, 33, 24, 0.08), 0 8px 32px rgba(43, 33, 24, 0.06);
-  --paper-serif: "Songti SC", "STSong", "SimSun", "Noto Serif SC", "Source Han Serif SC", Georgia, serif;
+  --paper-serif: "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC", "SimSun", Georgia, serif;
 }
 
 /* 纸纹理：极细 noise + 一道折痕 - 内联 SVG，不增请求 */
@@ -4275,7 +4356,7 @@ body.call-active { overflow: hidden; }
   opacity: 0.35;
   pointer-events: none;
 }
-.paper-stamp .stamp-line-1 { font-size: 16px; margin-bottom: 2px; }
+.paper-stamp .stamp-line-1 { font-size: 13px; margin-bottom: 2px; letter-spacing: 0.5px; }
 .paper-stamp .stamp-line-2 { font-size: 9px; opacity: 0.85; letter-spacing: 0.5px; }
 
 /* 居中三点分隔（替代直线） */
@@ -4290,7 +4371,7 @@ body.call-active { overflow: hidden; }
 .paper-divider::before { content: "·  ·  ·"; }
 
 /* ============================================================
-   关于页 - 全屏覆盖
+   关于页 - 全屏覆盖（v0.9.9.4：flex 列容器，页面内部独立滚动）
    ============================================================ */
 
 .about-page {
@@ -4298,15 +4379,18 @@ body.call-active { overflow: hidden; }
   inset: 0;
   z-index: 9999;
   display: none;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  /* v0.9.9.4 修：改 flex 列容器，让 .book-stage 占满高度，
+     避免 .book-page-back 的 absolute 高度被算进 .about-page 的滚动尺寸，
+     导致看 about（短）时下方多出一大段空白可滚 */
+  flex-direction: column;
+  overflow: hidden;
   /* 默认 dark 主题下打开：先暖色 fade，露出纸 */
   background: rgba(15, 12, 8, 0.7);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   animation: aboutFadeIn 0.4s ease-out;
 }
-.about-page.visible { display: block; }
+.about-page.visible { display: flex; }
 
 @keyframes aboutFadeIn {
   from { opacity: 0; }
@@ -4498,271 +4582,132 @@ body.call-active { overflow: hidden; }
 }
 
 /* ============================================================
-   欢迎流程 v2 - 3 屏滑动，第 3 屏纸质感
+   启动页 v0.9.9.4：单页隐私同意（iOS / 鸿蒙极简风）
+   - 锁定白天 + 标准视觉（不随主题/不随视觉切换变化）
+   - 同意按钮 = 输入框发送按钮主题红
    ============================================================ */
 
-.onb-v2 {
+.onboarding {
   position: fixed;
   inset: 0;
   z-index: 10000;
-  /* v0.9.9.2: 白天暖色调，舍弃黑紫渐变 — 暖米白 + 极淡金光 */
-  background:
-    radial-gradient(circle at 20% 18%, rgba(255, 232, 195, 0.55), transparent 55%),
-    radial-gradient(circle at 80% 82%, rgba(255, 218, 175, 0.45), transparent 60%),
-    linear-gradient(165deg, #faf3e2 0%, #f5ecd6 45%, #f0e3c4 100%);
-  color: #2b2118;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  /* 锁定白天极简底色：暖米白 → 纯白 */
+  background: #fafafa;
+  color: #1a1a1a;
+  padding: max(32px, env(safe-area-inset-top)) 28px max(28px, env(safe-area-inset-bottom));
+  box-sizing: border-box;
   transition: opacity 0.4s ease;
+  /* 即使外层 dark / liquid 也强制白底 */
+  isolation: isolate;
+  /* 兜底：内容超高时允许滚（极矮屏） */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
-.onb-v2.fading-out { opacity: 0; pointer-events: none; }
+.onboarding.hidden { display: none; }
+.onboarding.fading-out { opacity: 0; pointer-events: none; }
 
-.onb-v2-track {
-  flex: 1;
-  display: flex;
-  width: 300%;
-  height: 100%;
-  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform;
-}
-.onb-v2-track[data-step="0"] { transform: translateX(0); }
-.onb-v2-track[data-step="1"] { transform: translateX(-33.333%); }
-.onb-v2-track[data-step="2"] { transform: translateX(-66.666%); }
-
-.onb-v2-slide {
-  width: 33.333%;
-  height: 100%;
-  flex-shrink: 0;
+.onb-top {
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding-top: 20px;
+}
+.onb-logo-wrap {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
   justify-content: center;
-  padding: 48px 32px;
-  text-align: center;
-  color: #2b2118;
-  position: relative;
+  margin-bottom: 16px;
 }
-
-/* 屏 1 - 自我介绍 */
-.onb-v2-logo {
-  width: 96px;
-  height: 96px;
-  margin-bottom: 28px;
-  border-radius: 24px;
-  overflow: hidden;
-  box-shadow: 0 8px 40px rgba(196, 142, 70, 0.25), inset 0 1px 0 rgba(255,255,255,0.5);
-  animation: onbLogoBreath 3.5s ease-in-out infinite;
+.onb-logo-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
-.onb-v2-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
-@keyframes onbLogoBreath {
-  0%, 100% { transform: scale(1); box-shadow: 0 8px 40px rgba(196, 142, 70, 0.25), inset 0 1px 0 rgba(255,255,255,0.5); }
-  50% { transform: scale(1.04); box-shadow: 0 12px 56px rgba(196, 142, 70, 0.4), inset 0 1px 0 rgba(255,255,255,0.6); }
-}
-
-.onb-v2-h1 {
+.onb-title {
+  font-family: var(--paper-serif);
   font-size: 26px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  margin-bottom: 22px;
-  color: #2b2118;
+  letter-spacing: 5px;
+  margin: 4px 0 4px;
+  color: #1a1a1a;
 }
-.onb-v2-text {
-  font-size: 16px;
-  line-height: 1.85;
-  color: rgba(43, 33, 24, 0.78);
-  max-width: 320px;
+.onb-subtitle {
+  font-size: 12.5px;
+  letter-spacing: 2px;
+  color: #999;
   margin-bottom: 8px;
 }
-.onb-v2-text-small {
-  font-size: 14px;
-  color: rgba(43, 33, 24, 0.55);
-  margin-top: 12px;
+.onb-tagline {
+  font-family: var(--paper-serif);
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: #888;
+  font-style: italic;
 }
 
-/* 屏 2 - 三大顾虑消除 */
-.onb-v2-promises {
+.onb-top + .onb-bottom { margin-top: auto; }
+
+.onb-bottom {
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  max-width: 340px;
-  width: 100%;
-  margin-top: 8px;
-}
-.onb-v2-promise {
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-  padding: 16px 18px;
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(196, 142, 70, 0.18);
-  border-radius: 14px;
-  text-align: left;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 2px 12px rgba(120, 80, 30, 0.06);
-}
-.onb-v2-promise-icon {
-  font-size: 22px;
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  display: flex;
   align-items: center;
-  justify-content: center;
-  background: rgba(255, 240, 210, 0.7);
-  border-radius: 10px;
-}
-.onb-v2-promise-text { flex: 1; }
-.onb-v2-promise-title { font-size: 15px; font-weight: 600; color: #2b2118; margin-bottom: 4px; }
-.onb-v2-promise-desc { font-size: 13px; color: rgba(43, 33, 24, 0.62); line-height: 1.55; }
-
-/* 屏 3 - 纸质感「拿好这艘船」 */
-.onb-v2-slide-paper {
-  /* v0.9.9.2: 白天调性 — 纸壳暖米色背景 */
-  background:
-    radial-gradient(circle at 30% 20%, rgba(255, 224, 180, 0.45), transparent 60%),
-    linear-gradient(165deg, #f5e9c8 0%, #efdfb0 100%);
-}
-.onb-v2-paper-card {
-  max-width: 380px;
   width: 100%;
-  padding: 40px 32px 32px;
-  border-radius: 6px;
-  font-family: var(--paper-serif);
-  color: var(--paper-ink);
+  max-width: 360px;
+  margin: 0 auto;
+  padding-top: 18px;
+}
+/* 统一小字段落：承诺 + 特点 + 隐私提示 合并（精简单段） */
+.onb-note {
+  font-size: 11px;
+  line-height: 1.7;
+  letter-spacing: 0.1px;
+  color: #aaa;
   text-align: center;
-  box-shadow:
-    0 4px 16px rgba(120, 80, 30, 0.18),
-    0 16px 48px rgba(120, 80, 30, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  position: relative;
-  animation: paperFloatUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+  margin: 0 0 22px;
+  padding: 0 4px;
 }
-@keyframes paperFloatUp {
-  from { opacity: 0; transform: translateY(60px) rotate(-1.5deg); }
-  to { opacity: 1; transform: translateY(0) rotate(-0.5deg); }
-}
-.onb-v2-paper-card .paper-icon {
-  font-size: 36px;
-  margin-bottom: 16px;
-  display: block;
-}
-.onb-v2-paper-title {
-  font-family: var(--paper-serif);
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 4px;
-  margin-bottom: 18px;
-  color: var(--paper-ink);
-}
-.onb-v2-paper-line {
-  font-family: var(--paper-serif);
-  font-size: 16px;
-  line-height: 2;
-  color: var(--paper-ink-soft);
-  margin-bottom: 24px;
-}
-.onb-v2-paper-sig {
-  font-family: "STKaiti", "KaiTi", var(--paper-serif);
-  font-size: 14px;
-  color: var(--paper-ink-dim);
-  margin-top: 24px;
-  text-align: right;
-  padding-right: 4px;
-}
-
-/* 进度点 + 按钮 */
-.onb-v2-foot {
-  padding: 20px 32px 36px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 18px;
-  background: linear-gradient(0deg, rgba(196, 142, 70, 0.08) 0%, transparent 100%);
-}
-.onb-v2-dots {
-  display: flex;
-  gap: 8px;
-}
-.onb-v2-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(120, 80, 30, 0.22);
-  transition: all 0.3s;
-}
-.onb-v2-dot.active {
-  background: rgba(120, 80, 30, 0.7);
-  width: 24px;
-  border-radius: 4px;
-}
-.onb-v2-actions {
-  display: flex;
-  gap: 12px;
+/* 同意按钮：主题红（与 .send-btn 同色） */
+.onb-btn-agree {
   width: 100%;
-  max-width: 320px;
-}
-.onb-v2-btn {
-  flex: 1;
-  padding: 13px 24px;
-  border-radius: 12px;
+  max-width: 280px;
+  height: 44px;
+  border-radius: 22px;
   border: none;
+  background: linear-gradient(135deg, #ff6b35, #ff3d00);
+  color: #fff;
   font-size: 15px;
   font-weight: 500;
+  letter-spacing: 4px;
   cursor: pointer;
-  transition: transform 0.15s, background 0.2s;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
   -webkit-tap-highlight-color: transparent;
-  font-family: inherit;
+  box-shadow: 0 4px 14px rgba(255, 60, 20, 0.3);
 }
-.onb-v2-btn-secondary {
-  background: rgba(255, 255, 255, 0.6);
-  color: rgba(43, 33, 24, 0.85);
-  border: 1px solid rgba(196, 142, 70, 0.25);
-}
-.onb-v2-btn-primary {
-  background: linear-gradient(135deg, #b06a2a 0%, #8c5018 100%);
-  color: #fff7e6;
-  font-weight: 600;
-  box-shadow: 0 4px 16px rgba(140, 80, 24, 0.28);
-}
-.onb-v2-btn:active { transform: scale(0.97); }
-.onb-v2-btn-skip {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  background: transparent;
-  color: rgba(43, 33, 24, 0.45);
-  border: none;
-  font-size: 13px;
-  cursor: pointer;
-  padding: 8px 12px;
-  -webkit-tap-highlight-color: transparent;
-  z-index: 2;
-}
-.onb-v2-btn-skip:hover { color: rgba(43, 33, 24, 0.75); }
+.onb-btn-agree:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(255, 60, 20, 0.38); }
+.onb-btn-agree:active { transform: translateY(0); opacity: 0.92; box-shadow: 0 2px 8px rgba(255, 60, 20, 0.22); }
 
-/* 隐私法务小字（合并到第 2 屏底部） */
-.onb-v2-privacy-note {
-  font-size: 11px;
-  color: rgba(43, 33, 24, 0.42);
-  margin-top: 16px;
-  line-height: 1.6;
-  max-width: 320px;
+@media (max-width: 480px) {
+  .onb-top { padding-top: 12px; }
+  .onb-logo-wrap { width: 72px; height: 72px; margin-bottom: 14px; }
+  .onb-title { font-size: 23px; letter-spacing: 4px; }
+  .onb-subtitle { font-size: 11.5px; }
+  .onb-tagline { font-size: 12.5px; }
+  .onb-note { font-size: 10.5px; line-height: 1.7; margin-bottom: 18px; }
+  .onb-btn-agree { height: 42px; font-size: 14.5px; letter-spacing: 3px; }
 }
-.onb-v2-privacy-note a { color: rgba(140, 80, 24, 0.78); text-decoration: underline; }
-
-/* 移动端微调 */
-@media (max-height: 700px) {
-  .onb-v2-slide { padding: 32px 24px; }
-  .onb-v2-logo { width: 80px; height: 80px; margin-bottom: 18px; }
-  .onb-v2-h1 { font-size: 22px; margin-bottom: 16px; }
-  .onb-v2-text { font-size: 15px; line-height: 1.7; }
-  .onb-v2-promise { padding: 12px 14px; }
-  .onb-v2-paper-card { padding: 28px 24px 24px; }
-  .onb-v2-paper-title { font-size: 19px; margin-bottom: 14px; }
-  .onb-v2-paper-line { font-size: 14.5px; line-height: 1.85; }
-  .onb-v2-foot { padding: 16px 24px 24px; gap: 14px; }
+/* 极矮屏（横屏小手机 / 浏览器调试视口）兜底 */
+@media (max-height: 680px) {
+  .onb-top { padding-top: 6px; }
+  .onb-logo-wrap { width: 64px; height: 64px; margin-bottom: 10px; }
+  .onb-title { font-size: 22px; }
+  .onb-subtitle { margin-bottom: 6px; }
+  .onb-bottom { padding-top: 12px; }
+  .onb-note { margin-bottom: 14px; line-height: 1.7; }
 }
 
 /* ============================================================
@@ -4845,16 +4790,23 @@ body.call-active { overflow: hidden; }
    ============================================================ */
 
 .book-stage {
+  /* v0.9.9.4：flex:1 占满 .about-page 的剩余高度，配合内部 .book-page 各自 overflow:auto */
+  flex: 1;
+  min-height: 0;
+  width: 100%;
   max-width: 680px;
   margin: 40px auto;
   padding: 0 20px;
   perspective: 2400px;
   -webkit-perspective: 2400px;
+  display: flex;
 }
 
 .book-pages {
   position: relative;
   width: 100%;
+  flex: 1;
+  min-height: 0;
   transform-style: preserve-3d;
   -webkit-transform-style: preserve-3d;
   transition: transform 0.95s cubic-bezier(0.55, 0.05, 0.25, 1);
@@ -4872,6 +4824,11 @@ body.call-active { overflow: hidden; }
 
 .book-page {
   width: 100%;
+  /* v0.9.9.4：每页自己滚动，不再让 .about-page 处理 */
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
   padding: 56px 48px 48px;
   border-radius: 6px;
   box-shadow: var(--paper-shadow);
@@ -4892,6 +4849,9 @@ body.call-active { overflow: hidden; }
   position: absolute;
   top: 0;
   left: 0;
+  /* v0.9.9.4：撑满父容器，自己处理滚动 */
+  width: 100%;
+  height: 100%;
   transform: rotateY(180deg);
   -webkit-transform: rotateY(180deg);
 }
@@ -4962,14 +4922,14 @@ body.call-active { overflow: hidden; }
   transform: translateX(-3px);
 }
 
-/* changelog 内容样式 */
+/* changelog 内容样式（v0.9.9.4：整体下调 1.5-2px，因日志条目多） */
 .changelog-paper {
-  font-size: 15px;
+  font-size: 13.5px;
   line-height: 1.85;
 }
 .cl-entry {
-  margin: 0 0 32px;
-  padding-bottom: 24px;
+  margin: 0 0 28px;
+  padding-bottom: 22px;
   border-bottom: 1px dashed var(--paper-divider);
 }
 .cl-entry:last-of-type {
@@ -4980,7 +4940,7 @@ body.call-active { overflow: hidden; }
 /* 寄语：大字标题 */
 .cl-quote {
   font-family: "STKaiti", "KaiTi", var(--paper-serif);
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
   line-height: 1.6;
   color: var(--paper-ink);
@@ -4988,14 +4948,14 @@ body.call-active { overflow: hidden; }
   margin: 0 0 6px;
   letter-spacing: 2px;
   position: relative;
-  padding: 8px 0;
+  padding: 6px 0;
 }
 .cl-quote::before {
   content: """;
   font-family: var(--paper-serif);
   color: var(--paper-amber);
   margin-right: 4px;
-  font-size: 24px;
+  font-size: 20px;
   vertical-align: -2px;
 }
 .cl-quote::after {
@@ -5003,25 +4963,25 @@ body.call-active { overflow: hidden; }
   font-family: var(--paper-serif);
   color: var(--paper-amber);
   margin-left: 4px;
-  font-size: 24px;
+  font-size: 20px;
   vertical-align: -2px;
 }
 
 .cl-meta-quote {
   text-align: center;
-  font-size: 12px;
+  font-size: 11.5px;
   letter-spacing: 4px;
   color: var(--paper-amber);
-  margin-bottom: 18px;
+  margin-bottom: 16px;
   font-family: var(--paper-serif);
 }
 
 /* 普通版本：小字版本号 */
 .cl-meta {
-  font-size: 13px;
+  font-size: 12px;
   letter-spacing: 3px;
   color: var(--paper-amber);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   font-family: var(--paper-serif);
 }
 
@@ -5031,36 +4991,36 @@ body.call-active { overflow: hidden; }
   margin: 0;
 }
 .cl-list li {
-  padding: 5px 0 5px 22px;
+  padding: 4px 0 4px 20px;
   position: relative;
-  font-size: 14.5px;
+  font-size: 13px;
   color: var(--paper-ink-soft);
-  line-height: 1.85;
+  line-height: 1.8;
 }
 .cl-list li::before {
   content: "·";
   position: absolute;
-  left: 8px;
+  left: 6px;
   top: 0;
   color: var(--paper-amber);
   font-weight: 700;
-  font-size: 17px;
+  font-size: 16px;
 }
 
 .changelog-footer-sig {
-  margin-top: 36px;
-  padding-top: 22px;
+  margin-top: 32px;
+  padding-top: 20px;
   border-top: 1px solid var(--paper-divider);
   text-align: center;
   font-family: "STKaiti", "KaiTi", var(--paper-serif);
-  font-size: 16px;
+  font-size: 14.5px;
   color: var(--paper-ink);
   letter-spacing: 2px;
 }
 .changelog-footer-sig .sig-meta {
   display: block;
   margin-top: 8px;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--paper-ink-dim);
   letter-spacing: 3px;
 }
@@ -5073,8 +5033,9 @@ body.call-active { overflow: hidden; }
 @media (max-width: 640px) {
   .book-stage { padding: 0 12px; margin: 16px auto; }
   .book-page { padding: 44px 24px 36px; font-size: 15px; }
-  .changelog-paper { font-size: 14.5px; }
-  .cl-quote { font-size: 20px; letter-spacing: 1.5px; }
+  .changelog-paper { font-size: 13px; }
+  .cl-quote { font-size: 16px; letter-spacing: 1.5px; }
+  .cl-list li { font-size: 12.5px; }
   .changelog-back-to-about { top: 14px; left: 16px; font-size: 13px; }
   .about-page-flip-hint { font-size: 14px; letter-spacing: 1.5px; }
 }
@@ -5282,4 +5243,268 @@ body.call-active { overflow: hidden; }
     margin-left: 10px !important;
     width: calc(100% - 20px) !important;
   }
+}
+
+/* ============================================================
+   信封明信片组件（v0.9.9.4）
+   ============================================================ */
+
+/* === 容器（顶栏正下方，浮层一族；与 .header / .input-area 同级，不进消息流）=== */
+/* 顶栏 .header 是 absolute z:20，top:8 + height:52 → bottom 60。
+   信封紧贴顶栏正下方，左右与顶栏 / 输入栏同样的 10px 边距。
+   chatArea 顶部增加 padding 让出信封占位（见 body.letter-visible .chat-area）。 */
+#letterContainer {
+  position: absolute;
+  top: 64px;        /* 顶栏 bottom 60 + 4px 呼吸 */
+  left: 10px;
+  right: 10px;
+  z-index: 15;      /* 低于顶栏 z:20，高于消息气泡 */
+  pointer-events: none;
+}
+#letterContainer .letter-bar { pointer-events: auto; }
+
+/* 信封显示时，让聊天区第一条消息往下让 36px（信封 32 + 间距 4） */
+body.letter-visible .chat-area {
+  padding-top: 108px;
+  scroll-padding-top: 116px;
+}
+
+/* === 闭合态：长条（只一行寄语 + ×，不可点开） === */
+.letter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 8px;
+  background: var(--paper-bg, #F5EFE0);
+  border: 1px solid var(--paper-divider, rgba(43, 33, 24, 0.18));
+  color: var(--paper-ink-soft, #5B4E3F);
+  font-family: var(--paper-serif, "Songti SC", serif);
+  font-size: 12.5px;
+  letter-spacing: 0.4px;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
+}
+.letter-bar-label {
+  flex: 1 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+.letter-bar-close {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: var(--paper-ink-dim, rgba(43, 33, 24, 0.55));
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.letter-bar-close:hover {
+  background: rgba(43, 33, 24, 0.08);
+  color: var(--paper-ink, #2B2118);
+}
+
+/* 主题适配 */
+[data-theme="dark"] .letter-bar {
+  background: rgba(245, 239, 224, 0.08);
+  border-color: rgba(245, 239, 224, 0.18);
+  color: rgba(245, 239, 224, 0.78);
+  box-shadow: none;
+}
+[data-theme="dark"] .letter-bar-close { color: rgba(245, 239, 224, 0.55); }
+[data-theme="dark"] .letter-bar-close:hover {
+  background: rgba(245, 239, 224, 0.1);
+  color: rgba(245, 239, 224, 0.95);
+}
+
+[data-theme="liquid"] .letter-bar {
+  background: rgba(255, 255, 255, 0.32);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: var(--paper-ink-soft, #5B4E3F);
+}
+
+/* === 展开态：弹层 === */
+.letter-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.letter-modal-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.letter-modal {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  max-height: 86vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--paper-bg, #F5EFE0);
+  color: var(--paper-ink, #2B2118);
+  border-radius: 4px;
+  padding: 36px 36px 28px;
+  font-family: var(--paper-serif, "Songti SC", serif);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.28),
+    0 4px 12px rgba(0, 0, 0, 0.16);
+  transform: translateY(8px) scale(0.98);
+  transition: transform 0.26s cubic-bezier(0.2, 0.7, 0.3, 1);
+  /* 纸感：左右淡淡的纸纹边 */
+  background-image:
+    linear-gradient(to right, rgba(139, 111, 71, 0.05), transparent 12%, transparent 88%, rgba(139, 111, 71, 0.05));
+}
+.letter-modal-overlay.visible .letter-modal {
+  transform: translateY(0) scale(1);
+}
+
+.letter-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--paper-ink-dim, rgba(43, 33, 24, 0.55));
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.letter-modal-close:hover {
+  background: rgba(43, 33, 24, 0.08);
+  color: var(--paper-ink, #2B2118);
+}
+
+.letter-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--paper-divider, rgba(43, 33, 24, 0.18));
+}
+.letter-modal-icon {
+  font-size: 20px;
+  color: var(--paper-amber, #8B6F47);
+  line-height: 1;
+}
+.letter-modal-title {
+  font-size: 17px;
+  letter-spacing: 2px;
+  color: var(--paper-ink, #2B2118);
+  font-weight: 500;
+}
+
+.letter-modal-body {
+  font-size: 15px;
+  line-height: 1.95;
+  letter-spacing: 0.4px;
+  color: var(--paper-ink, #2B2118);
+}
+.letter-modal-body p {
+  margin: 0 0 16px;
+}
+.letter-modal-body p:last-of-type {
+  margin-bottom: 0;
+}
+
+.letter-promises {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 18px;
+}
+.letter-promises li {
+  position: relative;
+  padding: 4px 0 4px 18px;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--paper-ink-soft, #5B4E3F);
+}
+.letter-promises li::before {
+  content: "·";
+  position: absolute;
+  left: 6px;
+  top: 1px;
+  font-size: 18px;
+  color: var(--paper-amber, #8B6F47);
+}
+
+.letter-modal-sig {
+  margin-top: 22px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--paper-divider, rgba(43, 33, 24, 0.18));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  font-size: 12.5px;
+  color: var(--paper-ink-soft, #5B4E3F);
+  letter-spacing: 0.6px;
+}
+.letter-modal-sig-name {
+  font-family: Georgia, "Songti SC", serif;
+  font-style: italic;
+  color: var(--paper-amber, #8B6F47);
+  font-size: 13.5px;
+}
+
+/* 主题适配：暗色 / liquid 下让信封内部仍保留纸感（信内是纸） */
+[data-theme="dark"] .letter-modal {
+  /* 暗色主题下信封内部仍走"打开纸"的暖色，保持戏剧感 */
+  background: var(--paper-bg, #F5EFE0);
+  color: var(--paper-ink, #2B2118);
+}
+
+/* === 移动端 === */
+@media (max-width: 480px) {
+  #letterContainer { top: 64px; left: 10px; right: 10px; }
+  .letter-bar {
+    height: 30px;
+    font-size: 11.5px;
+    padding: 0 10px;
+    gap: 8px;
+  }
+  .letter-bar-label { max-width: 55%; }
+  .letter-bar-flap-l, .letter-bar-flap-r { font-size: 10px; }
+
+  .letter-modal {
+    padding: 30px 24px 22px;
+    max-width: 100%;
+  }
+  .letter-modal-title { font-size: 16px; }
+  .letter-modal-body { font-size: 14.5px; line-height: 1.85; }
+  .letter-promises li { font-size: 13.5px; }
+  .letter-modal-sig { font-size: 12px; }
+  .letter-modal-sig-name { font-size: 13px; }
 }

@@ -28,6 +28,7 @@ function updateThemeSwitcherUI() {
 }
 
 // ========== v0.9.5.8: 视觉效果三档式（标准 / 简约 / 极简） ==========
+// v0.9.9.4 起：从全宽按钮 + toggleReduceFx 切换，改为侧栏胶囊滑块（setFxMode）
 const FX_MODE_KEY = 'codingplan-fx-mode';
 const FX_MODES = ['standard', 'simple', 'minimal'];
 const FX_LABELS = {
@@ -46,26 +47,30 @@ function applyFxMode(mode) {
   if (mode === 'simple') document.body.classList.add('fx-simple');
   else if (mode === 'minimal') document.body.classList.add('fx-minimal');
 
-  const btn = document.getElementById('reduceFxToggle');
-  const label = document.getElementById('reduceFxLabel');
-  if (btn) {
-    btn.classList.remove('fx-mode-simple', 'fx-mode-minimal');
-    if (mode === 'simple') btn.classList.add('fx-mode-simple');
-    else if (mode === 'minimal') btn.classList.add('fx-mode-minimal');
-  }
-  if (label) label.textContent = FX_LABELS[mode] || FX_LABELS.standard;
+  // v0.9.9.4: 三段胶囊高亮
+  document.querySelectorAll('.sidebar-fx-btn').forEach(btn => {
+    if (btn.dataset.fx === mode) btn.classList.add('active');
+    else btn.classList.remove('active');
+  });
 }
 
+// v0.9.9.4 主接口：直接设到指定档位（胶囊点击调用）
+function setFxMode(mode) {
+  if (!FX_MODES.includes(mode)) mode = 'standard';
+  if (mode === 'standard') {
+    localStorage.removeItem(FX_MODE_KEY);
+  } else {
+    localStorage.setItem(FX_MODE_KEY, mode);
+  }
+  applyFxMode(mode);
+}
+
+// 老 API 保留：循环切换（任何老缓存的 onclick 不至于报错）
 function toggleReduceFx() {
   const cur = getFxMode();
   const idx = FX_MODES.indexOf(cur);
   const next = FX_MODES[(idx + 1) % FX_MODES.length];
-  if (next === 'standard') {
-    localStorage.removeItem(FX_MODE_KEY);
-  } else {
-    localStorage.setItem(FX_MODE_KEY, next);
-  }
-  applyFxMode(next);
+  setFxMode(next);
 }
 
 // 启动恢复
@@ -81,6 +86,7 @@ if (document.readyState === 'loading') {
 
 if (typeof window !== 'undefined') {
   window.toggleReduceFx = toggleReduceFx;
+  window.setFxMode = setFxMode;
   window.getFxMode = getFxMode;
 }
 
