@@ -1,59 +1,22 @@
-// ========== 首次欢迎页 v2 (v0.9.9.0「礼物三件套」) ==========
-// 3 屏拆礼物式滑动 onboarding，老 finishOnboarding/checkOnboarding 接口保留兼容
-// LocalStorage key:
-//   codingplan-onboarded     (旧) - 是否完成过欢迎流程
-//   codingplan-onb-version   (新) - 上次完成欢迎流程的大版本号
-// 大版本（如 v0.9.9.0）变化时，老用户也会再次看到一次新版欢迎流程
+// ========== 启动页 v0.9.9.4：单页隐私同意 ==========
+// 跟随当前主题视觉，参考 iOS / 鸿蒙 首启同意页
+// LocalStorage:
+//   codingplan-onboarded     是否完成过欢迎流程
+//   codingplan-onb-version   上次完成欢迎流程的版本号
 
-const ONB_CURRENT_VERSION = 'v0.9.9.3';
-let onbV2Step = 0;
-
-function onbV2Next() {
-  if (onbV2Step < 2) {
-    onbV2SetStep(onbV2Step + 1);
-  } else {
-    finishOnboarding();
-  }
-}
-function onbV2Prev() {
-  if (onbV2Step > 0) onbV2SetStep(onbV2Step - 1);
-}
-function onbV2Skip() {
-  finishOnboarding();
-}
-
-function onbV2SetStep(n) {
-  onbV2Step = Math.max(0, Math.min(2, n));
-  const track = document.getElementById('onbV2Track');
-  if (track) track.setAttribute('data-step', String(onbV2Step));
-  // 进度点
-  document.querySelectorAll('.onb-v2-dot').forEach((d, i) => {
-    d.classList.toggle('active', i === onbV2Step);
-  });
-  // 上一步按钮可见性
-  const back = document.getElementById('onbV2Back');
-  if (back) back.style.visibility = onbV2Step === 0 ? 'hidden' : 'visible';
-  // 主按钮文案
-  const next = document.getElementById('onbV2Next');
-  if (next) {
-    next.textContent = onbV2Step === 2 ? '启航 ⛵️' : '下一步 →';
-  }
-  // 跳过按钮在最后一屏隐藏
-  const skip = document.getElementById('onbV2Skip');
-  if (skip) skip.style.display = onbV2Step === 2 ? 'none' : '';
-}
+const ONB_CURRENT_VERSION = 'v0.9.9.4';
 
 function finishOnboarding() {
   try {
     localStorage.setItem('codingplan-onboarded', '1');
     localStorage.setItem('codingplan-onb-version', ONB_CURRENT_VERSION);
   } catch (e) {}
-  const onbV2 = document.getElementById('onbV2');
+  const onb = document.getElementById('onboarding');
   const main = document.getElementById('app-main');
   const input = document.getElementById('userInput');
-  if (onbV2) {
-    onbV2.classList.add('fading-out');
-    setTimeout(() => { onbV2.style.display = 'none'; }, 400);
+  if (onb) {
+    onb.classList.add('fading-out');
+    setTimeout(() => { onb.style.display = 'none'; }, 400);
   }
   if (main) main.classList.add('visible');
   if (input && typeof input.focus === 'function') {
@@ -61,13 +24,7 @@ function finishOnboarding() {
   }
 }
 
-// 兼容老调用（旧版本可能还会触发）
-function cancelOnboarding() {
-  document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#fff;font-size:16px;background:#1a1a2e;">已取消，请刷新页面重新进入</div>';
-}
-
 function checkOnboarding() {
-  // 已完成欢迎 + 已是当前大版本 → 跳过欢迎页
   let onboarded = false, lastVer = null;
   try {
     onboarded = localStorage.getItem('codingplan-onboarded') === '1';
@@ -75,14 +32,19 @@ function checkOnboarding() {
   } catch (e) {}
 
   if (onboarded && lastVer === ONB_CURRENT_VERSION) {
-    const onbV2 = document.getElementById('onbV2');
+    const onb = document.getElementById('onboarding');
     const main = document.getElementById('app-main');
-    if (onbV2) onbV2.style.display = 'none';
+    if (onb) onb.style.display = 'none';
     if (main) main.classList.add('visible');
     return true;
   }
-  // 老用户首次升到 v0.9.9.0 → 让他们也拆一次礼物
   return false;
+}
+
+// 老 API 兜底（v0.9.9.x 之前用过 cancelOnboarding，再点不到也无害）
+function cancelOnboarding() {
+  // v0.9.9.4 起取消按钮已删除；保留函数避免老缓存的 inline onclick 报错
+  finishOnboarding();
 }
 
 // ========== 关于小纸船页 + 双页电子书翻页 ==========
@@ -92,19 +54,15 @@ function openAbout(target) {
   page.classList.add('visible');
   try { document.body.style.overflow = 'hidden'; } catch (e) {}
 
-  // 先确保 changelog 已渲染
   if (typeof renderChangelogPaper === 'function') {
     try { renderChangelogPaper(); } catch (e) {}
   }
 
-  // 设置初始页（默认关于页；如果是 'changelog' 则翻到日志页）
   const book = document.getElementById('bookPages');
   if (book) {
     if (target === 'changelog') {
-      // 不要立即翻：先无动画到 about，再下一帧翻到 changelog（保留翻页观感）
       book.style.transition = 'none';
       book.setAttribute('data-page', 'about');
-      // 强制 reflow
       void book.offsetWidth;
       book.style.transition = '';
       requestAnimationFrame(() => {
@@ -129,13 +87,10 @@ function flipToChangelog() {
   if (!book) return;
   book.classList.add('flipping');
   book.setAttribute('data-page', 'changelog');
-  // 翻完后滚动 changelog 页到顶
   setTimeout(() => {
     book.classList.remove('flipping');
     const cl = book.querySelector('.book-page-back');
     if (cl) cl.scrollTop = 0;
-    const ap = document.getElementById('aboutPage');
-    if (ap) ap.scrollTop = 0;
   }, 950);
 }
 
@@ -146,19 +101,18 @@ function flipToAbout() {
   book.setAttribute('data-page', 'about');
   setTimeout(() => {
     book.classList.remove('flipping');
-    const ap = document.getElementById('aboutPage');
-    if (ap) ap.scrollTop = 0;
+    const fr = book.querySelector('.book-page-front');
+    if (fr) fr.scrollTop = 0;
   }, 950);
 }
 
-// 旧别名兼容（v0.9.8.x 老调用）
 function closeAboutAndShowChangelog() {
-  // 现在: 直接在关于页内翻页，不关闭
   flipToChangelog();
 }
 
-// ========== 版本号长按彩蛋（寄语） ==========
+// ========== 版本寄语字典（信封 / 长按面板都从这里取） ==========
 const VERSION_QUOTES = {
+  'v0.9.9.4': '把多余的折回去，留下一艘船。',
   'v0.9.9.3': '键也敲一下，鼠也点一下，都顺手。',
   'v0.9.9.2': '把这艘船的来路一笔一笔写清楚，再交到你手里。',
   'v0.9.9.1': '把这艘船签上名字，递到你手里。',
@@ -174,40 +128,20 @@ const VERSION_QUOTES = {
   'v0.1.0': '故事从这里开始。',
 };
 
-function showVersionQuote() {
-  const ver = ONB_CURRENT_VERSION;
-  const quote = VERSION_QUOTES[ver]
-              || VERSION_QUOTES['v0.9']
-              || '愿这艘小船陪你走过这个时代的开端。';
-
-  // 移除已有的 toast
-  const old = document.querySelector('.version-toast');
-  if (old) old.remove();
-
-  const toast = document.createElement('div');
-  toast.className = 'version-toast';
-  toast.innerHTML =
-    '<div class="toast-version">' + ver + ' 寄语</div>' +
-    '<div class="toast-quote">「' + quote + '」</div>';
-  document.body.appendChild(toast);
-  // 触发 transition
-  requestAnimationFrame(() => toast.classList.add('show'));
-  // 3 秒后淡出
-  setTimeout(() => {
-    toast.classList.remove('show');
-    setTimeout(() => toast.remove(), 350);
-  }, 3000);
+function getCurrentQuote() {
+  return VERSION_QUOTES[ONB_CURRENT_VERSION]
+    || VERSION_QUOTES['v0.9']
+    || '愿这艘小船陪你走过这个时代的开端。';
 }
 
-// 给版本号绑定短按 / 长按事件
-//   短按（< 500ms） → 弹寄语 toast
-//   长按（>= 500ms） → 弹反馈日志（用于报 bug）
+// ========== 版本号长按反馈日志（v0.9.9.4：短按寄语 toast 已删除） ==========
+// 短按 → 不动作（寄语统一交给信封承担）
+// 长按 → 弹反馈日志（保留）
 function bindVersionLongPress() {
   const el = document.querySelector('.sidebar-version');
   if (!el || el._lpBound) return;
   el._lpBound = true;
 
-  // 兜底清掉历史 inline onclick（短按行为已迁到这里统一处理）
   el.onclick = null;
   if (el.getAttribute('onclick')) el.removeAttribute('onclick');
 
@@ -239,26 +173,21 @@ function bindVersionLongPress() {
   el.addEventListener('mouseup', cancel);
   el.addEventListener('mouseleave', cancel);
 
-  // 短按 → 弹寄语 toast（长按已触发则吃掉这次 click）
+  // 短按已不弹寄语；click 事件吞掉以免冒泡到旧绑定
   el.addEventListener('click', (e) => {
     if (longTriggered) {
       e.preventDefault();
       e.stopPropagation();
       longTriggered = false;
-      return;
     }
-    showVersionQuote();
+    // 短按无动作
   }, true);
 
-  // 提示文案
-  el.setAttribute('title', '点击：寄语 ｜ 长按：抓取反馈日志');
+  el.setAttribute('title', '长按可抓取反馈日志');
 }
 
 // ========== 暴露到 window ==========
 if (typeof window !== 'undefined') {
-  window.onbV2Next = onbV2Next;
-  window.onbV2Prev = onbV2Prev;
-  window.onbV2Skip = onbV2Skip;
   window.finishOnboarding = finishOnboarding;
   window.cancelOnboarding = cancelOnboarding;
   window.checkOnboarding = checkOnboarding;
@@ -267,17 +196,30 @@ if (typeof window !== 'undefined') {
   window.flipToChangelog = flipToChangelog;
   window.flipToAbout = flipToAbout;
   window.closeAboutAndShowChangelog = closeAboutAndShowChangelog;
-  window.showVersionQuote = showVersionQuote;
   window.bindVersionLongPress = bindVersionLongPress;
   window.ONB_CURRENT_VERSION = ONB_CURRENT_VERSION;
+  window.VERSION_QUOTES = VERSION_QUOTES;
+  window.getCurrentQuote = getCurrentQuote;
 }
 
-// 页面加载后绑定版本号长按
 if (typeof window !== 'undefined') {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bindVersionLongPress);
   } else {
     bindVersionLongPress();
+  }
+}
+
+// v0.9.9.4 修：老 bug — checkOnboarding() 此前从没被调过，
+// 导致已完成欢迎流程的用户每次刷新都会再看到启动页。
+// 现在在加载完成后立即跑一次：已 onboarded + 版本一致 → 直接关启动页 + 显示主界面
+if (typeof window !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      try { checkOnboarding(); } catch (e) {}
+    });
+  } else {
+    try { checkOnboarding(); } catch (e) {}
   }
 }
 
@@ -288,9 +230,9 @@ function bindBookSwipe() {
   stage._swipeBound = true;
 
   let sx = 0, sy = 0, t0 = 0;
-  const TH = 60;       // 横向阈值
-  const VTH = 40;      // 纵向最大容忍
-  const TMAX = 600;    // 最长 600ms
+  const TH = 60;
+  const VTH = 40;
+  const TMAX = 600;
 
   stage.addEventListener('touchstart', (e) => {
     if (!e.touches || e.touches.length !== 1) return;
@@ -305,18 +247,16 @@ function bindBookSwipe() {
     const dy = e.changedTouches[0].clientY - sy;
     const dt = Date.now() - t0;
     if (dt > TMAX) return;
-    if (Math.abs(dy) > VTH) return;            // 纵向滚动太多，忽略
-    if (Math.abs(dx) < TH) return;             // 没达到阈值
+    if (Math.abs(dy) > VTH) return;
+    if (Math.abs(dx) < TH) return;
 
     const book = document.getElementById('bookPages');
     if (!book) return;
     const cur = book.getAttribute('data-page');
 
     if (dx < 0 && cur === 'about') {
-      // 左滑：从关于翻到 changelog
       flipToChangelog();
     } else if (dx > 0 && cur === 'changelog') {
-      // 右滑：从 changelog 回到关于
       flipToAbout();
     }
   }, { passive: true });
@@ -329,5 +269,3 @@ if (typeof window !== 'undefined') {
     bindBookSwipe();
   }
 }
-
-// ========== 数据持久化 ==========
