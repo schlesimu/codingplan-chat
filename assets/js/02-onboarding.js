@@ -5,7 +5,7 @@
 //   codingplan-onb-version   (新) - 上次完成欢迎流程的大版本号
 // 大版本（如 v0.9.9.0）变化时，老用户也会再次看到一次新版欢迎流程
 
-const ONB_CURRENT_VERSION = 'v0.9.9.2';
+const ONB_CURRENT_VERSION = 'v0.9.9.3';
 let onbV2Step = 0;
 
 function onbV2Next() {
@@ -159,6 +159,7 @@ function closeAboutAndShowChangelog() {
 
 // ========== 版本号长按彩蛋（寄语） ==========
 const VERSION_QUOTES = {
+  'v0.9.9.3': '键也敲一下，鼠也点一下，都顺手。',
   'v0.9.9.2': '把这艘船的来路一笔一笔写清楚，再交到你手里。',
   'v0.9.9.1': '把这艘船签上名字，递到你手里。',
   'v0.9.8.5': '瓷砖摆好了，等一个会用它聊天的你。',
