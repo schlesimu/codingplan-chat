@@ -11,6 +11,17 @@ userInput.addEventListener('keydown', (e) => {
 
 function quickAsk(text) { userInput.value = text; sendMessage(); }
 
+// v0.9.8.5: 半成品提示词 - 填入输入框聚焦，不立即发送
+function quickFill(text) {
+  userInput.value = text;
+  userInput.focus();
+  // 触发自动高度调整
+  userInput.style.height = 'auto';
+  userInput.style.height = Math.min(userInput.scrollHeight, 140) + 'px';
+  // 光标移到末尾
+  userInput.setSelectionRange(text.length, text.length);
+}
+
 // 根据 AI 回答内容生成追问快捷按钮
 function updateQuickActions(aiContent) {
   const container = document.getElementById('quickActions');

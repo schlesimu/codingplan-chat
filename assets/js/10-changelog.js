@@ -3,6 +3,30 @@
 
 function showChangelog() {
   const changelog = [
+    { v: 'v0.9.8.5', date: '2026-06-12', items: [
+      '🎯 产品定位校准：小纸船不是编程 IDE，而是「一份 Coding Plan 通吃各家最新模型」的移动端万能聊天器',
+      '面向非程序员小白用户，对标豆包/Kimi/DeepSeek App 体验',
+      '',
+      '【✨ 欢迎气泡改写】',
+      '· 旧文案「写代码、改代码、查 Bug」→ 新文案「把豆包、Kimi、DeepSeek、GLM、Claude 都装进了一艘小船」',
+      '· 简洁气质版自我介绍，去掉技术腔',
+      '',
+      '【🎁 场景化欢迎页 6 瓷砖】',
+      '· 新开会话不再是空白：6 张大瓷砖直接给出小白用户最常见的 6 个场景',
+      '· 💡 商业点子可行性 / 🛒 该不该买 / ✈️ 旅行规划',
+      '· ✍️ 帮我写文案 / 📚 解释这个概念 / 🌍 查最新动态',
+      '· 点击瓷砖 → 半成品提示词自动填入输入框（不立即发送），用户改改就发',
+      '· 适配 dark / light / liquid 三主题，含玻璃质感与边缘高光',
+      '',
+      '【⚡ 快捷提问按钮文案重设计】',
+      '· 旧的「写代码 / AI 新闻 / 推荐好书」程序员风 → 新的「🔍 帮我查 / 💡 商业想法 / ✍️ 帮我写 / 🤔 帮我分析 / 🌍 新鲜事」通用风',
+      '· 前 4 个用新加的 quickFill()：填到输入框聚焦，光标在末尾，等用户补完再发',
+      '· 第 5 个保留 quickAsk()：完整问题直接发',
+      '',
+      '【🛠 底层】',
+      '· 新增 quickFill(text) 工具函数：填输入框 + autosize + 光标定位',
+      '· 新增 .welcome-tiles / .welcome-tile 样式（2 列网格，超小屏 360px 以下自动单列）',
+    ]},
     { v: 'v0.9.8.4', date: '2026-06-12', items: [
       '🎙️ 语音模块上线：加号菜单 + 按住说话 + 通话页（按住对讲版）+ 语音 API 设置',
       '',
@@ -731,7 +755,11 @@ function showChangelog() {
 
   const list = Object.values(conversations).sort((a, b) => b.updatedAt - a.updatedAt);
   if (list.length > 0 && !currentConversationId) switchToConversation(list[0].id);
-  else if (!currentConversationId) currentConversationId = createNewConversation();
+  else if (!currentConversationId) {
+    // v0.9.8.5: 首次进入也走完整 switch 流程，确保 renderMessages() 触发（场景化欢迎瓷砖才会显示）
+    const newId = createNewConversation();
+    switchToConversation(newId);
+  }
   renderChatHistory();
 
   // 横屏/电脑模式自动展开侧边栏
