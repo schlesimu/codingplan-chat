@@ -5,7 +5,7 @@
 //   codingplan-onb-version   (新) - 上次完成欢迎流程的大版本号
 // 大版本（如 v0.9.9.0）变化时，老用户也会再次看到一次新版欢迎流程
 
-const ONB_CURRENT_VERSION = 'v0.9.9.1';
+const ONB_CURRENT_VERSION = 'v0.9.9.2';
 let onbV2Step = 0;
 
 function onbV2Next() {
@@ -159,6 +159,7 @@ function closeAboutAndShowChangelog() {
 
 // ========== 版本号长按彩蛋（寄语） ==========
 const VERSION_QUOTES = {
+  'v0.9.9.2': '把这艘船的来路一笔一笔写清楚，再交到你手里。',
   'v0.9.9.1': '把这艘船签上名字，递到你手里。',
   'v0.9.8.5': '瓷砖摆好了，等一个会用它聊天的你。',
   'v0.9.8.4': '小纸船终于学会了听你说话。',
@@ -168,6 +169,8 @@ const VERSION_QUOTES = {
   'v0.9.5': '学会跨设备带着对话走。',
   'v0.9': '一艘正在试航的小船。',
   'v0.3.2': '今天起，我有名字了。',
+  'v0.3.1': '这艘船的最后一天还没有名字。',
+  'v0.1.0': '故事从这里开始。',
 };
 
 function showVersionQuote() {
@@ -195,22 +198,34 @@ function showVersionQuote() {
   }, 3000);
 }
 
-// 给版本号绑定长按事件（500ms 触发）
+// 给版本号绑定短按 / 长按事件
+//   短按（< 500ms） → 弹寄语 toast
+//   长按（>= 500ms） → 弹反馈日志（用于报 bug）
 function bindVersionLongPress() {
   const el = document.querySelector('.sidebar-version');
   if (!el || el._lpBound) return;
   el._lpBound = true;
 
-  let timer = null;
-  let triggered = false;
+  // 兜底清掉历史 inline onclick（短按行为已迁到这里统一处理）
+  el.onclick = null;
+  if (el.getAttribute('onclick')) el.removeAttribute('onclick');
 
-  const start = (e) => {
-    triggered = false;
+  let timer = null;
+  let longTriggered = false;
+  const LONG_MS = 500;
+
+  const start = () => {
+    longTriggered = false;
+    if (timer) clearTimeout(timer);
     timer = setTimeout(() => {
-      triggered = true;
-      showVersionQuote();
-      try { if (navigator.vibrate) navigator.vibrate(20); } catch (err) {}
-    }, 500);
+      longTriggered = true;
+      try { if (navigator.vibrate) navigator.vibrate(28); } catch (err) {}
+      if (typeof window.showFeedbackLogDialog === 'function') {
+        window.showFeedbackLogDialog();
+      } else {
+        alert('日志模块尚未加载');
+      }
+    }, LONG_MS);
   };
   const cancel = () => {
     if (timer) { clearTimeout(timer); timer = null; }
@@ -223,14 +238,19 @@ function bindVersionLongPress() {
   el.addEventListener('mouseup', cancel);
   el.addEventListener('mouseleave', cancel);
 
-  // 点击仍然走原 showChangelog（短按行为不变）
+  // 短按 → 弹寄语 toast（长按已触发则吃掉这次 click）
   el.addEventListener('click', (e) => {
-    if (triggered) {
+    if (longTriggered) {
       e.preventDefault();
       e.stopPropagation();
-      triggered = false;
+      longTriggered = false;
+      return;
     }
+    showVersionQuote();
   }, true);
+
+  // 提示文案
+  el.setAttribute('title', '点击：寄语 ｜ 长按：抓取反馈日志');
 }
 
 // ========== 暴露到 window ==========

@@ -4505,7 +4505,12 @@ body.call-active { overflow: hidden; }
   position: fixed;
   inset: 0;
   z-index: 10000;
-  background: linear-gradient(160deg, #0a0a1f 0%, #16162e 50%, #1f1a3e 100%);
+  /* v0.9.9.2: 白天暖色调，舍弃黑紫渐变 — 暖米白 + 极淡金光 */
+  background:
+    radial-gradient(circle at 20% 18%, rgba(255, 232, 195, 0.55), transparent 55%),
+    radial-gradient(circle at 80% 82%, rgba(255, 218, 175, 0.45), transparent 60%),
+    linear-gradient(165deg, #faf3e2 0%, #f5ecd6 45%, #f0e3c4 100%);
+  color: #2b2118;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -4535,7 +4540,7 @@ body.call-active { overflow: hidden; }
   justify-content: center;
   padding: 48px 32px;
   text-align: center;
-  color: #fff;
+  color: #2b2118;
   position: relative;
 }
 
@@ -4546,13 +4551,13 @@ body.call-active { overflow: hidden; }
   margin-bottom: 28px;
   border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 8px 40px rgba(120, 130, 220, 0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+  box-shadow: 0 8px 40px rgba(196, 142, 70, 0.25), inset 0 1px 0 rgba(255,255,255,0.5);
   animation: onbLogoBreath 3.5s ease-in-out infinite;
 }
 .onb-v2-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 @keyframes onbLogoBreath {
-  0%, 100% { transform: scale(1); box-shadow: 0 8px 40px rgba(120, 130, 220, 0.4), inset 0 1px 0 rgba(255,255,255,0.2); }
-  50% { transform: scale(1.04); box-shadow: 0 12px 56px rgba(120, 130, 220, 0.55), inset 0 1px 0 rgba(255,255,255,0.3); }
+  0%, 100% { transform: scale(1); box-shadow: 0 8px 40px rgba(196, 142, 70, 0.25), inset 0 1px 0 rgba(255,255,255,0.5); }
+  50% { transform: scale(1.04); box-shadow: 0 12px 56px rgba(196, 142, 70, 0.4), inset 0 1px 0 rgba(255,255,255,0.6); }
 }
 
 .onb-v2-h1 {
@@ -4560,18 +4565,18 @@ body.call-active { overflow: hidden; }
   font-weight: 600;
   letter-spacing: 1px;
   margin-bottom: 22px;
-  color: #fff;
+  color: #2b2118;
 }
 .onb-v2-text {
   font-size: 16px;
   line-height: 1.85;
-  color: rgba(255, 255, 255, 0.82);
+  color: rgba(43, 33, 24, 0.78);
   max-width: 320px;
   margin-bottom: 8px;
 }
 .onb-v2-text-small {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(43, 33, 24, 0.55);
   margin-top: 12px;
 }
 
@@ -4589,12 +4594,13 @@ body.call-active { overflow: hidden; }
   gap: 14px;
   align-items: flex-start;
   padding: 16px 18px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(196, 142, 70, 0.18);
   border-radius: 14px;
   text-align: left;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 2px 12px rgba(120, 80, 30, 0.06);
 }
 .onb-v2-promise-icon {
   font-size: 22px;
@@ -4604,16 +4610,19 @@ body.call-active { overflow: hidden; }
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,0.06);
+  background: rgba(255, 240, 210, 0.7);
   border-radius: 10px;
 }
 .onb-v2-promise-text { flex: 1; }
-.onb-v2-promise-title { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 4px; }
-.onb-v2-promise-desc { font-size: 13px; color: rgba(255, 255, 255, 0.6); line-height: 1.55; }
+.onb-v2-promise-title { font-size: 15px; font-weight: 600; color: #2b2118; margin-bottom: 4px; }
+.onb-v2-promise-desc { font-size: 13px; color: rgba(43, 33, 24, 0.62); line-height: 1.55; }
 
 /* 屏 3 - 纸质感「拿好这艘船」 */
 .onb-v2-slide-paper {
-  background: linear-gradient(165deg, #0a0a1f 0%, #1a1a35 100%);
+  /* v0.9.9.2: 白天调性 — 纸壳暖米色背景 */
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 224, 180, 0.45), transparent 60%),
+    linear-gradient(165deg, #f5e9c8 0%, #efdfb0 100%);
 }
 .onb-v2-paper-card {
   max-width: 380px;
@@ -4624,9 +4633,9 @@ body.call-active { overflow: hidden; }
   color: var(--paper-ink);
   text-align: center;
   box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.4),
-    0 16px 48px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    0 4px 16px rgba(120, 80, 30, 0.18),
+    0 16px 48px rgba(120, 80, 30, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
   position: relative;
   animation: paperFloatUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
 }
@@ -4670,7 +4679,7 @@ body.call-active { overflow: hidden; }
   flex-direction: column;
   align-items: center;
   gap: 18px;
-  background: linear-gradient(0deg, rgba(0,0,0,0.3) 0%, transparent 100%);
+  background: linear-gradient(0deg, rgba(196, 142, 70, 0.08) 0%, transparent 100%);
 }
 .onb-v2-dots {
   display: flex;
@@ -4680,11 +4689,11 @@ body.call-active { overflow: hidden; }
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(120, 80, 30, 0.22);
   transition: all 0.3s;
 }
 .onb-v2-dot.active {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(120, 80, 30, 0.7);
   width: 24px;
   border-radius: 4px;
 }
@@ -4707,15 +4716,15 @@ body.call-active { overflow: hidden; }
   font-family: inherit;
 }
 .onb-v2-btn-secondary {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.6);
+  color: rgba(43, 33, 24, 0.85);
+  border: 1px solid rgba(196, 142, 70, 0.25);
 }
 .onb-v2-btn-primary {
-  background: #fff;
-  color: #1a1a2e;
+  background: linear-gradient(135deg, #b06a2a 0%, #8c5018 100%);
+  color: #fff7e6;
   font-weight: 600;
-  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.18);
+  box-shadow: 0 4px 16px rgba(140, 80, 24, 0.28);
 }
 .onb-v2-btn:active { transform: scale(0.97); }
 .onb-v2-btn-skip {
@@ -4723,7 +4732,7 @@ body.call-active { overflow: hidden; }
   top: 16px;
   right: 16px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(43, 33, 24, 0.45);
   border: none;
   font-size: 13px;
   cursor: pointer;
@@ -4731,17 +4740,17 @@ body.call-active { overflow: hidden; }
   -webkit-tap-highlight-color: transparent;
   z-index: 2;
 }
-.onb-v2-btn-skip:hover { color: rgba(255, 255, 255, 0.7); }
+.onb-v2-btn-skip:hover { color: rgba(43, 33, 24, 0.75); }
 
 /* 隐私法务小字（合并到第 2 屏底部） */
 .onb-v2-privacy-note {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(43, 33, 24, 0.42);
   margin-top: 16px;
   line-height: 1.6;
   max-width: 320px;
 }
-.onb-v2-privacy-note a { color: rgba(255, 255, 255, 0.55); text-decoration: underline; }
+.onb-v2-privacy-note a { color: rgba(140, 80, 24, 0.78); text-decoration: underline; }
 
 /* 移动端微调 */
 @media (max-height: 700px) {
