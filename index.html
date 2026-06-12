@@ -7,13 +7,13 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <!-- v0.9.4: PWA 支持 添加到主屏后像原生应用 -->
-<link rel="manifest" href="manifest.json?v=0.9.9.1">
+<link rel="manifest" href="manifest.json?v=0.9.9.2">
 <meta name="theme-color" content="#0a0a1f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="小纸船">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="stylesheet" href="assets/css/main.css?v=0.9.9.1">
+<link rel="stylesheet" href="assets/css/main.css?v=0.9.9.2">
 </head>
 <body>
 
@@ -286,7 +286,7 @@
         <img src="logo.png" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" onclick="showChangelog()" title="点击查看更新日志">v0.9.9.1</span>
+      <span class="sidebar-version" title="点击：寄语 ｜ 长按：抓取反馈日志">v0.9.9.2</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -408,9 +408,6 @@
       <button class="sidebar-footer-item sidebar-subitem" onclick="showApiKeyDialog()">
         <span>设置 API Key</span>
       </button>
-      <button class="sidebar-footer-item sidebar-subitem" onclick="showVoiceConfigDialog()">
-        <span>语音 API 设置 🎙️</span>
-      </button>
       <button class="sidebar-footer-item sidebar-subitem" id="reduceFxToggle" onclick="toggleReduceFx()">
         <span id="reduceFxLabel">视觉效果：标准</span>
       </button>
@@ -418,7 +415,7 @@
         <span>清空当前对话</span>
       </button>
       <button class="sidebar-footer-item sidebar-subitem" onclick="closeSidebar(); openAbout();" style="margin-top:8px;border-top:1px solid rgba(255,255,255,0.06);padding-top:14px;">
-        <span>🚢 关于小纸船</span>
+        <span>关于小纸船</span>
       </button>
     </div>
   </div>
@@ -465,21 +462,11 @@
 
 <!-- 快捷提问 -->
 <div class="quick-actions" id="quickActions">
-  <button class="quick-btn" onclick="quickFill('帮我查一下')">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>🔍 帮我查一下
-  </button>
-  <button class="quick-btn" onclick="quickFill('我有个商业想法：')">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M12 2C8.5 8 6 11 6 14.5A6 6 0 0 0 18 14.5C18 11 15.5 8 12 2Z"/><path d="M12 6C10 10 9 12.5 9 14.5A3 3 0 0 0 15 14.5C15 12.5 14 10 12 6Z"/></svg>💡 我有个商业想法
-  </button>
-  <button class="quick-btn" onclick="quickFill('帮我写')">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>✍️ 帮我写
-  </button>
-  <button class="quick-btn" onclick="quickFill('帮我分析一下')">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>🤔 帮我分析一下
-  </button>
-  <button class="quick-btn" onclick="quickAsk('今天有什么新鲜事')">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>🌍 今天有什么新鲜事
-  </button>
+  <button class="quick-btn" onclick="quickFill('帮我查一下')">🔍 帮我查一下</button>
+  <button class="quick-btn" onclick="quickFill('我有个商业想法：')">💡 我有个商业想法</button>
+  <button class="quick-btn" onclick="quickFill('帮我写')">✍️ 帮我写</button>
+  <button class="quick-btn" onclick="quickFill('帮我分析一下')">🤔 帮我分析一下</button>
+  <button class="quick-btn" onclick="quickAsk('今天有什么新鲜事')">🌍 今天有什么新鲜事</button>
 </div>
 
 <!-- 输入区 -->
@@ -656,32 +643,33 @@
   </div>
 </div>
 
-<script src="assets/js/01-state.js?v=0.9.9.1"></script>
-<script src="assets/js/02-onboarding.js?v=0.9.9.1"></script>
-<script src="assets/js/03-storage.js?v=0.9.9.1"></script>
-<script src="assets/js/04-sidebar.js?v=0.9.9.1"></script>
-<script src="assets/js/05-conversation.js?v=0.9.9.1"></script>
-<script src="assets/js/06-render.js?v=0.9.9.1"></script>
-<script src="assets/js/07-theme.js?v=0.9.9.1"></script>
-<script src="assets/js/08-cloudsync.js?v=0.9.9.1"></script>
-<script src="assets/js/09-settings.js?v=0.9.9.1"></script>
-<script src="assets/js/10-changelog.js?v=0.9.9.1"></script>
-<script src="assets/js/11-input.js?v=0.9.9.1"></script>
-<script src="assets/js/12-msgops.js?v=0.9.9.1"></script>
-<script src="assets/js/13-image.js?v=0.9.9.1"></script>
-<script src="assets/js/14-websearch.js?v=0.9.9.1"></script>
-<script src="assets/js/15-tts.js?v=0.9.9.1"></script>
-<script src="assets/js/16-providers.js?v=0.9.9.1"></script>
-<script src="assets/js/17-fileupload.js?v=0.9.9.1"></script>
+<script src="assets/js/00-console-capture.js?v=0.9.9.2"></script>
+<script src="assets/js/01-state.js?v=0.9.9.2"></script>
+<script src="assets/js/02-onboarding.js?v=0.9.9.2"></script>
+<script src="assets/js/03-storage.js?v=0.9.9.2"></script>
+<script src="assets/js/04-sidebar.js?v=0.9.9.2"></script>
+<script src="assets/js/05-conversation.js?v=0.9.9.2"></script>
+<script src="assets/js/06-render.js?v=0.9.9.2"></script>
+<script src="assets/js/07-theme.js?v=0.9.9.2"></script>
+<script src="assets/js/08-cloudsync.js?v=0.9.9.2"></script>
+<script src="assets/js/09-settings.js?v=0.9.9.2"></script>
+<script src="assets/js/10-changelog.js?v=0.9.9.2"></script>
+<script src="assets/js/11-input.js?v=0.9.9.2"></script>
+<script src="assets/js/12-msgops.js?v=0.9.9.2"></script>
+<script src="assets/js/13-image.js?v=0.9.9.2"></script>
+<script src="assets/js/14-websearch.js?v=0.9.9.2"></script>
+<script src="assets/js/15-tts.js?v=0.9.9.2"></script>
+<script src="assets/js/16-providers.js?v=0.9.9.2"></script>
+<script src="assets/js/17-fileupload.js?v=0.9.9.2"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-<script src="assets/js/18-mobile.js?v=0.9.9.1"></script>
-<script src="assets/js/19-configsync.js?v=0.9.9.1"></script>
-<script src="assets/js/20-share.js?v=0.9.9.1"></script>
-<script src="assets/js/21-glass-fx.js?v=0.9.9.1"></script>
-<script src="assets/js/22-prompts.js?v=0.9.9.1"></script>
-<script src="assets/js/23-preview.js?v=0.9.9.1"></script>
-<script src="assets/js/24-voice.js?v=0.9.9.1"></script>
+<script src="assets/js/18-mobile.js?v=0.9.9.2"></script>
+<script src="assets/js/19-configsync.js?v=0.9.9.2"></script>
+<script src="assets/js/20-share.js?v=0.9.9.2"></script>
+<script src="assets/js/21-glass-fx.js?v=0.9.9.2"></script>
+<script src="assets/js/22-prompts.js?v=0.9.9.2"></script>
+<script src="assets/js/23-preview.js?v=0.9.9.2"></script>
+<script src="assets/js/24-voice.js?v=0.9.9.2"></script>
 
 <!-- v0.9.9.0: 首屏世界观短诗（极小字，pointer-events:none） -->
 <div class="world-footer-poem">一艘小船，载着这个时代最新的几位 AI</div>

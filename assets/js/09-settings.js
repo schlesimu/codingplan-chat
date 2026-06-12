@@ -95,6 +95,9 @@ function showApiKeyDialog() {
 
   // 试听按钮
   html += '<button id="tts-test-btn" style="width:100%;margin-top:10px;padding:8px 14px;border-radius:10px;border:1px dashed var(--btn-border);background:transparent;color:var(--text-main);cursor:pointer;font-size:12px;font-family:inherit"> 试听当前配置</button>';
+
+  // v0.9.9.2: 入口合并 — 跳到「高级语音 API 设置」（含 ASR / 实时对话）
+  html += '<button id="open-voice-config-btn" type="button" style="width:100%;margin-top:8px;padding:8px 14px;border-radius:10px;border:1px solid var(--btn-border);background:var(--btn-bg);color:var(--btn-color);cursor:pointer;font-size:12px;font-family:inherit">高级语音 API 设置（识别 / 实时对话）→</button>';
   html += '</div>';
 
   // 弹窗
@@ -211,6 +214,16 @@ function showApiKeyDialog() {
       overlay.remove();
       if (typeof showProviderDialog === 'function') showProviderDialog();
       else alert('Provider 配置模块未加载，请刷新页面');
+    });
+  }
+
+  // v0.9.9.2: 「高级语音 API 设置」按钮：关闭当前面板 + 打开 Voice Config Dialog
+  const openVoiceBtn = document.getElementById('open-voice-config-btn');
+  if (openVoiceBtn) {
+    openVoiceBtn.addEventListener('click', () => {
+      overlay.remove();
+      if (typeof showVoiceConfigDialog === 'function') showVoiceConfigDialog();
+      else alert('语音设置模块未加载，请刷新页面');
     });
   }
 
