@@ -4893,12 +4893,23 @@ body.call-active { overflow: hidden; }
    首屏角落世界观短诗（footer 极小字）
    ============================================================ */
 
-/* v0.9.10.0：彩蛋诗句藏在屏幕外，聊天滑到底继续上拉时升起 */
+/* v0.9.10.3：彩蛋诗句改为「拖拽跟随」交互
+ * 默认藏在屏幕外（translateY 100% 自身高度）。
+ * 手指按住屏幕往上拽 → JS 实时把 --poem-pull 变量从 0 → 1 之间填入，
+ * CSS 用 translateY 跟手位移；松手自动回弹或停留。
+ *
+ * 不再依赖 bottom 切换（那是惯性式二态），改用 transform 实时驱动。
+ * --poem-pull: 0 = 完全藏起 / 1 = 完全露出
+ */
 .world-footer-poem {
+  --poem-pull: 0;
   position: fixed;
-  bottom: -36px;                  /* 默认完全藏在屏幕外 */
+  bottom: 8px;                                  /* 完全露出时的目标位置 */
   left: 50%;
-  transform: translateX(-50%);
+  /* 默认 (--poem-pull: 0) 时整体下移自身 200%（完全藏到屏幕外，且留出余量），
+     拖到 (--poem-pull: 1) 时回到 translateY(0) 即「bottom: 8px」位置 */
+  transform: translateX(-50%) translateY(calc((1 - var(--poem-pull)) * 200%));
+  opacity: var(--poem-pull);                    /* 跟手位置同步淡入 */
   font-family: var(--paper-serif);
   font-size: 10px;
   color: rgba(255, 255, 255, 0.32);
@@ -4907,12 +4918,12 @@ body.call-active { overflow: hidden; }
   pointer-events: none;
   user-select: none;
   white-space: nowrap;
-  opacity: 0;
-  transition: bottom 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 280ms ease;
+  /* 跟手期间 JS 加 .is-pulling，禁用 transition 实现帧帧贴手；
+     松手时移除 class，下面的 transition 接管把它弹回或留住 */
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 280ms ease;
 }
-body.poem-revealed .world-footer-poem {
-  bottom: 8px;
-  opacity: 1;
+.world-footer-poem.is-pulling {
+  transition: none;       /* 跟手期间禁用动画，逐帧实时跟随 */
 }
 [data-theme="light"] .world-footer-poem {
   color: rgba(43, 33, 24, 0.40);
