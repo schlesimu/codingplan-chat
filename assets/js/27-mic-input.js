@@ -172,12 +172,22 @@
       }
     };
 
+    // v0.9.10.1：抑制 / 恢复系统长按选择菜单（iOS / Android Chrome / OPPO）
+    // 按下时立即加，避免系统的 ~500ms 长按菜单与我们的 400ms 录音阈值打架
+    const armCalloutSuppress = () => {
+      ta.classList.add('suppress-callout');
+    };
+    const disarmCalloutSuppress = () => {
+      ta.classList.remove('suppress-callout');
+    };
+
     const onPressDown = (ev) => {
       if (ev.type === 'mousedown' && ev.button !== 0) return;
       pressStartTs = Date.now();
       pressY0 = (ev.clientY != null) ? ev.clientY : (ev.touches?.[0]?.clientY ?? null);
       isRecordingFromLongPress = false;
       clearLongPressTimer();
+      armCalloutSuppress();    // 立即抑制系统菜单
 
       longPressTimer = setTimeout(() => {
         if (Date.now() - pressStartTs < LONG_PRESS_MS) return;
@@ -212,6 +222,7 @@
 
     const onPressUp = (ev) => {
       clearLongPressTimer();
+      disarmCalloutSuppress();    // v0.9.10.1：松手恢复系统菜单
       if (isRecordingFromLongPress) {
         const wasCanceling = isCanceling;
         isRecordingFromLongPress = false;
@@ -229,6 +240,7 @@
 
     const onPressCancel = () => {
       clearLongPressTimer();
+      disarmCalloutSuppress();    // v0.9.10.1：取消也要恢复
       if (isRecordingFromLongPress) {
         isRecordingFromLongPress = false;
         exitRecordingUI();
@@ -262,9 +274,21 @@
       ta.addEventListener('touchcancel', onPressCancel);
     }
 
+    // v0.9.10.1：兜底拦截系统右键 / 长按菜单
+    // 长按计时未结束 / 已进入录音 / suppress-callout 还在身上时，拒绝弹菜单
+    ta.addEventListener('contextmenu', (ev) => {
+      if (longPressTimer || isRecordingFromLongPress || ta.classList.contains('suppress-callout')) {
+        ev.preventDefault();
+      }
+    });
+    // selectstart：录音过程中阻止文本选择高亮
+    ta.addEventListener('selectstart', (ev) => {
+      if (isRecordingFromLongPress) ev.preventDefault();
+    });
+
     // 调试钩子
     window.__micInput = {
-      version: 'v0.9.10.0-stage1+3+4',
+      version: 'v0.9.10.1',
       ta, row, area, overlay, wfBars,
       LONG_PRESS_MS, VIBRATE_MS, CANCEL_THRESHOLD_PX,
       enterRecordingUI, exitRecordingUI,    // 测试可调

@@ -3913,6 +3913,22 @@ body.fx-simple #voiceBtn.voice-btn.recording { animation: none; }
   .input-mic-icon { left: 66px; }
 }
 
+/* v0.9.10.1：抑制系统长按菜单（iOS / Android）
+ * 由 27-mic-input.js 在 onPressDown 加 .suppress-callout，松手撤销。
+ * 只在按下/录音时生效，不影响平时复制粘贴。 */
+#userInput.suppress-callout {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+/* 录音中（双保险）：整条底栏文本不可选 */
+.input-area.is-recording #userInput,
+.input-area.is-recording .input-row {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 /* ==========================================================
  * v0.9.10.0 阶段 3-4：录音浮层 + 上滑取消
  * 进入录音态：

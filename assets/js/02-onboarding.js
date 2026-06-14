@@ -4,7 +4,7 @@
 //   codingplan-onboarded     是否完成过欢迎流程
 //   codingplan-onb-version   上次完成欢迎流程的版本号
 
-const ONB_CURRENT_VERSION = 'v0.9.10.0';
+const ONB_CURRENT_VERSION = 'v0.9.10.1';
 
 function finishOnboarding() {
   try {
@@ -113,6 +113,7 @@ function closeAboutAndShowChangelog() {
 // ========== 版本寄语字典（信封 / 长按面板都从这里取） ==========
 const VERSION_QUOTES = {
   'v0.9.10.0': '让说话和写字，回到同一只手里。',
+  'v0.9.10.1': '让说话和写字，回到同一只手里。',
   'v0.9.9.4': '把多余的折回去，留下一艘船。',
   'v0.9.9.3': '键也敲一下，鼠也点一下，都顺手。',
   'v0.9.9.2': '把这艘船的来路一笔一笔写清楚，再交到你手里。',
