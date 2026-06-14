@@ -115,6 +115,9 @@ async function startVoiceRecord(targetMode) {
   }
   try {
     _voiceStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    // v0.9.10.0: 暴露给 27-mic-input.js 接波形分析（同一 stream 不重复授权）
+    window._voiceStream = _voiceStream;
+    window.dispatchEvent(new CustomEvent('voicestream:ready', { detail: { stream: _voiceStream, mode: targetMode } }));
   } catch (err) {
     alert('🌫️ 无法访问麦克风：' + (err.message || err.name || '未知错误') + '\n请检查浏览器麦克风权限');
     return;
@@ -151,6 +154,8 @@ function stopVoiceRecord(targetMode) {
   if (_voiceStream) {
     _voiceStream.getTracks().forEach(t => t.stop());
     _voiceStream = null;
+    window._voiceStream = null;
+    window.dispatchEvent(new CustomEvent('voicestream:gone'));
   }
   if (targetMode === 'input') {
     document.getElementById('voiceBtn')?.classList.remove('recording');
@@ -159,10 +164,24 @@ function stopVoiceRecord(targetMode) {
   }
 }
 
+/* v0.9.10.0: 取消录音（不调 ASR / 不回填）。供 27-mic-input.js 上滑取消使用 */
+function cancelVoiceRecord(targetMode) {
+  window._voiceCanceled = true;   // onVoiceRecorded 会读这个旗
+  stopVoiceRecord(targetMode);
+}
+window.cancelVoiceRecord = cancelVoiceRecord;
+
 async function onVoiceRecorded(targetMode) {
   const duration = Date.now() - _voiceStartTs;
   const recorder = _voiceRecorder;
   _voiceRecorder = null;
+  // v0.9.10.0: 上滑取消 → 直接丢弃，不转写不回填
+  if (window._voiceCanceled) {
+    window._voiceCanceled = false;
+    _voiceChunks = [];
+    hideVoiceToast();
+    return;
+  }
   if (duration < 400) {
     hideVoiceToast();
     setCallStatus('⌛ 太短了，按住久一点再说话 🚢');

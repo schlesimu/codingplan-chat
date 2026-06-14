@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="light">
+<html lang="zh-CN" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <!-- v0.9.4: PWA 支持 添加到主屏后像原生应用 -->
-<link rel="manifest" href="manifest.json?v=0.9.9.4">
+<link rel="manifest" href="manifest.json?v=0.9.10.0">
 <meta name="theme-color" content="#0a0a1f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -22,7 +22,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-sc@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-sc@5/600.css">
 
-<link rel="stylesheet" href="assets/css/main.css?v=0.9.9.4">
+<link rel="stylesheet" href="assets/css/main.css?v=0.9.10.0">
 </head>
 <body>
 
@@ -236,7 +236,7 @@
         <img src="logo.png" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" title="点击：寄语 ｜ 长按：抓取反馈日志">v0.9.9.4</span>
+      <span class="sidebar-version" title="点击：寄语 ｜ 长按：抓取反馈日志">v0.9.10.0</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -430,6 +430,18 @@
 
 <!-- 输入区 -->
 <div class="input-area">
+  <!-- v0.9.10.0 阶段 3：录音浮层（is-recording 时浮在 .input-area 上）-->
+  <div class="recording-overlay" id="recordingOverlay" aria-hidden="true">
+    <div class="rec-mic">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </div>
+    <div class="rec-waveform" id="recWaveform">
+      <span class="wf-bar"></span><span class="wf-bar"></span><span class="wf-bar"></span>
+      <span class="wf-bar"></span><span class="wf-bar"></span><span class="wf-bar"></span>
+    </div>
+    <div class="rec-timer" id="recTimer">0:00</div>
+    <div class="rec-hint" id="recHint">↑ 上滑取消</div>
+  </div>
   <div class="img-preview-wrap" id="imgPreview"></div>
   <div class="input-row">
     <!-- v0.9.8.4 B: 加号按钮 (替代原 imgBtn) → 弹出菜单：图片/文件/通话 -->
@@ -444,16 +456,17 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg>
     </button>
     -->
-    <!-- v0.9.8.4 C: 语音输入按钮 (按住录音 → 转文字回填) -->
-    <button class="img-btn voice-btn" id="voiceBtn" title="按住说话">
+    <!-- v0.9.10.0 阶段 1：移除独立 #voiceBtn（合并进 textarea，长按 textarea 触发录音）。
+         按住🎙说话现已在输入框本体上：短按聚焦 / 长按 400ms 录音。代码保留 24-voice.js 的 startVoiceRecord('input')。 -->
+    <span class="input-mic-icon" id="inputMicIcon" aria-hidden="true">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-    </button>
-    <textarea id="userInput" rows="1" placeholder="输入你的问题..." autofocus></textarea>
+    </span>
+    <textarea id="userInput" rows="1" placeholder="写下来 · 或按住说" autofocus></textarea>
     <button class="send-btn" id="sendBtn" onclick="sendMessage()">
       <span class="icon-send"></span>
     </button>
   </div>
-  <div class="footer-hint">回车发送 · Shift+回车换行 · 粘贴图片 · 按住🎙️说话</div>
+  <div class="footer-hint">回车发送 · Shift+回车换行 · 粘贴图片 · 长按输入框说话</div>
 </div>
 
 <!-- v0.9.8.4 B: 加号菜单 popover -->
@@ -602,35 +615,37 @@
   </div>
 </div>
 
-<script src="assets/js/00-console-capture.js?v=0.9.9.4"></script>
-<script src="assets/js/01-state.js?v=0.9.9.4"></script>
-<script src="assets/js/02-onboarding.js?v=0.9.9.4"></script>
-<script src="assets/js/03-storage.js?v=0.9.9.4"></script>
-<script src="assets/js/04-sidebar.js?v=0.9.9.4"></script>
-<script src="assets/js/05-conversation.js?v=0.9.9.4"></script>
-<script src="assets/js/06-render.js?v=0.9.9.4"></script>
-<script src="assets/js/07-theme.js?v=0.9.9.4"></script>
-<script src="assets/js/08-cloudsync.js?v=0.9.9.4"></script>
-<script src="assets/js/09-settings.js?v=0.9.9.4"></script>
-<script src="assets/js/10-changelog.js?v=0.9.9.4"></script>
-<script src="assets/js/11-input.js?v=0.9.9.4"></script>
-<script src="assets/js/12-msgops.js?v=0.9.9.4"></script>
-<script src="assets/js/13-image.js?v=0.9.9.4"></script>
-<script src="assets/js/14-websearch.js?v=0.9.9.4"></script>
-<script src="assets/js/15-tts.js?v=0.9.9.4"></script>
-<script src="assets/js/16-providers.js?v=0.9.9.4"></script>
-<script src="assets/js/17-fileupload.js?v=0.9.9.4"></script>
+<script src="assets/js/00-console-capture.js?v=0.9.10.0"></script>
+<script src="assets/js/01-state.js?v=0.9.10.0"></script>
+<script src="assets/js/02-onboarding.js?v=0.9.10.0"></script>
+<script src="assets/js/03-storage.js?v=0.9.10.0"></script>
+<script src="assets/js/04-sidebar.js?v=0.9.10.0"></script>
+<script src="assets/js/05-conversation.js?v=0.9.10.0"></script>
+<script src="assets/js/06-render.js?v=0.9.10.0"></script>
+<script src="assets/js/07-theme.js?v=0.9.10.0"></script>
+<script src="assets/js/08-cloudsync.js?v=0.9.10.0"></script>
+<script src="assets/js/09-settings.js?v=0.9.10.0"></script>
+<script src="assets/js/10-changelog.js?v=0.9.10.0"></script>
+<script src="assets/js/11-input.js?v=0.9.10.0"></script>
+<script src="assets/js/12-msgops.js?v=0.9.10.0"></script>
+<script src="assets/js/13-image.js?v=0.9.10.0"></script>
+<script src="assets/js/14-websearch.js?v=0.9.10.0"></script>
+<script src="assets/js/15-tts.js?v=0.9.10.0"></script>
+<script src="assets/js/16-providers.js?v=0.9.10.0"></script>
+<script src="assets/js/17-fileupload.js?v=0.9.10.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-<script src="assets/js/18-mobile.js?v=0.9.9.4"></script>
-<script src="assets/js/19-configsync.js?v=0.9.9.4"></script>
-<script src="assets/js/20-share.js?v=0.9.9.4"></script>
-<script src="assets/js/21-glass-fx.js?v=0.9.9.4"></script>
-<script src="assets/js/22-prompts.js?v=0.9.9.4"></script>
-<script src="assets/js/23-preview.js?v=0.9.9.4"></script>
-<script src="assets/js/24-voice.js?v=0.9.9.4"></script>
-<script src="assets/js/25-shortcuts.js?v=0.9.9.4"></script>
-<script src="assets/js/26-letter.js?v=0.9.9.4"></script>
+<script src="assets/js/18-mobile.js?v=0.9.10.0"></script>
+<script src="assets/js/19-configsync.js?v=0.9.10.0"></script>
+<script src="assets/js/20-share.js?v=0.9.10.0"></script>
+<script src="assets/js/21-glass-fx.js?v=0.9.10.0"></script>
+<script src="assets/js/22-prompts.js?v=0.9.10.0"></script>
+<script src="assets/js/23-preview.js?v=0.9.10.0"></script>
+<script src="assets/js/24-voice.js?v=0.9.10.0"></script>
+<script src="assets/js/25-shortcuts.js?v=0.9.10.0"></script>
+<script src="assets/js/26-letter.js?v=0.9.10.0"></script>
+<script src="assets/js/27-mic-input.js?v=0.9.10.0"></script>
+<script src="assets/js/28-footer-poem.js?v=0.9.10.0"></script>
 
 <!-- v0.9.9.0: 首屏世界观短诗（极小字，pointer-events:none） -->
 <div class="world-footer-poem">一艘小船，载着这个时代最新的几位 AI</div>

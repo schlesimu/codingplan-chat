@@ -3871,6 +3871,164 @@ body.fx-simple #voiceBtn.voice-btn.recording { animation: none; }
   #voiceBtn.voice-btn.recording { animation: none; }
 }
 
+/* ==========================================================
+ * v0.9.10.0 阶段 1：输入框 + 麦克风合二为一（C 方案）
+ * 文档：~/.hermes/skills/.../codingplan-chat-project/references/input-mic-merged-pattern.md
+ *
+ *   静默态：textarea 占位文 +「输入框内左侧 🎙 图标」
+ *   输入态（is-typing）：🎙 淡出 200ms，padding-left 收回
+ *   录音态（is-recording）：底栏整条浅红覆盖（阶段 3 实现，本阶段先占位 class）
+ * ========================================================== */
+.input-row {
+  /* 让 .input-mic-icon 能用 absolute 定位到 textarea 的左侧 */
+  position: relative;
+}
+.input-mic-icon {
+  position: absolute;
+  /* textarea flex:1，前面有 ➕ 按钮（38px）+ gap(8px) + padding(10px) = 56px 左偏移
+     textarea 自身 padding 8px 14px，🎙 在 textarea 视觉左内 14px 处 */
+  left: 70px;          /* 10(.input-row 左 padding) + 38(➕宽) + 8(gap) + 14(textarea padding-left) */
+  bottom: 18px;        /* 视觉对齐 textarea 单行垂直中心：8(底 padding)+10(行高调整) */
+  width: 16px; height: 16px;
+  color: var(--input-placeholder, #999);
+  pointer-events: none;   /* 让触摸/点击穿透到 textarea */
+  opacity: 1;
+  transition: opacity 200ms ease;
+  z-index: 2;
+  display: flex; align-items: center; justify-content: center;
+}
+.input-mic-icon svg { display: block; }
+/* 输入态：🎙 淡出，textarea padding 收回 */
+.input-row.is-typing .input-mic-icon { opacity: 0; }
+.input-row.is-typing #userInput { padding-left: 14px; }
+
+/* 静默态：textarea 给 🎙 让位 */
+.input-row #userInput {
+  padding-left: 38px;     /* 14(原 padding) + 16(图标) + 8(gap) ≈ 38 */
+  transition: padding-left 200ms ease;
+}
+
+/* 移动端：➕ 按钮窄一些（38→34）时 left 跟随收紧 */
+@media (max-width: 480px) {
+  .input-mic-icon { left: 66px; }
+}
+
+/* ==========================================================
+ * v0.9.10.0 阶段 3-4：录音浮层 + 上滑取消
+ * 进入录音态：
+ *   - .input-area.is-recording：底栏整条变浅红 rgba(255,60,20,0.10)
+ *   - .recording-overlay 显出，覆盖 .input-row（加号/textarea/发送全被遮）
+ *   - 内部：🎙 + 6 根波形 bar + 计时 + 上滑取消提示
+ * 取消态（上滑 ≥80px）：
+ *   - .input-area.is-canceling：底色加深 rgba(255,60,20,0.20)
+ *   - 提示文「松开取消」变红加粗
+ * ========================================================== */
+.recording-overlay {
+  /* 默认隐藏，is-recording 时浮在 .input-row 之上 */
+  position: absolute;
+  left: 0; right: 0;
+  bottom: 0;
+  height: 56px;          /* 跟 .input-row（约 8+38+8+1 = 55px）对齐 */
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 14px;
+  padding: 0 18px;
+  pointer-events: none;  /* 由 textarea 的 pointer 事件驱动，不抢手势 */
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 180ms ease, transform 180ms ease;
+  z-index: 5;
+}
+.input-area.is-recording {
+  background: rgba(255, 60, 20, 0.10);
+  transition: background 200ms ease;
+}
+/* v0.9.10.0: liquid 主题的玻璃背景优先级很高，录音态要强制盖过去 */
+[data-theme="liquid"] .input-area.is-recording,
+[data-theme="liquid"] body.fx-simple .input-area.is-recording,
+[data-theme="liquid"] body.fx-minimal .input-area.is-recording {
+  background: rgba(255, 60, 20, 0.18) !important;
+}
+[data-theme="liquid"] .input-area.is-recording::before {
+  /* 隐藏 liquid 玻璃滤镜层，免得跟红底打架 */
+  display: none;
+}
+.input-area.is-recording .recording-overlay {
+  opacity: 1;
+  transform: translateY(0);
+}
+.input-area.is-recording .input-row {
+  /* 录音中：隐藏整行（加号/textarea/发送），但保留布局占位避免高度跳变 */
+  visibility: hidden;
+}
+
+/* 录音浮层内部元件 */
+.rec-mic {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff5e5e, #ff3535);
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 4px rgba(255,94,94,0.18), 0 0 14px rgba(255,94,94,0.4);
+  animation: voicePulse 1.2s ease-in-out infinite;
+}
+.rec-mic svg { stroke: currentColor; }
+body.fx-simple .rec-mic { animation: none; }
+@media (prefers-reduced-motion: reduce) { .rec-mic { animation: none; } }
+
+.rec-waveform {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  flex-shrink: 0;
+}
+.rec-waveform .wf-bar {
+  display: inline-block;
+  width: 3px;
+  height: 8px;            /* 默认低，JS 会写 inline height 实时变化 */
+  background: #ff3d00;
+  border-radius: 2px;
+  transition: height 80ms ease-out;
+}
+.rec-timer {
+  font-family: 'SF Mono', 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  color: var(--input-color, #333);
+  min-width: 38px;
+  flex-shrink: 0;
+}
+.rec-hint {
+  font-size: 13px;
+  color: var(--input-placeholder, #888);
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: color 160ms ease, font-weight 160ms ease;
+}
+[data-theme="dark"] .rec-timer { color: #f0f0f5; }
+[data-theme="liquid"] .rec-timer { color: #1a1a2e; }
+
+/* 取消态：底色加深 + 提示文变红加粗 */
+.input-area.is-canceling { background: rgba(255, 60, 20, 0.20); }
+.input-area.is-canceling .rec-hint {
+  color: #ff3d00;
+  font-weight: 600;
+}
+.input-area.is-canceling .rec-hint::before { content: ""; }   /* 文案由 JS 写 */
+
+/* 移动端窄屏：缩紧间距 */
+@media (max-width: 480px) {
+  .recording-overlay { gap: 10px; padding: 0 14px; }
+  .rec-mic { width: 32px; height: 32px; }
+  .rec-mic svg { width: 18px; height: 18px; }
+  .rec-waveform { gap: 3px; }
+  .rec-waveform .wf-bar { width: 3px; }
+  .rec-hint { font-size: 12px; }
+}
+
 /* voice toast */
 .voice-toast {
   position: fixed;
@@ -4714,26 +4872,34 @@ body.call-active { overflow: hidden; }
    首屏角落世界观短诗（footer 极小字）
    ============================================================ */
 
+/* v0.9.10.0：彩蛋诗句藏在屏幕外，聊天滑到底继续上拉时升起 */
 .world-footer-poem {
   position: fixed;
-  bottom: 4px;
+  bottom: -36px;                  /* 默认完全藏在屏幕外 */
   left: 50%;
   transform: translateX(-50%);
   font-family: var(--paper-serif);
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.32);
   letter-spacing: 1.5px;
   z-index: 1;
   pointer-events: none;
   user-select: none;
   white-space: nowrap;
+  opacity: 0;
+  transition: bottom 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 280ms ease;
+}
+body.poem-revealed .world-footer-poem {
+  bottom: 8px;
+  opacity: 1;
 }
 [data-theme="light"] .world-footer-poem {
-  color: rgba(43, 33, 24, 0.25);
+  color: rgba(43, 33, 24, 0.40);
 }
 [data-theme="liquid"] .world-footer-poem {
-  color: rgba(43, 33, 24, 0.3);
-  text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+  color: rgba(43, 33, 24, 0.45);
+  /* v0.9.10.0：丢掉黑阴影，改用极轻的米色提白让它更像纸感 */
+  text-shadow: 0 1px 0 rgba(255, 248, 235, 0.5);
 }
 @media (max-width: 480px) {
   .world-footer-poem { font-size: 9px; letter-spacing: 1px; }
@@ -5287,6 +5453,18 @@ body.letter-visible .chat-area {
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
+  cursor: pointer;            /* v0.9.10.0：整条可点开明信片 */
+  transition: background 200ms ease, transform 120ms ease;
+}
+.letter-bar:hover {
+  background: var(--paper-bg-hover, #EDE5D2);
+}
+.letter-bar:active {
+  transform: scale(0.995);
+}
+.letter-bar:focus-visible {
+  outline: 2px solid var(--paper-accent, #B8956A);
+  outline-offset: 2px;
 }
 .letter-bar-label {
   flex: 1 1 auto;

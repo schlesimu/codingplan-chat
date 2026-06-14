@@ -50,11 +50,18 @@
     container.style.display = 'block';
     document.body.classList.add('letter-visible');
     container.innerHTML = `
-      <div class="letter-bar" id="letterBar" aria-label="来自小纸船 · ${quote}">
+      <div class="letter-bar" id="letterBar" role="button" tabindex="0" aria-label="来自小纸船 · ${quote} · 点击展开">
         <span class="letter-bar-label">来自小纸船 · ${quote}</span>
         <button type="button" class="letter-bar-close" id="letterBarClose" title="不再提示" aria-label="不再提示">×</button>
       </div>
     `;
+
+    const bar = document.getElementById('letterBar');
+    // v0.9.10.0 修复：整条长条都可点开明信片（× 按钮自己 stopPropagation）
+    bar.addEventListener('click', () => openLetterModal());
+    bar.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLetterModal(); }
+    });
 
     const closeBtn = document.getElementById('letterBarClose');
     closeBtn.addEventListener('click', (e) => {
