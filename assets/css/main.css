@@ -2209,6 +2209,11 @@ body.fx-simple .msg.assistant.streaming .bubble { animation: none !important; }
   font-size: 10px; color: var(--text-dim);
   font-weight: 500; transition: color 0.5s;
   position: relative; z-index: 1;
+  /* v0.9.10.2：装饰性提示文，不让长按选中/复制 */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  pointer-events: none;
 }
 
 /* v0.9.8: 旧 600px 88% 规则已被 v0.9.8 自适应方案替代，删除避免覆盖 */
