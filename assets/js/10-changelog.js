@@ -489,21 +489,26 @@ const CHANGELOG_DATA = [
 // 一页起头。最后一页留 footer 寄语。
 
 // 分页策略（v0.9.10.6 修补）: 基于"估算行数"动态打包，避免长版本号溢出页底
-// 单页高度 ~585px - padding ~112px = ~470px 可用 / 行高 ~22px ≈ 21 行
+// 桌面单页 ~530px - padding ~112px = ~470px 可用 / 行高 ~22px ≈ 21 行
+// 移动端单页更窄（~412px），单行容纳字数变少，所以 LINE_CHARS 也要相应减少
 // 留 1 行缓冲 + 留出 page-num（2行）和 footer（最后一页 5 行）
 const CHANGELOG_LINES_BUDGET = 18;        // 普通页可用行数
 const CHANGELOG_LINES_BUDGET_LAST = 13;   // 最后一页要留 footer 寄语，预算少 5 行
-const CHANGELOG_LINE_CHARS = 28;          // 单行平均字符数（13px 字号 / ~28em）
+// 单行平均字符数：桌面 ~530px 对应 28 字，移动端 ~412px 对应 22 字
+function _changelogLineChars() {
+  return (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 640px)').matches) ? 22 : 28;
+}
 
 // 估算一个版本条目占多少"行"
 function _estChangelogEntryLines(x) {
+  const lineChars = _changelogLineChars();
   let lines = 2; // 基础：meta + 上下空隙
   if (x.quote) lines += 2;  // 寄语标题 ~1 行 + 留白 1 行
   for (const it of (x.items || [])) {
     const s = String(it).trim();
     if (!s) continue;
     // 每条 item: 1 行起步 + 字符长度溢出
-    lines += Math.max(1, Math.ceil(s.length / CHANGELOG_LINE_CHARS));
+    lines += Math.max(1, Math.ceil(s.length / lineChars));
   }
   return lines;
 }

@@ -218,8 +218,9 @@ async function _createBookInstance() {
 
   const size = _calcBookSize();
   // v0.9.10.6: 直接用内联样式钉死 container 物理尺寸，防止 stretch 模式撑爆视口
-  // 双页跨页 → 总宽 = size.width × 2，总高 = size.height
-  const totalW = size.width * 2;
+  // 桌面双页跨页 → 总宽 = size.width × 2；移动端单页 → 总宽 = size.width × 1
+  const isMobile = window.matchMedia('(max-width: 640px)').matches;
+  const totalW = isMobile ? size.width : size.width * 2;
   const totalH = size.height;
   container.style.width = totalW + 'px';
   container.style.height = totalH + 'px';
