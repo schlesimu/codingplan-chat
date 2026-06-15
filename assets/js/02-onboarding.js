@@ -4,7 +4,7 @@
 //   codingplan-onboarded     是否完成过欢迎流程
 //   codingplan-onb-version   上次完成欢迎流程的版本号
 
-const ONB_CURRENT_VERSION = 'v0.9.10.5';
+const ONB_CURRENT_VERSION = 'v0.9.10.6';
 
 function finishOnboarding() {
   try {
@@ -47,31 +47,246 @@ function cancelOnboarding() {
   finishOnboarding();
 }
 
-// ========== 关于小纸船页 + 双页电子书翻页 ==========
+// ========== 关于小纸船页 + StPageFlip 真·电子书翻页（v0.9.10.6 重构） ==========
+// 旧的 .book-stage/.book-pages 双面 3D rotateY 翻转方案（v0.9.9.0 引入）已废弃，
+// 改由 StPageFlip 库（Canvas 贝塞尔卷曲翻页）渲染。
+//
+// 设计要点：
+//   1. 库文件懒加载（首次打开关于页才下载 page-flip.browser.js，43KB）
+//   2. 实例化时机：库加载完成后 → 注入页面 DOM → new PageFlip() → loadFromHTML
+//   3. 关闭时立即 destroy() 释放 canvas 资源 + 解绑触摸事件
+//   4. 内容 DOM 由 02 + 10 协作生成：
+//        - 02 生成封面 / 关于页（about-* 内容）
+//        - 10 生成 changelog 多页（renderChangelogPaper）
+
+let _pfInstance = null;          // 当前 StPageFlip 实例（null = 未实例化）
+let _pfLibLoading = null;        // 库加载 Promise（避免重复发起）
+let _pfPendingTarget = null;     // 打开时希望直接跳到的目标（'changelog'）
+
+// 懒加载 page-flip.browser.js
+function _loadPageFlipLib() {
+  if (typeof window.St !== 'undefined' && window.St && window.St.PageFlip) {
+    return Promise.resolve(window.St.PageFlip);
+  }
+  if (_pfLibLoading) return _pfLibLoading;
+  _pfLibLoading = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'assets/vendor/page-flip.browser.js?v=2.0.7';
+    s.async = true;
+    s.onload = () => {
+      if (window.St && window.St.PageFlip) {
+        resolve(window.St.PageFlip);
+      } else {
+        reject(new Error('page-flip 已加载但未挂载到 window.St.PageFlip'));
+      }
+    };
+    s.onerror = () => reject(new Error('page-flip.browser.js 加载失败'));
+    document.head.appendChild(s);
+  });
+  return _pfLibLoading;
+}
+
+// 生成关于书的所有页面 HTML（封面 + 关于 + changelog 各页 + 封底）
+function _buildBookPagesHTML() {
+  const cover = `
+    <div class="book-pf-page book-pf-cover">
+      <div class="pf-cover-title">小纸船</div>
+      <div class="pf-cover-sub">A LITTLE PAPER BOAT · 2026</div>
+    </div>`;
+
+  const aboutPage1 = `
+    <div class="book-pf-page">
+      <h1 class="pf-h1">关于小纸船</h1>
+      <div class="pf-meta">序</div>
+      <p>2026 年初，AI 像潮水一样涨起来。</p>
+      <p>豆包、Kimi、DeepSeek、GLM、Claude……每周都有新模型出来。但我注意到一件事：</p>
+      <p>身边那些刚接触 AI 的朋友——没毕业的大学生、不写代码的普通人——他们买不起 ChatGPT Plus，看不懂 Cursor，下载了扣子和 Trae 却 get 不到点。他们能用的，只有豆包这种官方 App。</p>
+      <p>而最强的那些模型，他们碰不到。</p>
+      <p class="no-indent" style="margin-top:18px;">所以我做了这艘小船。</p>
+      <div class="pf-page-num">— 1 —</div>
+    </div>`;
+
+  const aboutPage2 = `
+    <div class="book-pf-page">
+      <div class="pf-divider"></div>
+      <ul class="pf-list">
+        <li><span class="pf-strong">一份火山 Coding Plan</span>（90 元 / 月），几乎能调用国内全部主流模型</li>
+        <li><span class="pf-strong">一个写在浏览器里的聊天器</span>，打开就用、不用注册</li>
+        <li><span class="pf-strong">一个朴素的愿望</span>，让你也能体验最新最强的 AI</li>
+      </ul>
+      <p class="no-indent" style="margin-top:14px;">我不靠它赚钱。它免费给你用。你也可以分享给身边的朋友。</p>
+      <div class="pf-quote">如果有一天它停更了（可能是火山政策变了，也可能是我换了别的事做），也希望它已经在某段时间里，陪你聊过几次有意思的对话。</div>
+      <div class="pf-page-num">— 2 —</div>
+    </div>`;
+
+  const aboutPage3 = `
+    <div class="book-pf-page">
+      <div class="pf-capsule">
+        <div class="pf-capsule-title">这艘船建造时的世界</div>
+        <div style="text-align:center; line-height:2; text-indent:0;">
+          豆包 Seed 2.0 · Kimi K2.6 · DeepSeek V4 Pro<br>
+          GLM 5.1 · Claude Sonnet 4.5 · MiniMax M3
+        </div>
+        <div style="margin-top:12px; text-align:center; color:var(--paper-ink-dim, #6a5839); font-size:12px; text-indent:0;">
+          —— 这是我们这一代普通人，<br>第一次能同时摸到这么多 AI ——
+        </div>
+      </div>
+      <p class="no-indent" style="text-align:center; color:var(--paper-ink-dim, #6a5839); font-size:13px; margin-top:18px;">
+        如果你是从未来回望这一刻的人——你好。<br>我们当时，是这么用 AI 的。
+      </p>
+      <div class="pf-signature">
+        <div class="pf-sig-name">—— schlesimu</div>
+        <div>2026 年 6 月 · 一个普通的下午</div>
+      </div>
+      <div class="pf-page-num">— 3 —</div>
+    </div>`;
+
+  // changelog 多页（由 10-changelog.js 提供）
+  let changelogPagesHTML = '';
+  if (typeof window.buildChangelogBookPages === 'function') {
+    try {
+      changelogPagesHTML = window.buildChangelogBookPages() || '';
+    } catch (e) {
+      console.warn('[StPageFlip] buildChangelogBookPages 失败：', e);
+    }
+  }
+
+  const backCover = `
+    <div class="book-pf-page book-pf-cover">
+      <div class="pf-cover-title" style="font-size:20px; letter-spacing:6px;">— 完 —</div>
+      <div class="pf-cover-sub">谢谢你翻到这里</div>
+    </div>`;
+
+  // v0.9.10.6: 移除前封面，打开就是双页摊开（开门见山，不需要"翻一页"才看到内容）
+  return aboutPage1 + aboutPage2 + aboutPage3 + changelogPagesHTML + backCover;
+}
+
+// 计算合适的书本尺寸（v0.9.10.6: 撑满整个 stage 不再钉死上限）
+// stretch 模式下 PageFlip 会按 width/height 比例反推实际尺寸，所以这里要保证
+// 「按 height 算出的总宽 ≤ stage 可用宽」与「按 width 算出的总高 ≤ stage 可用高」同时成立
+function _calcBookSize() {
+  const stage = document.querySelector('.book-pf-stage');
+  if (!stage) return { width: 360, height: 540 };
+  const rect = stage.getBoundingClientRect();
+  // hint 在 stage 内部占 ~30px
+  const availW = Math.max(280, rect.width);
+  const availH = Math.max(360, rect.height - 36);
+  const isMobile = window.matchMedia('(max-width: 640px)').matches;
+
+  // 单页比例（v0.9.10.6: 桌面 1.1 让书横向更宽更"铺满"，移动单页保持瘦高 1.45）
+  const ASPECT = isMobile ? 1.45 : 1.1;
+
+  if (isMobile) {
+    // 移动端：单页模式
+    let w = availW;
+    let h = Math.round(w * ASPECT);
+    if (h > availH) {
+      h = availH;
+      w = Math.round(h / ASPECT);
+    }
+    return { width: w, height: h };
+  }
+
+  // 桌面：双页跨页 → 总宽 = 2 × 单页宽
+  // 同时受 availW 和 availH 双重约束
+  const wByWidth = Math.floor(availW / 2);   // 按宽度限制下单页能多宽
+  const hByWidth = Math.round(wByWidth * ASPECT);
+  const hByHeight = availH;
+  const wByHeight = Math.round(hByHeight / ASPECT);
+
+  let w, h;
+  if (hByWidth <= availH) {
+    // 高度够 → 宽度卡满
+    w = wByWidth;
+    h = hByWidth;
+  } else {
+    // 高度不够 → 高度卡满，宽度按比例缩
+    w = wByHeight;
+    h = hByHeight;
+  }
+  return { width: w, height: h };
+}
+
+// 创建 StPageFlip 实例
+async function _createBookInstance() {
+  const PageFlip = await _loadPageFlipLib();
+  const container = document.getElementById('aboutBook');
+  if (!container) return null;
+
+  // 注入所有页面 DOM
+  container.innerHTML = _buildBookPagesHTML();
+
+  const size = _calcBookSize();
+  // v0.9.10.6: 直接用内联样式钉死 container 物理尺寸，防止 stretch 模式撑爆视口
+  // 双页跨页 → 总宽 = size.width × 2，总高 = size.height
+  const totalW = size.width * 2;
+  const totalH = size.height;
+  container.style.width = totalW + 'px';
+  container.style.height = totalH + 'px';
+  container.style.flex = '0 0 auto';
+
+  const inst = new PageFlip(container, {
+    width: size.width,
+    height: size.height,
+    minWidth: 280,
+    maxWidth: 900,
+    minHeight: 360,
+    maxHeight: 1200,
+    size: 'stretch',
+    drawShadow: true,
+    flippingTime: 700,
+    maxShadowOpacity: 0.5,
+    showCover: false,            // v0.9.10.6: 不再有前封面，第一屏直接双页摊开
+    mobileScrollSupport: false,
+    usePortrait: true,           // 移动端自动单页
+    autoSize: true,
+  });
+
+  // 把 children 当作 page DOM
+  const pageEls = Array.from(container.querySelectorAll('.book-pf-page'));
+  inst.loadFromHTML(pageEls);
+
+  // v0.9.10.6: PageFlip 在 stretch 模式下会把 container.style.width 改成 "100%"，
+  // 必须在 loadFromHTML 之后再次强制写回我们算好的物理尺寸（用 !important 防回写）
+  container.style.setProperty('width', totalW + 'px', 'important');
+  container.style.setProperty('height', totalH + 'px', 'important');
+  container.style.setProperty('max-width', totalW + 'px', 'important');
+
+  return inst;
+}
+
 function openAbout(target) {
   const page = document.getElementById('aboutPage');
   if (!page) return;
   page.classList.add('visible');
   try { document.body.style.overflow = 'hidden'; } catch (e) {}
 
-  if (typeof renderChangelogPaper === 'function') {
-    try { renderChangelogPaper(); } catch (e) {}
-  }
+  _pfPendingTarget = target || null;
 
-  const book = document.getElementById('bookPages');
-  if (book) {
-    if (target === 'changelog') {
-      book.style.transition = 'none';
-      book.setAttribute('data-page', 'about');
-      void book.offsetWidth;
-      book.style.transition = '';
-      requestAnimationFrame(() => {
-        setTimeout(() => flipToChangelog(), 80);
-      });
-    } else {
-      book.setAttribute('data-page', 'about');
+  // 等关于页 fade-in 完 + flex 布局尺寸稳定，再实例化（避免拿到 0 尺寸）
+  setTimeout(async () => {
+    try {
+      // 已有实例 → 直接复用（不重复拉库 / 不重建 canvas）
+      if (!_pfInstance) {
+        _pfInstance = await _createBookInstance();
+      }
+      // 跳到目标位置
+      if (_pfInstance && _pfPendingTarget === 'changelog') {
+        // changelog 大致从第 4 页开始（封面 + 3 页关于）
+        try { _pfInstance.flip(4, 'top'); } catch (e) {}
+      } else if (_pfInstance) {
+        try { _pfInstance.turnToPage(0); } catch (e) {}
+      }
+    } catch (err) {
+      console.error('[StPageFlip] 初始化失败：', err);
+      // 兜底：显示纯静态文本，告诉用户可以下次再试
+      const container = document.getElementById('aboutBook');
+      if (container) {
+        container.innerHTML = '<div class="book-pf-page" style="margin:auto"><h1 class="pf-h1">关于小纸船</h1><p>翻页书加载失败了，请刷新页面再试一次。</p></div>';
+      }
     }
-  }
+    _pfPendingTarget = null;
+  }, 200);
 }
 
 function closeAbout(event, force) {
@@ -80,38 +295,55 @@ function closeAbout(event, force) {
   if (!page) return;
   page.classList.remove('visible');
   try { document.body.style.overflow = ''; } catch (e) {}
+
+  // 释放 StPageFlip 资源（destroy → 移除 canvas 和事件监听）
+  if (_pfInstance) {
+    try { _pfInstance.destroy(); } catch (e) {}
+    _pfInstance = null;
+  }
+  // v0.9.10.6 修复「再次打开空白」：destroy() 会把 #aboutBook 本身从 DOM 干掉，
+  // 所以这里要主动重建一个空容器塞回 .book-pf-stage，确保下次 openAbout 能找到它。
+  const stage = document.querySelector('.book-pf-stage');
+  if (stage) {
+    let container = document.getElementById('aboutBook');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'aboutBook';
+      container.className = 'book-pf-container';
+      // 插到 .book-pf-hint 前面（保持原 DOM 顺序）
+      const hint = stage.querySelector('.book-pf-hint');
+      if (hint) stage.insertBefore(container, hint);
+      else stage.appendChild(container);
+    } else {
+      container.innerHTML = '';
+      // 清掉上次创建实例时打进去的内联尺寸，避免下次旧值残留
+      container.style.width = '';
+      container.style.height = '';
+      container.style.flex = '';
+    }
+  }
 }
 
+// 兼容旧 API：现在统一通过 StPageFlip 翻页，外部代码（信封点击等）可能仍调
 function flipToChangelog() {
-  const book = document.getElementById('bookPages');
-  if (!book) return;
-  book.classList.add('flipping');
-  book.setAttribute('data-page', 'changelog');
-  setTimeout(() => {
-    book.classList.remove('flipping');
-    const cl = book.querySelector('.book-page-back');
-    if (cl) cl.scrollTop = 0;
-  }, 950);
+  if (_pfInstance) {
+    try { _pfInstance.flip(4, 'top'); } catch (e) {}
+  } else {
+    openAbout('changelog');
+  }
 }
-
 function flipToAbout() {
-  const book = document.getElementById('bookPages');
-  if (!book) return;
-  book.classList.add('flipping');
-  book.setAttribute('data-page', 'about');
-  setTimeout(() => {
-    book.classList.remove('flipping');
-    const fr = book.querySelector('.book-page-front');
-    if (fr) fr.scrollTop = 0;
-  }, 950);
+  if (_pfInstance) {
+    try { _pfInstance.flip(1, 'top'); } catch (e) {}
+  }
 }
-
 function closeAboutAndShowChangelog() {
   flipToChangelog();
 }
 
 // ========== 版本寄语字典（信封 / 长按面板都从这里取） ==========
 const VERSION_QUOTES = {
+  'v0.9.10.6': '让纸张真的卷起来。',
   'v0.9.10.0': '让说话和写字，回到同一只手里。',
   'v0.9.10.1': '让说话和写字，回到同一只手里。',
   'v0.9.10.2': '让说话和写字，回到同一只手里。',
@@ -229,44 +461,11 @@ if (typeof window !== 'undefined') {
   }
 }
 
-// ========== 翻页手势：移动端左右滑 ==========
-function bindBookSwipe() {
-  const stage = document.querySelector('.book-stage');
-  if (!stage || stage._swipeBound) return;
-  stage._swipeBound = true;
+// ========== 翻页手势：v0.9.10.6 删除 ==========
+// 旧版用 .book-stage 上的 touchstart/touchend 计算左右滑，触发 flipToChangelog/flipToAbout。
+// StPageFlip 库自带触摸 + 鼠标拖拽 + 点击边缘翻页，无需自己绑定。本函数留空为兼容入口。
+function bindBookSwipe() { /* no-op */ }
 
-  let sx = 0, sy = 0, t0 = 0;
-  const TH = 60;
-  const VTH = 40;
-  const TMAX = 600;
-
-  stage.addEventListener('touchstart', (e) => {
-    if (!e.touches || e.touches.length !== 1) return;
-    sx = e.touches[0].clientX;
-    sy = e.touches[0].clientY;
-    t0 = Date.now();
-  }, { passive: true });
-
-  stage.addEventListener('touchend', (e) => {
-    if (!e.changedTouches || e.changedTouches.length !== 1) return;
-    const dx = e.changedTouches[0].clientX - sx;
-    const dy = e.changedTouches[0].clientY - sy;
-    const dt = Date.now() - t0;
-    if (dt > TMAX) return;
-    if (Math.abs(dy) > VTH) return;
-    if (Math.abs(dx) < TH) return;
-
-    const book = document.getElementById('bookPages');
-    if (!book) return;
-    const cur = book.getAttribute('data-page');
-
-    if (dx < 0 && cur === 'about') {
-      flipToChangelog();
-    } else if (dx > 0 && cur === 'changelog') {
-      flipToAbout();
-    }
-  }, { passive: true });
-}
 
 if (typeof window !== 'undefined') {
   if (document.readyState === 'loading') {

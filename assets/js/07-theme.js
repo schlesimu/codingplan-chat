@@ -74,6 +74,22 @@ function toggleReduceFx() {
 }
 
 // 启动恢复
+function _initTheme() {
+  try {
+    // 读 localStorage 已保存的主题；没有就用浅色（默认）
+    const saved = localStorage.getItem('codingplan-theme');
+    const theme = (saved && THEMES.includes(saved)) ? saved : 'light';
+    currentTheme = theme;
+    document.documentElement.setAttribute('data-theme', theme);
+    updateThemeSwitcherUI();
+  } catch (e) { console.error('[theme] init 失败', e); }
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _initTheme);
+} else {
+  _initTheme();
+}
+
 function _initFxMode() {
   try { applyFxMode(getFxMode()); }
   catch (e) { console.error('[fx-mode] init 失败', e); }

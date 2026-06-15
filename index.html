@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <!-- v0.9.4: PWA 支持 添加到主屏后像原生应用 -->
-<link rel="manifest" href="manifest.json?v=0.9.10.5">
+<link rel="manifest" href="manifest.json?v=0.9.10.6">
 <meta name="theme-color" content="#0a0a1f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -22,7 +22,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-sc@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-sc@5/600.css">
 
-<link rel="stylesheet" href="assets/css/main.css?v=0.9.10.5">
+<link rel="stylesheet" href="assets/css/main.css?v=0.9.10.6">
 </head>
 <body>
 
@@ -136,88 +136,15 @@
 </div>
 
 
-<!-- ========== 关于小纸船 - 双页（关于 / 更新日志）+ 电子书翻页 ========== -->
+<!-- ========== 关于小纸船 - StPageFlip 真·电子书翻页（v0.9.10.6 重构） ========== -->
 <div class="about-page" id="aboutPage" onclick="closeAbout(event)">
   <button type="button" class="about-back" onclick="closeAbout(event, true)" aria-label="返回">←</button>
 
-  <!-- 翻页舞台：两张纸做 3D rotateY 翻页 -->
-  <div class="book-stage">
-    <div class="book-pages" id="bookPages" data-page="about">
-
-      <!-- 第 1 页：关于小纸船 -->
-      <article class="book-page book-page-front about-paper paper-surface" onclick="event.stopPropagation()">
-        <h1 class="about-title">关于小纸船</h1>
-        <div class="about-subtitle">A LITTLE PAPER BOAT · 2026</div>
-
-        <p>2026 年初，AI 像潮水一样涨起来。</p>
-        <p>豆包、Kimi、DeepSeek、GLM、Claude……每周都有新模型出来。但我注意到一件事：</p>
-        <p>身边那些刚接触 AI 的朋友——没毕业的大学生、不写代码的普通人——他们买不起 ChatGPT Plus，看不懂 Cursor，下载了扣子和 Trae 却 get 不到点。他们能用的，只有豆包这种官方 App。而最强的那些模型，他们碰不到。</p>
-        <p>所以我做了这艘小船。</p>
-
-        <div class="paper-divider"></div>
-
-        <ul class="paper-list">
-          <li><span class="li-strong">一份火山 Coding Plan</span>（90 元 / 月），几乎能调用国内全部主流模型</li>
-          <li><span class="li-strong">一个写在浏览器里的聊天器</span>，打开就用、不用注册</li>
-          <li><span class="li-strong">一个朴素的愿望</span>，让你也能体验最新最强的 AI</li>
-        </ul>
-
-        <p>我不靠它赚钱。它免费给你用。你也可以分享给身边的朋友。</p>
-
-        <div class="paper-quote">
-          如果有一天它停更了（可能是火山政策变了，也可能是我换了别的事做），也希望它已经在某段时间里，陪你聊过几次有意思的对话。
-        </div>
-
-        <div class="about-capsule">
-          <div class="about-capsule-title">这艘船建造时的世界</div>
-          <div style="text-align:center;line-height:1.95;">
-            豆包 Seed 2.0 · Kimi K2.6 · DeepSeek V4 Pro<br>
-            GLM 5.1 · Claude Sonnet 4.5 · MiniMax M3<br>
-            <span style="color:var(--paper-ink-dim);font-size:13px;">—— 这是我们这一代普通人，第一次能同时摸到这么多 AI ——</span>
-          </div>
-          <div style="margin-top:14px;text-align:center;color:var(--paper-ink-dim);font-size:13px;">
-            如果你是从未来回望这一刻的人——你好。<br>
-            我们当时，是这么用 AI 的。
-          </div>
-        </div>
-
-        <div class="about-signature">
-          <div class="stamp-wrap">
-            <div class="paper-stamp">
-              <div class="stamp-line-1">小纸船</div>
-              <div class="stamp-line-2">2026</div>
-            </div>
-          </div>
-          <div class="sig-name">—— schlesimu</div>
-          <div class="sig-meta">2026 年 6 月 · 一个普通的下午</div>
-        </div>
-
-        <div class="about-page-flip-hint" onclick="flipToChangelog()">
-          <span>查看更新日志</span>
-          <span class="flip-arrow">→</span>
-        </div>
-      </article>
-
-      <!-- 第 2 页：更新日志 -->
-      <article class="book-page book-page-back changelog-paper paper-surface" onclick="event.stopPropagation()">
-        <button type="button" class="changelog-back-to-about" onclick="flipToAbout()" aria-label="返回关于">
-          <span class="flip-arrow flip-arrow-left">←</span>
-          <span>关于小纸船</span>
-        </button>
-        <h1 class="about-title">更新日志</h1>
-        <div class="about-subtitle">CHANGELOG · 自 v0.3.2 起</div>
-        <div class="paper-divider"></div>
-
-        <div id="changelogPaperContent">
-          <!-- 由 renderChangelogPaper() 注入 -->
-        </div>
-
-        <div class="changelog-footer-sig">
-          —— 一艘还在更新的小船<br>
-          <span class="sig-meta">每个版本，都是给那一刻的礼物</span>
-        </div>
-      </article>
-
+  <!-- StPageFlip 容器：实际页面 DOM 由 02-onboarding.js / 10-changelog.js 在打开时动态注入 -->
+  <div class="book-pf-stage" onclick="event.stopPropagation()">
+    <div id="aboutBook" class="book-pf-container"></div>
+    <div class="book-pf-hint" id="bookPfHint">
+      <span>← 点页面边缘翻页 · 拖拽右下角自由翻 →</span>
     </div>
   </div>
 </div>
@@ -236,7 +163,7 @@
         <img src="logo.png" alt="小纸船" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">
       </div>
       <span>codingplan-chat</span>
-      <span class="sidebar-version" title="点击：寄语 ｜ 长按：抓取反馈日志">v0.9.10.5</span>
+      <span class="sidebar-version" title="点击：寄语 ｜ 长按：抓取反馈日志">v0.9.10.6</span>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -615,37 +542,37 @@
   </div>
 </div>
 
-<script src="assets/js/00-console-capture.js?v=0.9.10.5"></script>
-<script src="assets/js/01-state.js?v=0.9.10.5"></script>
-<script src="assets/js/02-onboarding.js?v=0.9.10.5"></script>
-<script src="assets/js/03-storage.js?v=0.9.10.5"></script>
-<script src="assets/js/04-sidebar.js?v=0.9.10.5"></script>
-<script src="assets/js/05-conversation.js?v=0.9.10.5"></script>
-<script src="assets/js/06-render.js?v=0.9.10.5"></script>
-<script src="assets/js/07-theme.js?v=0.9.10.5"></script>
-<script src="assets/js/08-cloudsync.js?v=0.9.10.5"></script>
-<script src="assets/js/09-settings.js?v=0.9.10.5"></script>
-<script src="assets/js/10-changelog.js?v=0.9.10.5"></script>
-<script src="assets/js/11-input.js?v=0.9.10.5"></script>
-<script src="assets/js/12-msgops.js?v=0.9.10.5"></script>
-<script src="assets/js/13-image.js?v=0.9.10.5"></script>
-<script src="assets/js/14-websearch.js?v=0.9.10.5"></script>
-<script src="assets/js/15-tts.js?v=0.9.10.5"></script>
-<script src="assets/js/16-providers.js?v=0.9.10.5"></script>
-<script src="assets/js/17-fileupload.js?v=0.9.10.5"></script>
+<script src="assets/js/00-console-capture.js?v=0.9.10.6"></script>
+<script src="assets/js/01-state.js?v=0.9.10.6"></script>
+<script src="assets/js/02-onboarding.js?v=0.9.10.6"></script>
+<script src="assets/js/03-storage.js?v=0.9.10.6"></script>
+<script src="assets/js/04-sidebar.js?v=0.9.10.6"></script>
+<script src="assets/js/05-conversation.js?v=0.9.10.6"></script>
+<script src="assets/js/06-render.js?v=0.9.10.6"></script>
+<script src="assets/js/07-theme.js?v=0.9.10.6"></script>
+<script src="assets/js/08-cloudsync.js?v=0.9.10.6"></script>
+<script src="assets/js/09-settings.js?v=0.9.10.6"></script>
+<script src="assets/js/10-changelog.js?v=0.9.10.6"></script>
+<script src="assets/js/11-input.js?v=0.9.10.6"></script>
+<script src="assets/js/12-msgops.js?v=0.9.10.6"></script>
+<script src="assets/js/13-image.js?v=0.9.10.6"></script>
+<script src="assets/js/14-websearch.js?v=0.9.10.6"></script>
+<script src="assets/js/15-tts.js?v=0.9.10.6"></script>
+<script src="assets/js/16-providers.js?v=0.9.10.6"></script>
+<script src="assets/js/17-fileupload.js?v=0.9.10.6"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-<script src="assets/js/18-mobile.js?v=0.9.10.5"></script>
-<script src="assets/js/19-configsync.js?v=0.9.10.5"></script>
-<script src="assets/js/20-share.js?v=0.9.10.5"></script>
-<script src="assets/js/21-glass-fx.js?v=0.9.10.5"></script>
-<script src="assets/js/22-prompts.js?v=0.9.10.5"></script>
-<script src="assets/js/23-preview.js?v=0.9.10.5"></script>
-<script src="assets/js/24-voice.js?v=0.9.10.5"></script>
-<script src="assets/js/25-shortcuts.js?v=0.9.10.5"></script>
-<script src="assets/js/26-letter.js?v=0.9.10.5"></script>
-<script src="assets/js/27-mic-input.js?v=0.9.10.5"></script>
-<script src="assets/js/28-footer-poem.js?v=0.9.10.5"></script>
+<script src="assets/js/18-mobile.js?v=0.9.10.6"></script>
+<script src="assets/js/19-configsync.js?v=0.9.10.6"></script>
+<script src="assets/js/20-share.js?v=0.9.10.6"></script>
+<script src="assets/js/21-glass-fx.js?v=0.9.10.6"></script>
+<script src="assets/js/22-prompts.js?v=0.9.10.6"></script>
+<script src="assets/js/23-preview.js?v=0.9.10.6"></script>
+<script src="assets/js/24-voice.js?v=0.9.10.6"></script>
+<script src="assets/js/25-shortcuts.js?v=0.9.10.6"></script>
+<script src="assets/js/26-letter.js?v=0.9.10.6"></script>
+<script src="assets/js/27-mic-input.js?v=0.9.10.6"></script>
+<script src="assets/js/28-footer-poem.js?v=0.9.10.6"></script>
 
 <!-- v0.9.9.0: 首屏世界观短诗（极小字，pointer-events:none） -->
 <div class="world-footer-poem">一艘小船，载着这个时代最新的几位 AI</div>

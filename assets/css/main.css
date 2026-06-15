@@ -3532,13 +3532,17 @@ body.share-view-mode { background: #0a0a14; color: #e8e8ee; margin: 0; }
   border-radius: 22px 22px 0 0;
   backdrop-filter: blur(40px) saturate(180%);
   -webkit-backdrop-filter: blur(40px) saturate(180%);
-  box-shadow: 0 -8px 40px rgba(0,0,0,0.5);
+  /* v0.9.10.6：阴影移到 .open 状态，避免抽屉藏在屏外时阴影漏到屏幕底部中间
+     —— transform 不裁切 box-shadow，导致 0 -8px 40px 的黑阴影一直浮在最顶层 */
   display: flex; flex-direction: column;
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease;
   z-index: 999;
   overflow: hidden;
 }
-.prompts-sheet.open { transform: translate(-50%, 0); }
+.prompts-sheet.open {
+  transform: translate(-50%, 0);
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.5);  /* 只在打开时才显示向上发散的阴影 */
+}
 
 .prompts-sheet-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -4985,269 +4989,258 @@ body.call-active { overflow: hidden; }
 }
 
 /* ============================================================
-   v0.9.9.0 电子书翻页：关于页 ↔ 更新日志页
+   v0.9.10.6 关于页电子书：StPageFlip 真·卷曲翻页
+   旧的 .book-stage / .book-pages / .book-page-front/back 整套
+   3D rotateY 翻转方案已删除，改由 StPageFlip 库（Canvas）渲染。
    ============================================================ */
 
-.book-stage {
-  /* v0.9.9.4：flex:1 占满 .about-page 的剩余高度，配合内部 .book-page 各自 overflow:auto */
+/* StPageFlip 舞台：填满 .about-page 剩余空间 */
+.book-pf-stage {
   flex: 1;
   min-height: 0;
   width: 100%;
-  max-width: 680px;
-  margin: 40px auto;
-  padding: 0 20px;
-  perspective: 2400px;
-  -webkit-perspective: 2400px;
+  /* v0.9.10.6: 移除 max-width 让书铺满整页，padding 减小让书更贴近边缘 */
+  margin: 8px auto 4px;
+  padding: 0 12px;
   display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.book-pages {
-  position: relative;
-  width: 100%;
-  flex: 1;
-  min-height: 0;
-  transform-style: preserve-3d;
-  -webkit-transform-style: preserve-3d;
-  transition: transform 0.95s cubic-bezier(0.55, 0.05, 0.25, 1);
-  will-change: transform;
+.book-pf-container {
+  /* v0.9.10.6: 通过 JS 注入的 --book-w / --book-h 钉死尺寸（避免 stretch 撑爆视口） */
+  width: var(--book-w, 100%);
+  height: var(--book-h, 100%);
+  flex-shrink: 0;
 }
 
-/* 默认显示关于页 */
-.book-pages[data-page="about"] {
-  transform: rotateY(0deg);
-}
-/* 翻到更新日志：整张纸 rotate -180deg，看到背面 */
-.book-pages[data-page="changelog"] {
-  transform: rotateY(-180deg);
+/* StPageFlip 内部生成的 canvas：保证响应式 */
+.book-pf-container canvas {
+  display: block;
 }
 
-.book-page {
-  width: 100%;
-  /* v0.9.9.4：每页自己滚动，不再让 .about-page 处理 */
-  height: 100%;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  box-sizing: border-box;
-  padding: 56px 48px 48px;
-  border-radius: 6px;
-  box-shadow: var(--paper-shadow);
+/* 翻页提示文字（在书下方） */
+.book-pf-hint {
+  margin: 14px 0 4px;
   font-family: var(--paper-serif);
-  color: var(--paper-ink);
-  line-height: 1.95;
-  font-size: 16px;
-  position: relative;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-.book-page-front {
-  position: relative;
-  z-index: 2;
-}
-.book-page-back {
-  position: absolute;
-  top: 0;
-  left: 0;
-  /* v0.9.9.4：撑满父容器，自己处理滚动 */
-  width: 100%;
-  height: 100%;
-  transform: rotateY(180deg);
-  -webkit-transform: rotateY(180deg);
-}
-/* 翻页时，让页面正在翻的那个 always 显示 */
-.book-pages[data-page="about"] .book-page-back { pointer-events: none; }
-.book-pages[data-page="changelog"] .book-page-front { pointer-events: none; }
-
-/* 翻页提示按钮 */
-.about-page-flip-hint {
-  margin-top: 36px;
-  padding-top: 22px;
-  border-top: 1px dashed var(--paper-divider);
+  font-size: 12px;
+  color: var(--paper-ink-dim);
+  letter-spacing: 1.5px;
+  opacity: 0.7;
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none;
   text-align: center;
-  font-family: var(--paper-serif);
+}
+
+/* StPageFlip 内每一页的样式（库会把这些 .book-pf-page 烧到 canvas 上） */
+/* v0.9.10.6: 书铺满整页后单页可达 ~480×640，padding 加大到 56/44 让文字呼吸 */
+.book-pf-page {
+  background: linear-gradient(135deg, #faf3df 0%, #f5e9c8 100%);
+  color: var(--paper-ink, #2b2118);
+  font-family: var(--paper-serif, 'Songti SC', 'STSong', 'SimSun', serif);
+  padding: 52px 44px 64px;
+  line-height: 1.85;
   font-size: 15px;
-  color: var(--paper-amber);
-  cursor: pointer;
+  box-sizing: border-box;
+  overflow: hidden;
+  position: relative;
+}
+.book-pf-page.book-pf-cover {
+  background: linear-gradient(140deg, #f5e3b8 0%, #e6cd8e 100%);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  letter-spacing: 2px;
-  transition: color 0.2s, gap 0.3s;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-  padding-bottom: 6px;
-}
-.about-page-flip-hint:hover {
-  color: var(--paper-stamp);
-  gap: 18px;
-}
-.about-page-flip-hint .flip-arrow {
-  font-size: 18px;
-  transition: transform 0.3s;
-}
-.about-page-flip-hint:hover .flip-arrow {
-  transform: translateX(4px);
-}
-
-/* 更新日志页：返回按钮 */
-.changelog-back-to-about {
-  position: absolute;
-  top: 18px;
-  left: 22px;
-  background: transparent;
-  border: none;
-  font-family: var(--paper-serif);
-  font-size: 14px;
-  color: var(--paper-amber);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 4px;
-  letter-spacing: 1px;
-  -webkit-tap-highlight-color: transparent;
-  transition: color 0.2s, gap 0.3s;
-}
-.changelog-back-to-about:hover {
-  color: var(--paper-stamp);
-  gap: 10px;
-}
-.flip-arrow-left {
-  font-size: 16px;
-  transition: transform 0.3s;
-}
-.changelog-back-to-about:hover .flip-arrow-left {
-  transform: translateX(-3px);
-}
-
-/* changelog 内容样式（v0.9.9.4：整体下调 1.5-2px，因日志条目多） */
-.changelog-paper {
-  font-size: 13.5px;
-  line-height: 1.85;
-}
-.cl-entry {
-  margin: 0 0 28px;
-  padding-bottom: 22px;
-  border-bottom: 1px dashed var(--paper-divider);
-}
-.cl-entry:last-of-type {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-/* 寄语：大字标题 */
-.cl-quote {
-  font-family: "STKaiti", "KaiTi", var(--paper-serif);
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1.6;
-  color: var(--paper-ink);
   text-align: center;
+  gap: 16px;
+}
+.book-pf-page.book-pf-cover .pf-cover-title {
+  font-family: "STKaiti", "KaiTi", var(--paper-serif);
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: 10px;
+  color: var(--paper-ink, #2b2118);
+}
+.book-pf-page.book-pf-cover .pf-cover-sub {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--paper-ink-dim, #6a5839);
+  opacity: 0.85;
+}
+.book-pf-page .pf-h1 {
+  font-family: "STKaiti", "KaiTi", var(--paper-serif);
+  font-size: 20px;
+  font-weight: 700;
   margin: 0 0 6px;
   letter-spacing: 2px;
-  position: relative;
-  padding: 6px 0;
-}
-.cl-quote::before {
-  content: """;
-  font-family: var(--paper-serif);
-  color: var(--paper-amber);
-  margin-right: 4px;
-  font-size: 20px;
-  vertical-align: -2px;
-}
-.cl-quote::after {
-  content: """;
-  font-family: var(--paper-serif);
-  color: var(--paper-amber);
-  margin-left: 4px;
-  font-size: 20px;
-  vertical-align: -2px;
-}
-
-.cl-meta-quote {
   text-align: center;
-  font-size: 11.5px;
-  letter-spacing: 4px;
-  color: var(--paper-amber);
-  margin-bottom: 16px;
-  font-family: var(--paper-serif);
 }
-
-/* 普通版本：小字版本号 */
-.cl-meta {
-  font-size: 12px;
-  letter-spacing: 3px;
-  color: var(--paper-amber);
-  margin-bottom: 10px;
-  font-family: var(--paper-serif);
+.book-pf-page .pf-meta {
+  font-size: 10px;
+  color: var(--paper-ink-dim, #6a5839);
+  letter-spacing: 2px;
+  text-align: center;
+  margin-bottom: 14px;
 }
-
-.cl-list {
+.book-pf-page .pf-divider {
+  text-align: center;
+  margin: 10px 0;
+  color: var(--paper-amber, #b8995a);
+  font-size: 11px;
+  letter-spacing: 5px;
+}
+.book-pf-page .pf-divider::before { content: "·  ·  ·"; }
+.book-pf-page p {
+  margin: 0 0 8px;
+  text-indent: 2em;
+}
+.book-pf-page p.no-indent { text-indent: 0; }
+.book-pf-page .pf-quote {
+  margin: 12px 0;
+  padding: 10px 14px;
+  border-left: 2px solid var(--paper-amber, #b8995a);
+  background: rgba(184, 153, 90, 0.08);
+  font-style: italic;
+  color: var(--paper-ink, #2b2118);
+  text-indent: 0;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.book-pf-page .pf-list {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: 8px 0;
 }
-.cl-list li {
-  padding: 4px 0 4px 20px;
+.book-pf-page .pf-list li {
+  padding: 3px 0 3px 18px;
   position: relative;
+  text-indent: 0;
   font-size: 13px;
-  color: var(--paper-ink-soft);
-  line-height: 1.8;
+  line-height: 1.6;
 }
-.cl-list li::before {
+.book-pf-page .pf-list li::before {
   content: "·";
   position: absolute;
   left: 6px;
-  top: 0;
-  color: var(--paper-amber);
-  font-weight: 700;
+  color: var(--paper-amber, #b8995a);
   font-size: 16px;
 }
-
-.changelog-footer-sig {
-  margin-top: 32px;
-  padding-top: 20px;
-  border-top: 1px solid var(--paper-divider);
-  text-align: center;
-  font-family: "STKaiti", "KaiTi", var(--paper-serif);
-  font-size: 14.5px;
-  color: var(--paper-ink);
-  letter-spacing: 2px;
+.book-pf-page .pf-list .pf-strong {
+  color: var(--paper-ink, #2b2118);
+  font-weight: 600;
 }
-.changelog-footer-sig .sig-meta {
-  display: block;
-  margin-top: 8px;
+.book-pf-page .pf-capsule {
+  margin: 12px 0;
+  padding: 12px 14px;
+  border: 1px dashed var(--paper-divider, rgba(120,80,30,0.25));
+  border-radius: 4px;
+  background: rgba(184, 153, 90, 0.05);
+  text-indent: 0;
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+.book-pf-page .pf-capsule-title {
   font-size: 11px;
-  color: var(--paper-ink-dim);
-  letter-spacing: 3px;
+  letter-spacing: 2.5px;
+  color: var(--paper-amber, #b8995a);
+  text-align: center;
+  margin-bottom: 8px;
+}
+.book-pf-page .pf-signature {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--paper-ink-dim, #6a5839);
+  text-indent: 0;
+}
+.book-pf-page .pf-signature .pf-sig-name {
+  font-family: "STKaiti", "KaiTi", var(--paper-serif);
+  font-size: 14px;
+  color: var(--paper-ink, #2b2118);
+  letter-spacing: 2px;
+  margin-bottom: 3px;
+}
+.book-pf-page .pf-page-num {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: var(--paper-ink-dim, #6a5839);
+  letter-spacing: 2.5px;
+  opacity: 0.55;
 }
 
-/* 关于页旧的 about-paper 样式还存在（base 已加），不需要重复 */
-/* 但 .about-paper 改造为 book-page 后不需要外 margin */
-.book-page.about-paper { margin: 0 !important; }
+/* changelog 块样式（在 StPageFlip 页内复用） */
+.book-pf-page .cl-entry {
+  margin: 0 0 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed var(--paper-divider, rgba(120,80,30,0.25));
+  text-indent: 0;
+}
+.book-pf-page .cl-entry:last-of-type {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+.book-pf-page .cl-quote {
+  font-family: "STKaiti", "KaiTi", var(--paper-serif);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--paper-ink, #2b2118);
+  text-align: center;
+  margin: 0 0 3px;
+  letter-spacing: 1px;
+  text-indent: 0;
+}
+.book-pf-page .cl-meta {
+  font-size: 10px;
+  color: var(--paper-amber, #b8995a);
+  letter-spacing: 1.2px;
+  margin-bottom: 4px;
+}
+.book-pf-page .cl-meta-quote {
+  text-align: center;
+  margin-bottom: 6px;
+}
+.book-pf-page .cl-list {
+  list-style: none;
+  padding: 0;
+  margin: 3px 0 0;
+}
+.book-pf-page .cl-list li {
+  font-size: 11px;
+  line-height: 1.55;
+  padding: 1px 0 1px 11px;
+  position: relative;
+  color: var(--paper-ink, #2b2118);
+  text-indent: 0;
+}
+.book-pf-page .cl-list li::before {
+  content: "·";
+  position: absolute;
+  left: 3px;
+  color: var(--paper-amber, #b8995a);
+}
 
-/* 移动端翻页（弱化 perspective，不破坏） */
+/* 移动端：StPageFlip 自动切换 portrait（单页全宽），可用空间更大，但屏幕小，仍要紧凑 */
 @media (max-width: 640px) {
-  .book-stage { padding: 0 12px; margin: 16px auto; }
-  .book-page { padding: 44px 24px 36px; font-size: 15px; }
-  .changelog-paper { font-size: 13px; }
-  .cl-quote { font-size: 16px; letter-spacing: 1.5px; }
-  .cl-list li { font-size: 12.5px; }
-  .changelog-back-to-about { top: 14px; left: 16px; font-size: 13px; }
-  .about-page-flip-hint { font-size: 14px; letter-spacing: 1.5px; }
+  .book-pf-stage { padding: 0 6px; margin: 10px auto 6px; }
+  .book-pf-page { padding: 28px 18px 32px; font-size: 13px; line-height: 1.65; }
+  .book-pf-page.book-pf-cover .pf-cover-title { font-size: 26px; letter-spacing: 7px; }
+  .book-pf-page .pf-h1 { font-size: 18px; }
+  .book-pf-page .pf-quote { font-size: 12.5px; }
+  .book-pf-page .cl-quote { font-size: 13px; letter-spacing: 0.8px; }
+  .book-pf-page .cl-list li { font-size: 10.5px; line-height: 1.55; }
+  .book-pf-page .pf-list li { font-size: 12px; }
+  .book-pf-hint { font-size: 10px; }
 }
 
-/* 翻页正在进行时的物理感：阴影动 */
-@keyframes bookFlipShadow {
-  0% { box-shadow: var(--paper-shadow); }
-  50% { box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 16px 60px rgba(0,0,0,0.25); }
-  100% { box-shadow: var(--paper-shadow); }
-}
-.book-pages.flipping .book-page {
-  animation: bookFlipShadow 0.95s ease-in-out;
-}
+/* 旧的全局 .changelog-paper / .cl-entry / .cl-quote / .book-page.about-paper /
+   @keyframes bookFlipShadow / 旧 @media .book-* 已全部删除（v0.9.10.6）。
+   等价规则在上方的 .book-pf-page 作用域内重新定义，专门服务 StPageFlip。 */
 
 /* ============================================================
    v0.9.9.3 桌面键盘快捷键
