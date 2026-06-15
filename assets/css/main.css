@@ -991,9 +991,9 @@ body {
     inset 0 -2px 1px rgba(255,255,255,0.15),
     inset 2px 0 4px -2px rgba(0,0,0,0.20),
     inset -2px 0 4px -2px rgba(0,0,0,0.20),
-    inset 0 0 30px rgba(0,0,0,0.08),
-    0 -4px 24px rgba(140,120,255,0.12),
-    0 -2px 8px rgba(0,0,0,0.15) !important;
+    inset 0 0 30px rgba(0,0,0,0.08) !important;
+    /* v0.9.10.6：删 0 -4px 24px 紫色光晕 + 0 -2px 8px 黑投影 — 泠反馈底部黑阴影难看；
+       inset 全保留（内阴影是液态玻璃核心） */
 }
 [data-theme="liquid"] .input-area::before {
   background:
@@ -2104,11 +2104,10 @@ body.fx-simple .msg.assistant.streaming .bubble { animation: none !important; }
   background: var(--input-area-bg);
   border: 1px solid var(--input-area-border);
   transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), backdrop-filter 0.25s ease, -webkit-backdrop-filter 0.25s ease;
-  /* 悬浮阴影 — 模拟 dock 离地效果 */
-  box-shadow: 
-    0 -1px 0 rgba(255,255,255,0.08),
-    0 8px 32px rgba(0,0,0,0.18),
-    0 2px 8px rgba(0,0,0,0.1);
+  /* 悬浮阴影 — 模拟 dock 离地效果
+     v0.9.10.6：泠反馈底部那团黑阴影难看（除极简档外都有） — 砍掉两条黑色投影，
+     只留顶部 1px 细高光保持玻璃边界感。dock 离地感由 backdrop-filter + border 提供已经够了 */
+  box-shadow: 0 -1px 0 rgba(255,255,255,0.08);
   /* 悬浮弹性动画 */
   animation: dockFloat 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -2124,10 +2123,8 @@ body.fx-simple .msg.assistant.streaming .bubble { animation: none !important; }
     0 -1px 0 rgba(255,255,255,0.5),
     /* 彩虹边缘微光 */
     0 1px 0 rgba(255,160,120,0.05),
-    0 -1px 0 rgba(140,180,255,0.04),
-    /* 悬浮阴影 */
-    0 4px 20px rgba(0,0,0,0.05),
-    0 1px 4px rgba(0,0,0,0.03);
+    0 -1px 0 rgba(140,180,255,0.04);
+    /* v0.9.10.6：删两条投影 (0 4px 20px / 0 1px 4px 黑) — 泠反馈底部黑阴影难看 */
 }
 /* dock 高光纹理 */
 .input-area::before {
