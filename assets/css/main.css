@@ -4930,8 +4930,7 @@ body.call-active { overflow: hidden; }
 }
 [data-theme="liquid"] .world-footer-poem {
   color: rgba(43, 33, 24, 0.45);
-  /* v0.9.10.0：丢掉黑阴影，改用极轻的米色提白让它更像纸感 */
-  text-shadow: 0 1px 0 rgba(255, 248, 235, 0.5);
+  /* v0.9.10.4：去掉 text-shadow（米色提白），泠反馈难看 */
 }
 @media (max-width: 480px) {
   .world-footer-poem { font-size: 9px; letter-spacing: 1px; }
