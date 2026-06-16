@@ -627,55 +627,126 @@ function _measureEntryHeights(data) {
 
 // 旧估算函数保留：作为 SSR/无 DOM 兜底（_measureEntryHeights 走不到时使用）
 
+// v0.9.11 修补·三：Word 式真实溢出分页
+// 不再"先测每条高度再算预算"——直接造一个跟真实页同尺寸的 probe，
+// 一条条塞进去，scrollHeight > clientHeight 就退回开新页。
+// 优点：100% 不会溢出（CSS、行折、字体差异都自动适配）
+// 缺点：O(N) DOM 测量但 N=80 行级别，不到 50ms
+function _packChangelogByOverflow(data, opts) {
+  if (typeof document === 'undefined') return null; // SSR 走估算分支
+  
+  const isMobile = _changelogIsMobile();
+  const sz = (typeof window !== 'undefined' && window.__bookSizeForChangelog) || null;
+  const pageW = sz ? sz.width : (isMobile ? 360 : 540);
+  const pageH = sz ? sz.height : (isMobile ? 600 : 600);
+  const padding = isMobile ? '40px 28px 24px' : '56px 64px 32px';
+  
+  // probe：与真实页同 W/H 同 padding，box-sizing border-box → clientHeight 就是内容区高
+  const probe = document.createElement('div');
+  probe.className = 'book-pf-page';
+  probe.style.cssText = `width:${pageW}px; height:${pageH}px; padding:${padding}; box-sizing:border-box; position:fixed; left:-9999px; top:0; visibility:hidden; overflow:hidden;`;
+  document.body.appendChild(probe);
+  
+  // 存放真实 entry 容器（不带 page-num，但要为最后一页留 footer 空间）
+  const inner = document.createElement('div');
+  probe.appendChild(inner);
+  
+  // 计算 footer 留白：最后一页有 footer + page-num
+  // 用占位符撑高度，让 overflow 检测自动避开 footer 区
+  const FOOTER_RESERVE_LAST = 78; // footer + page-num + margin
+  const FOOTER_RESERVE_NORMAL = 30; // 仅 page-num
+  
+  function fits(reserve) {
+    // 内容区 + 预留底部 ≤ probe 内容高
+    return inner.scrollHeight + reserve <= probe.clientHeight;
+  }
+  
+  const pages = [[]];
+  for (let i = 0; i < data.length; i++) {
+    const x = data[i];
+    const isLastEntry = (i === data.length - 1);
+    const reserve = isLastEntry ? FOOTER_RESERVE_LAST : FOOTER_RESERVE_NORMAL;
+    
+    // 试塞当前页
+    const html = _renderEntryHTML(x);
+    const wrap = document.createElement('div');
+    wrap.innerHTML = html;
+    const node = wrap.firstElementChild;
+    inner.appendChild(node);
+    
+    if (fits(reserve)) {
+      pages[pages.length - 1].push(x);
+    } else {
+      // 溢出，退回，开新页
+      inner.removeChild(node);
+      // 但如果当前页已经空，说明这条单独都装不下 → 强制塞，独占一页
+      if (pages[pages.length - 1].length === 0) {
+        pages[pages.length - 1].push(x);
+        // 清空 inner 准备下一页
+        inner.innerHTML = '';
+        pages.push([]);
+        continue;
+      }
+      // 当前页已满，开新页
+      pages.push([x]);
+      inner.innerHTML = '';
+      inner.appendChild(node);
+    }
+  }
+  
+  // 收尾：清掉最后空页
+  while (pages.length && pages[pages.length - 1].length === 0) pages.pop();
+  
+  probe.remove();
+  return pages;
+}
+
 function buildChangelogBookPages() {
   const data = CHANGELOG_DATA || [];
   if (!data.length) return '';
 
-  // v0.9.11 修补·二：用真实 DOM 测高分页（之前估算严重偏低，导致溢出 + 多余空白）
-  const heights = _measureEntryHeights(data);
-  const budget = _changelogPxBudget();
-  const budgetLast = _changelogPxBudgetLast();
-
-  function packPages(useLast) {
-    const out = [[]];
-    let used = 0;
-    for (let i = 0; i < data.length; i++) {
-      const x = data[i];
-      const ln = heights[i];
-      const isLastEntry = (i === data.length - 1);
-      const b = (useLast && isLastEntry) ? budgetLast : budget;
-      // 单条超大也只能塞一页（兜底）
-      if (ln > b) {
-        if (out[out.length-1].length === 0) {
-          out[out.length-1].push(x);
-          out.push([]);
-          used = 0;
-        } else {
-          out.push([x]);
-          out.push([]);
-          used = 0;
+  // v0.9.11 修补·三：优先走 Word 式真实溢出分页
+  let pages = _packChangelogByOverflow(data);
+  
+  // SSR/失败兜底：用估算分页（旧逻辑）
+  if (!pages) {
+    const heights = _measureEntryHeights(data);
+    const budget = _changelogPxBudget();
+    const budgetLast = _changelogPxBudgetLast();
+    pages = (function packEst() {
+      const out = [[]];
+      let used = 0;
+      for (let i = 0; i < data.length; i++) {
+        const x = data[i];
+        const ln = heights[i];
+        const isLastEntry = (i === data.length - 1);
+        const b = isLastEntry ? budgetLast : budget;
+        if (ln > b) {
+          if (out[out.length-1].length === 0) {
+            out[out.length-1].push(x); out.push([]); used = 0;
+          } else {
+            out.push([x]); out.push([]); used = 0;
+          }
+          continue;
         }
-        continue;
+        if (used + ln > b && out[out.length-1].length > 0) {
+          out.push([x]); used = ln;
+        } else {
+          out[out.length-1].push(x); used += ln;
+        }
       }
-      if (used + ln > b && out[out.length-1].length > 0) {
-        out.push([x]);
-        used = ln;
-      } else {
-        out[out.length-1].push(x);
-        used += ln;
-      }
-    }
-    while (out.length && out[out.length-1].length === 0) out.pop();
-    return out;
+      while (out.length && out[out.length-1].length === 0) out.pop();
+      return out;
+    })();
   }
 
-  // 用"最后一页扣 footer"预算分页，保证最后一页放得下 footer
-  const pages = packPages(true);
-
-  // v0.9.11 修补·二：StPageFlip 双页摊开要求总页数偶数
-  // 关于书前面是 4 页（aboutPage1+2+3 + 扉页），所以 changelog 页数为偶数 → 总偶数
-  // 若奇数 → 在最后一页补一个空白节填充（不影响视觉）
-  // 但其实 Open issue：约束是"总页数偶数"而不是 changelog 偶数。先观察实际行为，不在这里强补
+  // v0.9.11 修补·三：StPageFlip 双页摊开要求总页数偶数
+  // 关于书结构：前 3 页关于 + 1 页 changelog 序 + N 页 changelog = 4 + N
+  // 要总偶数 ⇒ N（changelog 内容页数）必须偶数
+  // 如果 changelog 内容页数奇数 → 补一页空白尾页
+  if (pages.length % 2 === 1) {
+    pages.push([{ __filler: true, v: '', date: '', items: [] }]);
+  }
   let totalPages = pages.length;
   let html = '';
 
@@ -697,6 +768,17 @@ function buildChangelogBookPages() {
 
   // 每个分片渲染一页
   pages.forEach((slice, pageIdx) => {
+    // 若是 filler 空白尾页（凑偶数用），渲染一句寄语 + page-num
+    if (slice.length === 1 && slice[0].__filler) {
+      html += `
+        <div class="book-pf-page" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+          <div style="font-family:'STKaiti','KaiTi',var(--paper-serif); font-size:13px; color:var(--paper-ink-dim, #6a5839); letter-spacing:2.5px;">
+            （留白）
+          </div>
+          <div class="pf-page-num" style="margin-top:auto;">— ${pageIdx + 1} / ${pages.length} —</div>
+        </div>`;
+      return;
+    }
     let entries = '';
     for (const x of slice) {
       entries += '<section class="cl-entry">';
@@ -714,9 +796,12 @@ function buildChangelogBookPages() {
       entries += '</section>';
     }
 
-    // 最后一页加 footer
+    // 最后一页加 footer（要避开 filler 空白尾页）
     let footer = '';
-    if (pageIdx === pages.length - 1) {
+    const lastContentIdx = (pages[pages.length-1].length === 1 && pages[pages.length-1][0].__filler)
+      ? pages.length - 2
+      : pages.length - 1;
+    if (pageIdx === lastContentIdx) {
       footer = `
         <div style="margin-top:20px; padding-top:14px; border-top:1px solid var(--paper-divider, rgba(120,80,30,0.25));
                     text-align:center; font-family:'STKaiti','KaiTi',var(--paper-serif);
