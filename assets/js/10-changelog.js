@@ -8,6 +8,17 @@
 // 收录范围: v0.1.0「起源」起所有大改动版本（共 75 版）
 
 const CHANGELOG_DATA = [
+  { v: 'v0.9.11', date: '2026-06-16',
+    quote: '小纸船清楚航行到了哪一天。',
+    items: [
+      '联网搜索升级到博查 AI Search：除网页摘要外，还能拿到天气、百科等结构化结果',
+      '加入「时效性嗅探」：当你的问题里出现「今天 / 最新 / 价格 / 新闻」等关键词，开关一开就自动联网，不用等模型主动求助',
+      '系统提示告诉模型今天的日期与知识截止情况，回答更不容易"活在去年"',
+      '关于页更新日志重新排版：桌面正文 11→14px、寄语 14→17px、行高 1.55→1.7，纸张利用率从 50% 提到 80%+',
+      '手机端更新日志字号也同步上调（正文 10.5→12px、寄语 13→14.5px），眼睛舒服一点',
+      '总页数从 41 页瘦到 23 页，翻起来更顺',
+    ]},
+
   { v: 'v0.9.10.6', date: '2026-06-16',
     quote: '让纸张真的卷起来。',
     items: [
@@ -488,29 +499,58 @@ const CHANGELOG_DATA = [
 // 分页策略：每页装下大约一屏的高度 — 8-12 个版本，重要寄语版（quote 字段）单独
 // 一页起头。最后一页留 footer 寄语。
 
-// 分页策略（v0.9.10.6 修补）: 基于"估算行数"动态打包，避免长版本号溢出页底
-// 桌面单页 ~530px - padding ~112px = ~470px 可用 / 行高 ~22px ≈ 21 行
-// 移动端单页更窄（~412px），单行容纳字数变少，所以 LINE_CHARS 也要相应减少
-// 留 1 行缓冲 + 留出 page-num（2行）和 footer（最后一页 5 行）
-const CHANGELOG_LINES_BUDGET = 18;        // 普通页可用行数
-const CHANGELOG_LINES_BUDGET_LAST = 13;   // 最后一页要留 footer 寄语，预算少 5 行
-// 单行平均字符数：桌面 ~530px 对应 28 字，移动端 ~412px 对应 22 字
+// 分页策略（v0.9.11 修补）: 桌面/平板字号上调（cl-list 11→14px、line-height 1.55→1.7），
+// 移动端字号也上调（cl-list 10.5→12px、cl-quote 13→14.5px）。
+// 之前 v0.9.10.6 用"虚拟行数"估算 + 18 行预算 → 桌面页只填到 50%（每页 1-2 个 entry，下半页空白）。
+// v0.9.11 改用"像素高度"估算 + 像素预算，更贴近真实占用。
+//
+// 桌面/平板单页可用高度：~530px - padding(52+64) = ~414px；预算 640px 是为了"激进塞满"
+// （估算函数比真实高估 ~14%，640 估算 ≈ 550 物理 ≈ 80%+ 填充率）
+// 移动端单页可用：屏幕 portrait ~430px - padding(28+32) = ~370px，估算高估 ~14% → 预算 420
+// 留 22px 给 page-num + 12px 缓冲，最后一页再扣 footer 60px
+function _changelogIsMobile() {
+  return (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 640px)').matches);
+}
+function _changelogPxBudget() {
+  return _changelogIsMobile() ? 420 : 640;
+}
+function _changelogPxBudgetLast() {
+  return _changelogIsMobile() ? 350 : 570;
+}
+// 兼容旧引用（下方 packPages 里已经不用了，留着防外部调用）
+const CHANGELOG_LINES_BUDGET = 18;
+const CHANGELOG_LINES_BUDGET_LAST = 13;
+// 单行平均字符数（仅用于物理像素估算里的"长 item 折行"判断）
 function _changelogLineChars() {
-  return (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 640px)').matches) ? 22 : 28;
+  return _changelogIsMobile() ? 22 : 24;
 }
 
-// 估算一个版本条目占多少"行"
-function _estChangelogEntryLines(x) {
+// 估算一个版本条目的"物理高度（像素）"——按当前 CSS 实际字号 + line-height 测量出的经验值
+function _estChangelogEntryPx(x) {
+  const isMobile = _changelogIsMobile();
   const lineChars = _changelogLineChars();
-  let lines = 2; // 基础：meta + 上下空隙
-  if (x.quote) lines += 2;  // 寄语标题 ~1 行 + 留白 1 行
+  // 每行实际行高（line-height × font-size）
+  // mobile: 12×1.55 ≈ 19  / desktop: 14×1.7 ≈ 24
+  const itemLineH = isMobile ? 19 : 24;
+  const quoteH    = isMobile ? 30 : 38;        // 寄语单行高度（含 margin）
+  const metaH     = isMobile ? 19 : 22;        // meta 行高
+  const entryGapH = isMobile ? 18 : 22;        // section margin-bottom + dashed border padding
+  let px = 0;
+  if (x.quote) {
+    px += quoteH;
+    px += metaH; // cl-meta-quote 还在
+  } else {
+    px += metaH;
+  }
   for (const it of (x.items || [])) {
     const s = String(it).trim();
     if (!s) continue;
-    // 每条 item: 1 行起步 + 字符长度溢出
-    lines += Math.max(1, Math.ceil(s.length / lineChars));
+    // 长文本折行
+    const lines = Math.max(1, Math.ceil(s.length / lineChars));
+    px += lines * itemLineH;
   }
-  return lines;
+  px += entryGapH;
+  return px;
 }
 
 function buildChangelogBookPages() {
@@ -519,15 +559,17 @@ function buildChangelogBookPages() {
 
   // 动态分页：把版本号顺序填入页，超过预算就开新页
   // 预先做一次试算，知道 totalPages（用于 footer 行预算）
+  // v0.9.11: 改为像素预算（不是行数）
+  const _budget = _changelogPxBudget();
   function packPages(budgetLastPage) {
     const out = [[]];
     let used = 0;
     for (let i = 0; i < data.length; i++) {
       const x = data[i];
-      const ln = _estChangelogEntryLines(x);
+      const ln = _estChangelogEntryPx(x);
       // 当前是不是最后一个版本？
       const isLastEntry = (i === data.length - 1);
-      const budget = isLastEntry ? budgetLastPage : CHANGELOG_LINES_BUDGET;
+      const budget = isLastEntry ? budgetLastPage : _budget;
       // 单条超大也只能塞一页（兜底，否则永远新开）
       if (ln > budget) {
         if (out[out.length-1].length === 0) {
@@ -555,9 +597,9 @@ function buildChangelogBookPages() {
   }
 
   // 第一次：用普通预算试算，得到 totalPages
-  let pages = packPages(CHANGELOG_LINES_BUDGET);
+  let pages = packPages(_budget);
   // 如果 footer 在最后一页，且最后一页内容多得溢出，重新排（最后一页用窄预算）
-  pages = packPages(CHANGELOG_LINES_BUDGET_LAST);
+  pages = packPages(_changelogPxBudgetLast());
 
   let totalPages = pages.length;
   let html = '';

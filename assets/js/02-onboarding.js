@@ -115,6 +115,9 @@ function _buildBookPagesHTML() {
         <li><span class="pf-strong">一个朴素的愿望</span>，让你也能体验最新最强的 AI</li>
       </ul>
       <p class="no-indent" style="margin-top:14px;">我不靠它赚钱。它免费给你用。你也可以分享给身边的朋友。</p>
+      <p class="no-indent" style="margin-top:10px; color:var(--paper-ink-dim, #6a5839); font-size:12px; line-height:1.7;">
+        想要自己用 Coding Plan，可以去火山方舟办一份；项目代码在 GitHub 上，部署到 Cloudflare Pages 就能拥有自己的小船。具体方法请见 README。
+      </p>
       <div class="pf-quote">如果有一天它停更了（可能是火山政策变了，也可能是我换了别的事做），也希望它已经在某段时间里，陪你聊过几次有意思的对话。</div>
       <div class="pf-page-num">— 2 —</div>
     </div>`;

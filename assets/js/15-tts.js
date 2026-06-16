@@ -362,17 +362,20 @@ function toggleSyncBackup() {
 }
 
 // 系统提示词：告诉 AI 如何使用搜索工具
+// v0.9.11: 加知识截止时间 + 引导主动联网；嗅探命中时前端会先 push 一条 system 联网结果（无需模型自吐 <search>）
 const SYSTEM_PROMPT = {
   role: 'system',
-  content: `你是一个智能编程助手。当用户的问题涉及实时信息、最新新闻、当前事件、股价、天气、时间等需要联网查询的内容时，你可以使用搜索工具获取信息。
+  content: (() => {
+    const today = new Date();
+    const dateStr = today.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'long' });
+    return `你是小纸船——一个温和聪明的 AI 助手。今天是 ${dateStr}。
 
-搜索工具使用方式：在回复中输出 <search>搜索关键词</search>，系统会自动搜索并把结果给你。
+【知识截止】你的训练数据有时间截止，对于截止之后的事件、最新新闻、当前股价/汇率、当下天气、最新比赛比分等，请优先使用联网搜索结果作答；如果系统已经在 user 之前提供了「联网检索结果」，请直接以那段资料为准回答用户的问题，必要时引用其中的来源链接。
 
-注意：
-1. 只有需要实时信息时才使用搜索
-2. 搜索关键词要简洁准确
-3. 收到搜索结果后，基于结果给出完整回答
-4. 不要告诉用户你在搜索，直接给出答案`
+【主动联网】当用户的问题涉及：实时信息 / 最新动态 / 当前价格 / 今日天气 / 近期事件 / 你不确定是否还成立的事实，请主动输出 <search>简洁关键词</search>，系统会自动联网并把结果回灌给你。
+
+【搜索建议】关键词要短、要核心；中文优先；不要重复搜同一关键词；收到结果后不要复读"我搜到了"，直接基于结果作答。`;
+  })()
 };
 
 // 调用 AI（支持搜索工具调用）
@@ -502,7 +505,30 @@ async function sendMessage() {
   const { div, bubble } = addStreamingMessage();
 
   // 构建消息上下文（包含系统提示）
-  const sendMessages = [SYSTEM_PROMPT, ...messages];
+  let sendMessages = [SYSTEM_PROMPT, ...messages];
+
+  // v0.9.11 前置嗅探：联网搜索开启 + 用户最后一条消息含时效性关键词 → 先搜一次，结果作为 system 注入
+  // 不等模型自吐 <search>，省一轮往返；同时保留 callAI 内的 <search> 兜底
+  try {
+    if (webSearchEnabled && typeof sniffWebSearchKeyword === 'function') {
+      const lastUserText = (typeof userContent === 'string') ? userContent
+        : (Array.isArray(messages[messages.length-1]?.content)
+            ? (messages[messages.length-1].content.find(p => p.type==='text')?.text || '')
+            : (messages[messages.length-1]?.content || ''));
+      const hit = sniffWebSearchKeyword(lastUserText);
+      if (hit && lastUserText.trim().length > 0) {
+        bubble.innerHTML = formatContent('🌊 检测到时效性关键词「' + hit + '」，小纸船在前置打捞…');
+        chatArea.scrollTop = chatArea.scrollHeight;
+        const sysCtx = await searchWeb(lastUserText.slice(0, 80));
+        if (sysCtx) {
+          // 在 SYSTEM_PROMPT 之后、user history 之前注入一条额外 system 上下文
+          sendMessages = [SYSTEM_PROMPT, { role: 'system', content: sysCtx }, ...messages];
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('前置嗅探失败:', e?.message || e);
+  }
 
   const aiResult = await callAI(sendMessages, bubble);
   const fullContent = String(aiResult || '');

@@ -5186,34 +5186,34 @@ body.call-active { overflow: hidden; }
 }
 .book-pf-page .cl-quote {
   font-family: "STKaiti", "KaiTi", var(--paper-serif);
-  font-size: 14px;
+  font-size: 17px;
   font-weight: 700;
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--paper-ink, #2b2118);
   text-align: center;
-  margin: 0 0 3px;
-  letter-spacing: 1px;
+  margin: 0 0 4px;
+  letter-spacing: 1.2px;
   text-indent: 0;
 }
 .book-pf-page .cl-meta {
-  font-size: 10px;
+  font-size: 11.5px;
   color: var(--paper-amber, #b8995a);
-  letter-spacing: 1.2px;
-  margin-bottom: 4px;
+  letter-spacing: 1.4px;
+  margin-bottom: 5px;
 }
 .book-pf-page .cl-meta-quote {
   text-align: center;
-  margin-bottom: 6px;
+  margin-bottom: 7px;
 }
 .book-pf-page .cl-list {
   list-style: none;
   padding: 0;
-  margin: 3px 0 0;
+  margin: 4px 0 0;
 }
 .book-pf-page .cl-list li {
-  font-size: 11px;
-  line-height: 1.55;
-  padding: 1px 0 1px 11px;
+  font-size: 14px;
+  line-height: 1.7;
+  padding: 2px 0 2px 13px;
   position: relative;
   color: var(--paper-ink, #2b2118);
   text-indent: 0;
@@ -5226,16 +5226,18 @@ body.call-active { overflow: hidden; }
 }
 
 /* 移动端：StPageFlip 自动切换 portrait（单页全宽），可用空间更大，但屏幕小，仍要紧凑 */
+/* v0.9.11: 桌面/平板字号上调（cl-list 14px / cl-quote 17px）+ 移动端字号也上调（cl-list 12px / cl-quote 14.5px） */
 @media (max-width: 640px) {
   .book-pf-stage { padding: 0 6px; margin: 10px auto 6px; }
-  .book-pf-page { padding: 28px 18px 32px; font-size: 13px; line-height: 1.65; }
+  .book-pf-page { padding: 28px 18px 32px; font-size: 14px; line-height: 1.65; }
   .book-pf-page.book-pf-cover .pf-cover-title { font-size: 26px; letter-spacing: 7px; }
-  .book-pf-page .pf-h1 { font-size: 18px; }
-  .book-pf-page .pf-quote { font-size: 12.5px; }
-  .book-pf-page .cl-quote { font-size: 13px; letter-spacing: 0.8px; }
-  .book-pf-page .cl-list li { font-size: 10.5px; line-height: 1.55; }
-  .book-pf-page .pf-list li { font-size: 12px; }
-  .book-pf-hint { font-size: 10px; }
+  .book-pf-page .pf-h1 { font-size: 19px; }
+  .book-pf-page .pf-quote { font-size: 13.5px; }
+  .book-pf-page .cl-quote { font-size: 14.5px; line-height: 1.5; letter-spacing: 0.8px; margin-bottom: 4px; }
+  .book-pf-page .cl-meta { font-size: 11px; letter-spacing: 1.2px; margin-bottom: 5px; }
+  .book-pf-page .cl-list li { font-size: 12px; line-height: 1.55; padding: 1px 0 1px 12px; }
+  .book-pf-page .pf-list li { font-size: 13px; }
+  .book-pf-hint { font-size: 11px; }
 }
 
 /* 旧的全局 .changelog-paper / .cl-entry / .cl-quote / .book-page.about-paper /
