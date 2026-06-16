@@ -197,33 +197,37 @@ function _calcBookSize() {
   let availH = Math.max(360, rect.height);
   const isMobile = window.matchMedia('(max-width: 640px)').matches;
 
-  // v0.9.11 修补·五：移动端 iOS Safari + 安卓 Chromium「100vh 包含浏览器 chrome」陷阱兜底
-  // —— 当 stage 因 100vh 比可视区高时，用 visualViewport.height 作为真实可视区高
-  if (isMobile && window.visualViewport) {
-    const vvH = window.visualViewport.height;
-    const vvW = window.visualViewport.width;
-    // 留 12px 给左上角返回按钮 + 6px 安全边距
-    const reservedTop = 36;
-    if (vvH > 0 && vvH - reservedTop < availH) {
-      availH = vvH - reservedTop;
-    }
-    if (vvW > 0 && vvW < availW) {
-      availW = vvW;
-    }
+  // v0.9.11 修补·六：手机端真正铺满
+  // —— 直接用视口可视高度，不依赖 stage rect（stage flex:1 在某些浏览器拿到 0 或父容器异常）
+  if (isMobile) {
+    const vvH = window.visualViewport?.height || window.innerHeight || document.documentElement.clientHeight;
+    const vvW = window.visualViewport?.width || window.innerWidth || document.documentElement.clientWidth;
+    if (vvH > 0) availH = vvH;  // 视口高直接用，stage 顶 0 padding 已经让位
+    if (vvW > 0) availW = vvW;
   }
 
   // 单页比例（v0.9.10.6: 桌面 1.1 让书横向更宽更"铺满"，移动单页保持瘦高 1.45）
   const ASPECT = isMobile ? 1.45 : 1.1;
 
   if (isMobile) {
-    // 移动端：单页模式 — 铺满优先，按可用 W/H 取最大可放尺寸
+    // 移动端：单页模式 — 铺满优先
+    // 策略：先按宽度算高度；若高度超可视区则按高度反算宽度（保比例不超出）
     let w = availW;
     let h = Math.round(w * ASPECT);
     if (h > availH) {
-      // 高度卡住 → 按高度反推宽度（保证比例同时不超出可视区）
+      // 高度卡住 → 按高度反推宽度
       h = availH;
       w = Math.round(h / ASPECT);
     }
+    // v0.9.11 修补·六：debug 信息（生产可注释）
+    try {
+      window.__lastBookSizeDebug = {
+        rect: { w: rect.width, h: rect.height },
+        vv: { w: window.visualViewport?.width, h: window.visualViewport?.height },
+        inner: { w: window.innerWidth, h: window.innerHeight },
+        availW, availH, finalW: w, finalH: h,
+      };
+    } catch (e) {}
     return { width: w, height: h };
   }
 
@@ -267,19 +271,20 @@ async function _createBookInstance() {
   const isMobile = window.matchMedia('(max-width: 640px)').matches;
   const totalW = isMobile ? size.width : size.width * 2;
   const totalH = size.height;
-  container.style.width = totalW + 'px';
-  container.style.height = totalH + 'px';
-  container.style.flex = '0 0 auto';
+  // v0.9.11 修补·六：用 !important 钉死，避免 stretch 模式被回写
+  container.style.setProperty('width', totalW + 'px', 'important');
+  container.style.setProperty('height', totalH + 'px', 'important');
+  container.style.setProperty('flex', '0 0 auto', 'important');
 
   // v0.9.11 修补·五：手机端翻页时间短一点降低闪烁感知 + 阴影淡一点降低 GPU 压力
-  const isMobileForFlip = window.matchMedia('(max-width: 640px)').matches;
+  const isMobileForFlip = isMobile;
   const inst = new PageFlip(container, {
     width: size.width,
     height: size.height,
     minWidth: 280,
-    maxWidth: 900,
+    maxWidth: isMobile ? Math.max(900, size.width + 10) : 900,
     minHeight: 360,
-    maxHeight: 1200,
+    maxHeight: isMobile ? Math.max(1600, size.height + 10) : 1200, // v0.9.11 修补·六：手机端不要被 1200 cap 住
     size: 'stretch',
     drawShadow: !isMobileForFlip,            // 手机端关阴影：阴影是闪烁主因（每帧重绘 alpha gradient）
     flippingTime: isMobileForFlip ? 450 : 700, // 手机端缩短翻页时间，闪烁窗口期更短
