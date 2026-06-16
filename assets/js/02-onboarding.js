@@ -229,22 +229,10 @@ function _calcBookSize() {
   }
 
   // 桌面：双页跨页 → 总宽 = 2 × 单页宽
-  // 同时受 availW 和 availH 双重约束
-  const wByWidth = Math.floor(availW / 2);   // 按宽度限制下单页能多宽
-  const hByWidth = Math.round(wByWidth * ASPECT);
-  const hByHeight = availH;
-  const wByHeight = Math.round(hByHeight / ASPECT);
-
-  let w, h;
-  if (hByWidth <= availH) {
-    // 高度够 → 宽度卡满
-    w = wByWidth;
-    h = hByWidth;
-  } else {
-    // 高度不够 → 高度卡满，宽度按比例缩
-    w = wByHeight;
-    h = hByHeight;
-  }
+  // v0.9.11.5 修补·九：桌面也直接铺满视口，不再保 1.1 比例
+  // 单页宽 = 视口宽 / 2，单页高 = 视口高
+  const w = Math.floor(availW / 2);
+  const h = availH;
   return { width: w, height: h };
 }
 
