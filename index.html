@@ -143,8 +143,9 @@
   <!-- StPageFlip 容器：实际页面 DOM 由 02-onboarding.js / 10-changelog.js 在打开时动态注入 -->
   <div class="book-pf-stage" onclick="event.stopPropagation()">
     <div id="aboutBook" class="book-pf-container"></div>
-    <div class="book-pf-hint" id="bookPfHint">
-      <span>← 点页面边缘翻页 · 拖拽右下角自由翻 →</span>
+    <!-- v0.9.11 修补·四：删除底部固定 hint 让纸张铺满；改为首次打开浮层提示（JS 控制） -->
+    <div class="book-pf-floating-hint" id="bookPfFloatingHint" aria-hidden="true">
+      <span>轻点页边 · 或拖拽页角翻页</span>
     </div>
   </div>
 </div>

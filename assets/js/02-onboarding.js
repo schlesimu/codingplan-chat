@@ -162,13 +162,39 @@ function _buildBookPagesHTML() {
 // 计算合适的书本尺寸（v0.9.10.6: 撑满整个 stage 不再钉死上限）
 // stretch 模式下 PageFlip 会按 width/height 比例反推实际尺寸，所以这里要保证
 // 「按 height 算出的总宽 ≤ stage 可用宽」与「按 width 算出的总高 ≤ stage 可用高」同时成立
+// v0.9.11 修补·四：关于书浮层翻页提示
+// 触发：前 3 次打开关于书时显示，第 4 次起不再骚扰
+// 时机：openAbout 实例化完成后调用，1.5s 淡入 → 4s 持续 → 1.5s 淡出
+function _showBookFloatingHint() {
+  try {
+    const hint = document.getElementById('bookPfFloatingHint');
+    if (!hint) return;
+    const KEY = '_xzc_book_hint_seen';
+    let seen = 0;
+    try { seen = parseInt(localStorage.getItem(KEY) || '0', 10) || 0; } catch (e) {}
+    if (seen >= 3) return;
+    try { localStorage.setItem(KEY, String(seen + 1)); } catch (e) {}
+    // 触发动画：移除再加 class（多次打开也能重新淡入）
+    hint.classList.remove('show');
+    // 强制 reflow 让 transition 重新触发
+    void hint.offsetWidth;
+    hint.classList.add('show');
+    // 5.5s 后淡出
+    clearTimeout(_bookHintTimer);
+    _bookHintTimer = setTimeout(() => {
+      hint.classList.remove('show');
+    }, 5500);
+  } catch (e) {}
+}
+let _bookHintTimer = null;
+
 function _calcBookSize() {
   const stage = document.querySelector('.book-pf-stage');
   if (!stage) return { width: 360, height: 540 };
   const rect = stage.getBoundingClientRect();
-  // hint 在 stage 内部占 ~30px
+  // v0.9.11 修补·四：删除底部 hint 后，stage 全部空间都给书
   const availW = Math.max(280, rect.width);
-  const availH = Math.max(360, rect.height - 36);
+  const availH = Math.max(360, rect.height);
   const isMobile = window.matchMedia('(max-width: 640px)').matches;
 
   // 单页比例（v0.9.10.6: 桌面 1.1 让书横向更宽更"铺满"，移动单页保持瘦高 1.45）
@@ -281,6 +307,9 @@ function openAbout(target) {
       } else if (_pfInstance) {
         try { _pfInstance.turnToPage(0); } catch (e) {}
       }
+
+      // v0.9.11 修补·四：浮层提示（前 3 次打开关于书时短暂显示翻页方法）
+      _showBookFloatingHint();
     } catch (err) {
       console.error('[StPageFlip] 初始化失败：', err);
       // 兜底：显示纯静态文本，告诉用户可以下次再试
@@ -314,8 +343,8 @@ function closeAbout(event, force) {
       container = document.createElement('div');
       container.id = 'aboutBook';
       container.className = 'book-pf-container';
-      // 插到 .book-pf-hint 前面（保持原 DOM 顺序）
-      const hint = stage.querySelector('.book-pf-hint');
+      // v0.9.11 修补·四：插到浮层 hint 前面（兼容老的 .book-pf-hint）
+      const hint = stage.querySelector('.book-pf-floating-hint, .book-pf-hint');
       if (hint) stage.insertBefore(container, hint);
       else stage.appendChild(container);
     } else {

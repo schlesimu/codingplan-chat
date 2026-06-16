@@ -759,10 +759,6 @@ function buildChangelogBookPages() {
         每个版本都是给那一刻的礼物<br>
         共 ${data.length} 个版本，分 ${totalPages} 页记录
       </p>
-      <p class="no-indent" style="text-align:center; color:var(--paper-ink-dim, #6a5839); font-size:12px; margin-top:36px;">
-        翻页方式：<br>
-        点击页面左右边缘 · 拖拽页角自由翻
-      </p>
       <div class="pf-page-num">— 序 —</div>
     </div>`;
 
