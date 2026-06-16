@@ -5064,7 +5064,12 @@ body.theme-dark .book-pf-floating-hint {
   background: linear-gradient(135deg, #faf3df 0%, #f5e9c8 100%);
   color: var(--paper-ink, #2b2118);
   font-family: var(--paper-serif, 'Songti SC', 'STSong', 'SimSun', serif);
-  padding: 52px 44px 64px;
+  /* v0.9.11 修补·五：参考中文书籍版式（三联/中信式）
+   *   上（天头）：56px ≈ 1.5cm 印刷感
+   *   左右（订口/切口）：48px ≈ 1.3cm（双页订口偏窄不强求）
+   *   下（地脚）：80px ≈ 2.1cm，把页码独立区让出
+   * 内容写在 56→52→inner area，页码 footer 浮在最下 24px 锚点 */
+  padding: 56px 48px 80px;
   line-height: 1.85;
   font-size: 15px;
   box-sizing: border-box;
@@ -5186,15 +5191,32 @@ body.theme-dark .book-pf-floating-hint {
   letter-spacing: 2px;
   margin-bottom: 3px;
 }
+/* v0.9.11 修补·五：页脚区域（参考中文书籍页脚设计）
+ * 位置：版心下方独立的 footer 带，居中显示
+ * 视觉：上方一道极细分隔线（仿装订线），暗示版心和页脚的独立 */
 .book-pf-page .pf-page-num {
   position: absolute;
-  left: 50%;
-  bottom: 22px;
-  transform: translateX(-50%);
-  font-size: 10px;
+  left: 48px;
+  right: 48px;
+  bottom: 32px;
+  text-align: center;
+  font-size: 11px;
   color: var(--paper-ink-dim, #6a5839);
-  letter-spacing: 2.5px;
-  opacity: 0.55;
+  letter-spacing: 3px;
+  opacity: 0.6;
+  font-family: var(--paper-serif, 'Songti SC', 'STSong', 'SimSun', serif);
+  /* 不再用 transform 居中，改用 left/right 同距 + text-align 实现 */
+}
+/* 页脚分隔线：版心和页码之间的细线（仿真书籍页眉脚分隔） */
+.book-pf-page .pf-page-num::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -14px;
+  width: 28px;
+  height: 1px;
+  background: var(--paper-divider, rgba(120, 80, 30, 0.18));
+  transform: translateX(-50%);
 }
 
 /* changelog 块样式（在 StPageFlip 页内复用） */
@@ -5253,8 +5275,20 @@ body.theme-dark .book-pf-floating-hint {
 /* 移动端：StPageFlip 自动切换 portrait（单页全宽），可用空间更大，但屏幕小，仍要紧凑 */
 /* v0.9.11: 桌面/平板字号上调（cl-list 14px / cl-quote 17px）+ 移动端字号也上调（cl-list 12px / cl-quote 14.5px） */
 @media (max-width: 640px) {
-  .book-pf-stage { padding: 0 6px; margin: 10px auto 6px; }
-  .book-pf-page { padding: 28px 18px 32px; font-size: 14px; line-height: 1.65; }
+  /* v0.9.11 修补·五：手机端真正铺满 — stage 0 边距，about-back 缩到极简，避免吃掉书的高度 */
+  .about-page { padding: 0; }
+  .about-back { top: 6px; left: 8px; padding: 4px 8px; font-size: 18px; z-index: 10000; }
+  .book-pf-stage {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    /* v0.9.11 修补·五：iOS 100vh 包含浏览器 chrome，用 dvh + visualViewport JS 兜底（在 02-onboarding.js） */
+    min-height: 100dvh;
+  }
+  .book-pf-page { padding: 36px 22px 56px; font-size: 14px; line-height: 1.65; }
+  .book-pf-page .pf-page-num { left: 22px; right: 22px; bottom: 22px; font-size: 10px; letter-spacing: 2.5px; }
+  .book-pf-page .pf-page-num::before { top: -10px; width: 22px; }
   .book-pf-page.book-pf-cover .pf-cover-title { font-size: 26px; letter-spacing: 7px; }
   .book-pf-page .pf-h1 { font-size: 19px; }
   .book-pf-page .pf-quote { font-size: 13.5px; }
@@ -5263,6 +5297,28 @@ body.theme-dark .book-pf-floating-hint {
   .book-pf-page .cl-list li { font-size: 12px; line-height: 1.55; padding: 1px 0 1px 12px; }
   .book-pf-page .pf-list li { font-size: 13px; }
   .book-pf-floating-hint { font-size: 11px; bottom: 10px; padding: 5px 12px; }
+}
+
+/* v0.9.11 修补·五：StPageFlip 翻页闪烁修复（iOS Safari + 安卓 Chromium 旧版尤甚）
+   — canvas/page 强制独立合成层 + GPU 加速 + 阻止 backface 闪一下白
+   — 翻页瞬间 canvas 重绘时不再产生「白闪」 */
+.book-pf-container,
+.book-pf-container .stf__wrapper,
+.book-pf-container .stf__block,
+.book-pf-container .stf__item,
+.book-pf-container canvas {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+  -webkit-perspective: 1000;
+  perspective: 1000;
+  will-change: transform;
+}
+/* 翻页时 canvas 自身做更激进的合成层提升，避免 iOS 在 transform 切换时闪烁白底 */
+.book-pf-container canvas {
+  background-color: var(--paper-bg, #faf3df); /* 闪白瞬间 fallback 颜色与纸张一致 */
+  image-rendering: -webkit-optimize-contrast;
 }
 
 /* 旧的全局 .changelog-paper / .cl-entry / .cl-quote / .book-page.about-paper /

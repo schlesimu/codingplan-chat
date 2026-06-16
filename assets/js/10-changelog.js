@@ -8,6 +8,16 @@
 // 收录范围: v0.1.0「起源」起所有大改动版本（共 75 版）
 
 const CHANGELOG_DATA = [
+  { v: 'v0.9.11.1', date: '2026-06-16',
+    quote: '一本读起来更舒服的小书。',
+    items: [
+      '关于页书的版式按中文书籍标准重整：天头、订口、地脚比例更接近铅字时代',
+      '页码独立成「页脚区」，居中显示并加细分隔线，仿宋字体衬出书卷气',
+      '手机端关于书真正铺满屏幕（兜底 iOS Safari「100vh 含浏览器栏」陷阱）',
+      '手机端翻页不再闪烁：canvas 升级为独立合成层 + 阴影简化 + 翻页时间缩短',
+      '内容溢出页码的顽疾修复（box-sizing border-box 下 clientHeight 含 padding 的判定盲区）',
+    ]},
+
   { v: 'v0.9.11', date: '2026-06-16',
     quote: '小纸船清楚航行到了哪一天。',
     items: [
@@ -639,7 +649,10 @@ function _packChangelogByOverflow(data, opts) {
   const sz = (typeof window !== 'undefined' && window.__bookSizeForChangelog) || null;
   const pageW = sz ? sz.width : (isMobile ? 360 : 540);
   const pageH = sz ? sz.height : (isMobile ? 600 : 600);
-  const padding = isMobile ? '40px 28px 24px' : '56px 64px 32px';
+  // v0.9.11 修补·五：probe padding 必须跟真实 CSS .book-pf-page 一致（中文书籍版式）
+  // 桌面：上 56 / 左右 48 / 下 80（地脚 80px 给页脚区让位）
+  // 移动：上 36 / 左右 22 / 下 56
+  const padding = isMobile ? '36px 22px 56px' : '56px 48px 80px';
   
   // probe：与真实页同 W/H 同 padding，box-sizing border-box → clientHeight 就是内容区高
   const probe = document.createElement('div');
@@ -651,14 +664,23 @@ function _packChangelogByOverflow(data, opts) {
   const inner = document.createElement('div');
   probe.appendChild(inner);
   
-  // 计算 footer 留白：最后一页有 footer + page-num
-  // 用占位符撑高度，让 overflow 检测自动避开 footer 区
-  const FOOTER_RESERVE_LAST = 78; // footer + page-num + margin
-  const FOOTER_RESERVE_NORMAL = 30; // 仅 page-num
+  // v0.9.11 修补·五：CSS padding-bottom 80px = 页脚区（分隔线 + page-num 居中 32px bottom）
+  // 桌面 padding 56/48/80，移动 36/22/56
+  // 真实可写区域 = pageH - paddingTop - paddingBottom
+  // ⚠️ 注意：probe.clientHeight 在 box-sizing:border-box 下 = padding-box 高 = 整个 height（不是 inner area）
+  // 所以 fits 判定要手动扣 padding：inner.scrollHeight + paddingTop + paddingBottom + reserve <= pageH
+  const PAD_TOP = isMobile ? 36 : 56;
+  const PAD_BOTTOM = isMobile ? 56 : 80;
+  // FOOTER_RESERVE_LAST 是末页 footer 寄语的高度（在 padding-bottom 区域占不下，要从内容区借空间）
+  // FOOTER_RESERVE_NORMAL: padding-bottom 已经留出页脚带，0 即可
+  const FOOTER_RESERVE_LAST = 60; // footer 寄语 ~ 60px，要从内容区借
+  const FOOTER_RESERVE_NORMAL = 56; // 内容到分隔线 + 分隔线到 page-num 的安全间距（实测 probe 比真页矮约 40-50px）
   
   function fits(reserve) {
-    // 内容区 + 预留底部 ≤ probe 内容高
-    return inner.scrollHeight + reserve <= probe.clientHeight;
+    // 内容区高 = pageH - padTop - padBottom
+    // 内容 + reserve 须 ≤ 内容区高
+    const contentArea = pageH - PAD_TOP - PAD_BOTTOM;
+    return inner.scrollHeight + reserve <= contentArea;
   }
   
   const pages = [[]];

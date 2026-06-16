@@ -193,18 +193,34 @@ function _calcBookSize() {
   if (!stage) return { width: 360, height: 540 };
   const rect = stage.getBoundingClientRect();
   // v0.9.11 修补·四：删除底部 hint 后，stage 全部空间都给书
-  const availW = Math.max(280, rect.width);
-  const availH = Math.max(360, rect.height);
+  let availW = Math.max(280, rect.width);
+  let availH = Math.max(360, rect.height);
   const isMobile = window.matchMedia('(max-width: 640px)').matches;
+
+  // v0.9.11 修补·五：移动端 iOS Safari + 安卓 Chromium「100vh 包含浏览器 chrome」陷阱兜底
+  // —— 当 stage 因 100vh 比可视区高时，用 visualViewport.height 作为真实可视区高
+  if (isMobile && window.visualViewport) {
+    const vvH = window.visualViewport.height;
+    const vvW = window.visualViewport.width;
+    // 留 12px 给左上角返回按钮 + 6px 安全边距
+    const reservedTop = 36;
+    if (vvH > 0 && vvH - reservedTop < availH) {
+      availH = vvH - reservedTop;
+    }
+    if (vvW > 0 && vvW < availW) {
+      availW = vvW;
+    }
+  }
 
   // 单页比例（v0.9.10.6: 桌面 1.1 让书横向更宽更"铺满"，移动单页保持瘦高 1.45）
   const ASPECT = isMobile ? 1.45 : 1.1;
 
   if (isMobile) {
-    // 移动端：单页模式
+    // 移动端：单页模式 — 铺满优先，按可用 W/H 取最大可放尺寸
     let w = availW;
     let h = Math.round(w * ASPECT);
     if (h > availH) {
+      // 高度卡住 → 按高度反推宽度（保证比例同时不超出可视区）
       h = availH;
       w = Math.round(h / ASPECT);
     }
@@ -255,6 +271,8 @@ async function _createBookInstance() {
   container.style.height = totalH + 'px';
   container.style.flex = '0 0 auto';
 
+  // v0.9.11 修补·五：手机端翻页时间短一点降低闪烁感知 + 阴影淡一点降低 GPU 压力
+  const isMobileForFlip = window.matchMedia('(max-width: 640px)').matches;
   const inst = new PageFlip(container, {
     width: size.width,
     height: size.height,
@@ -263,9 +281,9 @@ async function _createBookInstance() {
     minHeight: 360,
     maxHeight: 1200,
     size: 'stretch',
-    drawShadow: true,
-    flippingTime: 700,
-    maxShadowOpacity: 0.5,
+    drawShadow: !isMobileForFlip,            // 手机端关阴影：阴影是闪烁主因（每帧重绘 alpha gradient）
+    flippingTime: isMobileForFlip ? 450 : 700, // 手机端缩短翻页时间，闪烁窗口期更短
+    maxShadowOpacity: isMobileForFlip ? 0.25 : 0.5,
     showCover: false,            // v0.9.10.6: 不再有前封面，第一屏直接双页摊开
     mobileScrollSupport: false,
     usePortrait: true,           // 移动端自动单页
