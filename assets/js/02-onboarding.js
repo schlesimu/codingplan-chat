@@ -154,14 +154,9 @@ function _buildBookPagesHTML() {
     }
   }
 
-  const backCover = `
-    <div class="book-pf-page book-pf-cover">
-      <div class="pf-cover-title" style="font-size:20px; letter-spacing:6px;">— 完 —</div>
-      <div class="pf-cover-sub">谢谢你翻到这里</div>
-    </div>`;
-
+  // v0.9.11 修补·二：去掉封底「— 完 —」页（changelog 末页 footer 已经收尾，不需要再单独一页）
   // v0.9.10.6: 移除前封面，打开就是双页摊开（开门见山，不需要"翻一页"才看到内容）
-  return aboutPage1 + aboutPage2 + aboutPage3 + changelogPagesHTML + backCover;
+  return aboutPage1 + aboutPage2 + aboutPage3 + changelogPagesHTML;
 }
 
 // 计算合适的书本尺寸（v0.9.10.6: 撑满整个 stage 不再钉死上限）
@@ -216,10 +211,15 @@ async function _createBookInstance() {
   const container = document.getElementById('aboutBook');
   if (!container) return null;
 
+  // v0.9.11 修补·二：先算 size，再 build HTML
+  // 这样 buildChangelogBookPages → _changelogPxBudget 能读到正确的 bookH 用作分页预算
+  const size = _calcBookSize();
+  // 把算出的尺寸暂存到全局，分页函数读取（避免 _calcBookSize 在 DOM 重排前再次被调，结果不一致）
+  window.__bookSizeForChangelog = size;
+
   // 注入所有页面 DOM
   container.innerHTML = _buildBookPagesHTML();
 
-  const size = _calcBookSize();
   // v0.9.10.6: 直接用内联样式钉死 container 物理尺寸，防止 stretch 模式撑爆视口
   // 桌面双页跨页 → 总宽 = size.width × 2；移动端单页 → 总宽 = size.width × 1
   const isMobile = window.matchMedia('(max-width: 640px)').matches;

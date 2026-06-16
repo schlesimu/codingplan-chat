@@ -508,14 +508,43 @@ const CHANGELOG_DATA = [
 // （估算函数比真实高估 ~14%，640 估算 ≈ 550 物理 ≈ 80%+ 填充率）
 // 移动端单页可用：屏幕 portrait ~430px - padding(28+32) = ~370px，估算高估 ~14% → 预算 420
 // 留 22px 给 page-num + 12px 缓冲，最后一页再扣 footer 60px
+// 分页策略（v0.9.11 修补·二）：之前 640 静态预算 → 短屏挤、长屏空。
+// 进一步修（11-14 页内容溢出反馈）：直接读 _calcBookSize 真实算出的 bookH，
+// 减去单页 padding（桌面 56+32=88，移动 40+24=64）和安全边距（45px）
 function _changelogIsMobile() {
   return (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 640px)').matches);
 }
 function _changelogPxBudget() {
-  return _changelogIsMobile() ? 420 : 640;
+  if (typeof window === 'undefined') return 440;
+  // 优先读 02-onboarding 实例化前暂存的 bookH（最准）
+  let bookH = 0;
+  if (window.__bookSizeForChangelog && window.__bookSizeForChangelog.height) {
+    bookH = window.__bookSizeForChangelog.height;
+  }
+  // 次之：现场调 _calcBookSize（可能 stage rect 还没结算）
+  if (!bookH) {
+    try {
+      if (typeof window._calcBookSize === 'function') {
+        const sz = window._calcBookSize();
+        if (sz && sz.height) bookH = sz.height;
+      }
+    } catch(_) {}
+  }
+  // 兜底：用 vh 估
+  if (!bookH) {
+    const vh = window.innerHeight || 700;
+    bookH = Math.floor(vh * 0.85);
+  }
+  if (_changelogIsMobile()) {
+    // 移动端单页 padding 40+24=64，留 50px 安全（page-num 22 + 余量 + footer 风险）
+    return Math.max(360, bookH - 64 - 50);
+  }
+  // 桌面单页 padding 56+32=88，留 50px 安全
+  return Math.max(420, bookH - 88 - 50);
 }
 function _changelogPxBudgetLast() {
-  return _changelogIsMobile() ? 350 : 570;
+  // 最后一页要给 footer（约 60px）让一让
+  return _changelogPxBudget() - 60;
 }
 // 兼容旧引用（下方 packPages 里已经不用了，留着防外部调用）
 const CHANGELOG_LINES_BUDGET = 18;
@@ -553,25 +582,70 @@ function _estChangelogEntryPx(x) {
   return px;
 }
 
+// v0.9.11 修补·二：估算函数严重低估（估算 600 实际 800+），改用真实 DOM 测高
+// 在分页前一次性把每个 entry 渲染到 off-screen 测真实物理高度
+function _renderEntryHTML(x) {
+  let h = '<section class="cl-entry">';
+  if (x.quote) {
+    h += '<h2 class="cl-quote">' + escapeHTML(x.quote) + '</h2>';
+    h += '<div class="cl-meta cl-meta-quote">' + escapeHTML(x.v) + ' · ' + escapeHTML(x.date) + '</div>';
+  } else {
+    h += '<div class="cl-meta">' + escapeHTML(x.v) + ' · ' + escapeHTML(x.date) + '</div>';
+  }
+  h += '<ul class="cl-list">';
+  for (const it of (x.items || [])) {
+    if (it && String(it).trim()) h += '<li>' + escapeHTML(it) + '</li>';
+  }
+  h += '</ul></section>';
+  return h;
+}
+function _measureEntryHeights(data) {
+  if (typeof document === 'undefined') {
+    // SSR/测试兜底：回退到估算
+    return data.map(x => _estChangelogEntryPx(x));
+  }
+  // v0.9.11 修补·二：用真实 bookW 测高（之前写死 540 在宽屏上偏窄会高估折行）
+  const isMobile = _changelogIsMobile();
+  let probeWidth = isMobile ? 360 : 540;
+  if (window.__bookSizeForChangelog && window.__bookSizeForChangelog.width) {
+    probeWidth = window.__bookSizeForChangelog.width;
+  }
+  const probePadding = isMobile ? '40px 28px 24px' : '56px 64px 32px';
+  const probe = document.createElement('div');
+  probe.className = 'book-pf-page';
+  probe.style.cssText = `width:${probeWidth}px; padding:${probePadding}; box-sizing:border-box; position:fixed; left:-9999px; top:0; visibility:hidden;`;
+  document.body.appendChild(probe);
+  const heights = [];
+  for (const x of data) {
+    probe.innerHTML = _renderEntryHTML(x);
+    const sec = probe.querySelector('.cl-entry');
+    heights.push(sec ? sec.scrollHeight : 0);
+  }
+  probe.remove();
+  return heights;
+}
+
+// 旧估算函数保留：作为 SSR/无 DOM 兜底（_measureEntryHeights 走不到时使用）
+
 function buildChangelogBookPages() {
   const data = CHANGELOG_DATA || [];
   if (!data.length) return '';
 
-  // 动态分页：把版本号顺序填入页，超过预算就开新页
-  // 预先做一次试算，知道 totalPages（用于 footer 行预算）
-  // v0.9.11: 改为像素预算（不是行数）
-  const _budget = _changelogPxBudget();
-  function packPages(budgetLastPage) {
+  // v0.9.11 修补·二：用真实 DOM 测高分页（之前估算严重偏低，导致溢出 + 多余空白）
+  const heights = _measureEntryHeights(data);
+  const budget = _changelogPxBudget();
+  const budgetLast = _changelogPxBudgetLast();
+
+  function packPages(useLast) {
     const out = [[]];
     let used = 0;
     for (let i = 0; i < data.length; i++) {
       const x = data[i];
-      const ln = _estChangelogEntryPx(x);
-      // 当前是不是最后一个版本？
+      const ln = heights[i];
       const isLastEntry = (i === data.length - 1);
-      const budget = isLastEntry ? budgetLastPage : _budget;
-      // 单条超大也只能塞一页（兜底，否则永远新开）
-      if (ln > budget) {
+      const b = (useLast && isLastEntry) ? budgetLast : budget;
+      // 单条超大也只能塞一页（兜底）
+      if (ln > b) {
         if (out[out.length-1].length === 0) {
           out[out.length-1].push(x);
           out.push([]);
@@ -583,7 +657,7 @@ function buildChangelogBookPages() {
         }
         continue;
       }
-      if (used + ln > budget && out[out.length-1].length > 0) {
+      if (used + ln > b && out[out.length-1].length > 0) {
         out.push([x]);
         used = ln;
       } else {
@@ -591,20 +665,20 @@ function buildChangelogBookPages() {
         used += ln;
       }
     }
-    // 去掉末尾的空页
     while (out.length && out[out.length-1].length === 0) out.pop();
     return out;
   }
 
-  // 第一次：用普通预算试算，得到 totalPages
-  let pages = packPages(_budget);
-  // 如果 footer 在最后一页，且最后一页内容多得溢出，重新排（最后一页用窄预算）
-  pages = packPages(_changelogPxBudgetLast());
+  // 用"最后一页扣 footer"预算分页，保证最后一页放得下 footer
+  const pages = packPages(true);
 
+  // v0.9.11 修补·二：StPageFlip 双页摊开要求总页数偶数
+  // 关于书前面是 4 页（aboutPage1+2+3 + 扉页），所以 changelog 页数为偶数 → 总偶数
+  // 若奇数 → 在最后一页补一个空白节填充（不影响视觉）
+  // 但其实 Open issue：约束是"总页数偶数"而不是 changelog 偶数。先观察实际行为，不在这里强补
   let totalPages = pages.length;
   let html = '';
 
-  // 扉页：单独一页
   html += `
     <div class="book-pf-page">
       <h1 class="pf-h1">更新日志</h1>
