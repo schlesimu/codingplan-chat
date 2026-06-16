@@ -211,13 +211,14 @@ function _calcBookSize() {
 
   if (isMobile) {
     // 移动端：单页模式 — 铺满优先
-    // 策略：先按宽度算高度；若高度超可视区则按高度反算宽度（保比例不超出）
-    let w = availW;
-    let h = Math.round(w * ASPECT);
-    if (h > availH) {
-      // 高度卡住 → 按高度反推宽度
-      h = availH;
-      w = Math.round(h / ASPECT);
+    // v0.9.11 修补·七：手机端**先按高度卡满**（书高 = 视口高），宽度按比例反算
+    // 之前是先按宽度算高度 → 视口偏瘦时书高 < 视口高 → 上下露 about-page 米色背景
+    let h = availH;
+    let w = Math.round(h / ASPECT);
+    // 只有当反算的宽度比视口还大才退回按宽度卡（极端长条屏才会触发）
+    if (w > availW) {
+      w = availW;
+      h = Math.round(w * ASPECT);
     }
     // v0.9.11 修补·六：debug 信息（生产可注释）
     try {
