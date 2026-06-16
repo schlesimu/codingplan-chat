@@ -211,15 +211,11 @@ function _calcBookSize() {
 
   if (isMobile) {
     // 移动端：单页模式 — 铺满优先
-    // v0.9.11 修补·七：手机端**先按高度卡满**（书高 = 视口高），宽度按比例反算
-    // 之前是先按宽度算高度 → 视口偏瘦时书高 < 视口高 → 上下露 about-page 米色背景
-    let h = availH;
-    let w = Math.round(h / ASPECT);
-    // 只有当反算的宽度比视口还大才退回按宽度卡（极端长条屏才会触发）
-    if (w > availW) {
-      w = availW;
-      h = Math.round(w * ASPECT);
-    }
+    // v0.9.11.4 修补·八：手机端**两边都用视口实际值**，不再保 1.45 比例
+    // 之前限制比例 → 视口偏方时书短，露出 about-page 米色
+    // PageFlip portrait 单页模式下，宽高比由 container 决定，让书直接 = 视口尺寸
+    const w = availW;
+    const h = availH;
     // v0.9.11 修补·六：debug 信息（生产可注释）
     try {
       window.__lastBookSizeDebug = {
@@ -283,9 +279,9 @@ async function _createBookInstance() {
     width: size.width,
     height: size.height,
     minWidth: 280,
-    maxWidth: isMobile ? Math.max(900, size.width + 10) : 900,
+    maxWidth: isMobile ? 5000 : 900,
     minHeight: 360,
-    maxHeight: isMobile ? Math.max(1600, size.height + 10) : 1200, // v0.9.11 修补·六：手机端不要被 1200 cap 住
+    maxHeight: isMobile ? 5000 : 1200, // v0.9.11.4 修补·八：手机端彻底放开 max，让书铺满视口
     size: 'stretch',
     drawShadow: !isMobileForFlip,            // 手机端关阴影：阴影是闪烁主因（每帧重绘 alpha gradient）
     flippingTime: isMobileForFlip ? 450 : 700, // 手机端缩短翻页时间，闪烁窗口期更短
