@@ -4567,10 +4567,8 @@ body.call-active { overflow: hidden; }
      导致看 about（短）时下方多出一大段空白可滚 */
   flex-direction: column;
   overflow: hidden;
-  /* 默认 dark 主题下打开：先暖色 fade，露出纸 */
-  background: rgba(15, 12, 8, 0.7);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  /* v0.9.11.6 修补·十：默认背景直接 = 纸色，保证书未完全铺满时露出来也是同色无缝 */
+  background: var(--paper-bg);
   animation: aboutFadeIn 0.4s ease-out;
 }
 .about-page.visible { display: flex; }
@@ -4736,12 +4734,14 @@ body.call-active { overflow: hidden; }
   border-color: var(--paper-stamp);
 }
 
-/* 三主题对关于页背景的不同处理 */
+/* v0.9.11.6 修补·十：about-page 背景 = 书纸色，避免书未铺满时露出色差
+   StPageFlip portrait 模式下 container 高度由库内部决定，外部 !important 也压不住，
+   不能强求像素铺满 → 退而让背景同色，露出来也看不见 */
 [data-theme="light"] .about-page {
-  background: rgba(255, 250, 240, 0.85);
+  background: var(--paper-bg);
 }
 [data-theme="liquid"] .about-page {
-  background: rgba(220, 210, 190, 0.45);
+  background: var(--paper-bg);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
 }
