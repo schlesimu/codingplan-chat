@@ -1,8 +1,8 @@
 // Cloudflare Pages Function: /api/chat
 // 代理火山引擎 CodingPlan API - 支持流式和非流式
 // 支持自定义 API Key 和 Base URL（通过请求头传入）
+// 默认 key 从 Cloudflare 环境变量读，不进 git
 
-const DEFAULT_API_KEY = "***REDACTED-ARK-KEY***";
 const DEFAULT_API_BASE = "https://ark.cn-beijing.volces.com/api/coding/v3";
 const DEFAULT_MODEL = "ark-code-latest";  // 控制台选的 auto 模式
 
@@ -18,7 +18,8 @@ const ALLOWED_MODELS = new Set([
 ]);
 
 export async function onRequest(context) {
-  const { request } = context;
+  const { request, env } = context;
+  const DEFAULT_API_KEY = (env && env.ARK_API_KEY) || '';
 
   // CORS 预检
   if (request.method === 'OPTIONS') {

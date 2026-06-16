@@ -1,12 +1,13 @@
 // Cloudflare Pages Function: /api/search
 // 代理博查 AI Search API（v0.9.11 升级：从 web-search 升 ai-search，模型可读 modal/conversation/image 多模态结果）
 // 支持自定义 API Key（通过请求头 X-Search-Key 传入）
+// 默认 key 从 Cloudflare 环境变量 BOCHA_API_KEY 读，不进 git
 
-const DEFAULT_BOCHA_KEY = "sk-ae1...35a8";
 const BOCHA_API = "https://api.bochaai.com/v1/ai-search";
 
 export async function onRequest(context) {
-  const { request } = context;
+  const { request, env } = context;
+  const DEFAULT_BOCHA_KEY = (env && env.BOCHA_API_KEY) || '';
   const headers = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*'
