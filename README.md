@@ -2,7 +2,7 @@
 
 > 一艘装着这个时代 AI 的船。
 
-[![version](https://img.shields.io/badge/version-v0.9.11.6-blue?style=flat-square)](https://github.com/schlesimu/codingplan-chat/blob/main/assets/js/10-changelog.js)
+[![version](https://img.shields.io/badge/version-v0.9.12.0-blue?style=flat-square)](https://github.com/schlesimu/codingplan-chat/releases/tag/v0.9.12.0)
 [![license](https://img.shields.io/badge/license-MIT-green?style=flat-square)](#许可证)
 [![deploy](https://img.shields.io/badge/deploy-Cloudflare%20Pages-orange?style=flat-square)](https://pages.cloudflare.com/)
 
@@ -24,6 +24,13 @@
 
 ---
 
+## 在线体验
+
+- 正式站点：<https://codingplan-chat.pages.dev>
+- 更新日志：网页内点击侧栏版本号，或查看 [`assets/js/10-changelog.js`](./assets/js/10-changelog.js)
+
+---
+
 ## 它能做什么
 
 | 模块 | 能力 |
@@ -39,9 +46,39 @@
 
 ---
 
-## 在线体验
+## 开发者入口
 
-> 如果你部署了线上版本，可以在这里贴出 URL：例如 `https://codingplan-chat.pages.dev`
+如果你想调用、部署或改造小纸船，从这里开始：
+
+| 文档 | 用途 |
+|---|---|
+| [`docs/API.md`](./docs/API.md) | `/api/chat`、`/api/search`、`/api/models`、云同步与 TTS 接口说明 |
+| [`docs/DEPLOY.md`](./docs/DEPLOY.md) | Fork 到 Cloudflare Pages 的完整自部署流程 |
+| [`.env.example`](./.env.example) | Cloudflare 环境变量 / KV binding 示例 |
+| [`SECURITY.md`](./SECURITY.md) | API key、Token、git 历史泄露的安全边界 |
+| [`CONTRIBUTING.md`](./CONTRIBUTING.md) | 贡献方式、PR 边界与作品风格 |
+
+### 快速调用示例
+
+```bash
+curl -X POST https://codingplan-chat.pages.dev/api/chat \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "messages": [
+      {"role": "user", "content": "用一句话介绍小纸船"}
+    ],
+    "stream": false
+  }'
+```
+
+也可以传入你自己的 key 覆盖部署者默认 key：
+
+```bash
+curl -X POST https://codingplan-chat.pages.dev/api/chat \
+  -H 'Content-Type: application/json' \
+  -H 'X-Codingplan-Key: ark-你的key' \
+  -d '{"messages":[{"role":"user","content":"你好"}]}'
+```
 
 ---
 
@@ -51,15 +88,15 @@
 
 **后端**：Cloudflare Pages Functions（Workers），用于：
 
-- `functions/api/chat.js` —— 聊天接口转发（隐藏第三方 API key）
-- `functions/api/models.js` —— 模型列表
-- `functions/api/search.js` —— 联网搜索
+- `functions/api/chat.js` —— 聊天接口转发，默认 key 从 `ARK_API_KEY` 读取
+- `functions/api/models.js` —— 模型列表，默认 key 从 `ARK_API_KEY` 读取
+- `functions/api/search.js` —— 联网搜索，默认 key 从 `BOCHA_API_KEY` 读取
 - `functions/api/tts/` —— 语音合成
-- `functions/api/cloud/` —— 跨设备数据同步（KV 存储）
+- `functions/api/cloud/` —— 跨设备数据同步（KV 存储，binding 名 `CODINGPLAN_KV`）
 
 **前端模块**（`assets/js/00~28-*.js`，按加载顺序编号）：
 
-```
+```text
 00-console-capture     日志捕获
 01-state               全局状态
 02-onboarding          首屏 + 关于书（StPageFlip 翻页）
@@ -92,24 +129,28 @@ python3 -m http.server 8090
 open http://localhost:8090
 ```
 
-> 注：本地直接打开 `index.html` 会因 CORS 跑不起 ES 模块和 Service Worker，必须经 HTTP 服务器。
+> 注：本地直接打开 `index.html` 会因 CORS 跑不起 ES 模块和 Service Worker，必须经 HTTP 服务器。`python3 -m http.server` 只能运行静态页面，不能运行 Cloudflare Pages Functions，接口请部署到 Cloudflare 后测试。
 
 ---
 
 ## 部署到 Cloudflare Pages
 
+最短流程：
+
 1. Fork 这个仓库
-2. 登录 [Cloudflare Pages](https://pages.cloudflare.com/)
-3. 「Connect to Git」→ 选你 fork 的仓库
-4. 构建配置：
+2. Cloudflare Pages → **Connect to Git** → 选择你的 fork
+3. 构建配置：
+   - **Framework preset**：None
    - **Build command**：留空
    - **Build output directory**：`/`
-5. 部署完成后，在 Pages 设置里绑定 KV 命名空间（用于云同步）：
-   - Variable name：`CLOUDPLAN_KV`
-   - 在 Cloudflare KV 创建一个新 namespace 并绑定
-6. 在 Pages 环境变量里配置各家 AI 服务的 API key：
-   - `OPENAI_API_KEY`、`ANTHROPIC_API_KEY`、`DEEPSEEK_API_KEY`、`GLM_API_KEY` …
-7. 完成。
+4. 在 **Settings → Environment variables** 配置：
+   - `ARK_API_KEY`
+   - `BOCHA_API_KEY`（可选）
+5. 在 **Settings → Functions → KV namespace bindings** 绑定：
+   - `CODINGPLAN_KV`
+6. 重新部署
+
+完整步骤见 [`docs/DEPLOY.md`](./docs/DEPLOY.md)。
 
 ---
 
@@ -125,9 +166,9 @@ open http://localhost:8090
 
 ## 项目状态
 
-当前版本：**v0.9.11.6**（2026-06-16）
+当前版本：**v0.9.12.0「开放航线」**（2026-06-17）
 
-发版基本以「主题/特性」合并，详细更新日志见 [`assets/js/10-changelog.js`](./assets/js/10-changelog.js)，或在网页内点击侧栏版本号。
+这一版把小纸船的图纸整理好：API 文档、自部署指南、环境变量模板、安全说明和贡献模板都已经补齐。
 
 ---
 
@@ -144,6 +185,8 @@ open http://localhost:8090
 这是一份送给时代的礼物。如果你也想加点什么、修个 bug、改个错别字，欢迎直接 PR。
 
 不收商业 PR、不接增长 KPI、不加埋点。
+
+提交前请读 [`CONTRIBUTING.md`](./CONTRIBUTING.md) 和 [`SECURITY.md`](./SECURITY.md)。
 
 ---
 

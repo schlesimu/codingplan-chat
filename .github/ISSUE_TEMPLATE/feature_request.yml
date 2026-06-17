@@ -1,0 +1,41 @@
+name: 功能建议
+about: 给小纸船增加一点什么
+labels: enhancement
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        小纸船优先保持轻、慢、克制。欢迎讲清楚「为什么需要它」，不必一开始就给完整方案。
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: 你想要什么？
+      placeholder: 例如：希望能导出某段对话 / 希望分享页更好看...
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: 为什么需要？
+      description: 它解决谁的什么问题？
+    validations:
+      required: true
+
+  - type: textarea
+    id: shape
+    attributes:
+      label: 你想象中的样子
+      description: 可以描述交互、视觉、入口位置，也可以贴参考。
+
+  - type: checkboxes
+    id: principles
+    attributes:
+      label: 设计边界
+      options:
+        - label: 不需要登录也能使用
+        - label: 不依赖商业埋点或广告
+        - label: 不把 API key 写进源码
+        - label: 移动端体验优先
