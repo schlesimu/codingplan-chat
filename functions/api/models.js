@@ -5,7 +5,7 @@ const API_BASE = "https://ark.cn-beijing.volces.com/api/coding/v3";
 
 export async function onRequest(context) {
   const { env } = context;
-  const API_KEY=*** && env.ARK_API_KEY) || '';
+  const API_KEY = (env && env.ARK_API_KEY) || '';
   try {
     const resp = await fetch(`${API_BASE}/models`, {
       headers: { 'Authorization': `Bearer ${API_KEY}` }
